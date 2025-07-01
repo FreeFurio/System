@@ -5,10 +5,11 @@
   "main": "server.mjs",
   "type": "module",
   "scripts": {
-    "start": "node server.mjs",
+    "start": "cd server && npm start",
     "dev": "nodemon server.mjs",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-client": "cd ../client && npm install && npm run build"
+    "build-client": "cd ../client && npm install && npm run build",
+    "build": "cd client && npm install && npm run build && cd ../server && npm install"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

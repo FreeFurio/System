@@ -211,7 +211,7 @@ export default function RegisterForm() {
       };
 
       // Send to backend
-      const response = await fetch("http://localhost:3000/api/v1/auth/otp/send", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/otp/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -237,7 +237,7 @@ export default function RegisterForm() {
     setOtpError("");
     try {
       // Send OTP and user info to backend
-      const response = await fetch("http://localhost:3000/api/v1/auth/otp/verify", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/otp/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),

@@ -55,7 +55,7 @@ export default function AddressPage({ email }) {
     setLoading(true);
     setSubmitError("");
     try {
-      const response = await fetch("http://localhost:3000/api/v1/auth/register/complete", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/register/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, ...fields }), // <-- FIXED LINE

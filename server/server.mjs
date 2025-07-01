@@ -45,7 +45,21 @@ app.use(cors({
 
 // Set security HTTP headers using helmet
 // This adds various security headers to protect against common web vulnerabilities
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "wss://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app",
+          "https://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app"
+        ],
+        // You can add other directives as needed
+      },
+    },
+  })
+);
 
 // Development logging
 // Only log HTTP requests in development environment

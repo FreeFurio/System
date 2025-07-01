@@ -55,6 +55,10 @@ app.use(
           "wss://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app",
           "https://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app"
         ],
+        scriptSrc: [
+          "'self'",
+          "https://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app"
+        ],
         // You can add other directives as needed
       },
     },

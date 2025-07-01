@@ -1,0 +1,46 @@
+.account-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin: 12px 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.accept-btn {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reject-btn {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.accept-btn:hover {
+  background: #388e3c;
+}
+
+.reject-btn:hover {
+  background: #c62828;
+} 

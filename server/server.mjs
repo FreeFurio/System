@@ -52,12 +52,12 @@ app.use(
         defaultSrc: ["'self'"],
         connectSrc: [
           "'self'",
-          "wss://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app",
-          "https://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app"
+          "wss://*.firebasedatabase.app",
+          "https://*.firebasedatabase.app"
         ],
         scriptSrc: [
           "'self'",
-          "https://ai-powered-digital-marke-fc7af-default-rtdb.asia-southeast1.firebasedatabase.app"
+          "https://*.firebasedatabase.app"
         ],
         // You can add other directives as needed
       },

@@ -2,16 +2,16 @@
 // 1) IMPORTS & CONFIGURATION
 // ========================
 import { initializeApp } from 'firebase/app';
-import { 
-  getDatabase, 
-  ref, 
-  set, 
-  push, 
-  get, 
-  remove, 
-  query, 
-  orderByChild, 
-  equalTo 
+import {
+  getDatabase,
+  ref,
+  set,
+  push,
+  get,
+  remove,
+  query,
+  orderByChild,
+  equalTo
 } from 'firebase/database';
 import { config } from '../config/config.mjs';
 
@@ -87,12 +87,12 @@ class FirebaseService {
   static async findUserByUsername(username) {
     try {
       const roles = ['Admin', 'ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-      
+
       for (const role of roles) {
 
         const nodeRef = ref(db, role);
         const snapshot = await get(nodeRef);
-        
+
         if (snapshot.exists()) {
           const users = snapshot.val();
           const user = Object.values(users).find(
@@ -112,7 +112,7 @@ class FirebaseService {
   static async isUsernameTaken(username) {
     try {
       const roles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-      
+
       for (const role of roles) {
         const nodeRef = ref(db, role);
         const snapshot = await get(nodeRef);
@@ -123,7 +123,7 @@ class FirebaseService {
           if (Object.values(users).some(
             user => user.Username && user.Username.toLowerCase() === username.toLowerCase()
           )) {
-            return true; 
+            return true;
           }
         }
       }
@@ -133,10 +133,31 @@ class FirebaseService {
       throw new Error('Failed to check username');
     }
   }
+
+  // ========================
+  // 4) NOTIFICATIONS
+  // ========================
+  static async createAdminNotification(notificationData) {
+    try {
+      const notifAdminRef = push(ref(db, 'AdminNotification'));
+
+      await set(notifAdminRef, {
+        type: notificationData.type,
+        message: notificationData.message,
+        read: notificationData.read || false,
+        timestamp: notificationData.timestamp || Date.now()
+      });
+      return notifAdminRef.key
+    } catch (error) {
+      console.error('Error saving Admin notification:', error);
+      throw new Error('Failed to save Admin notification');
+    }
+  }
 }
 
+
 // ========================
-// 4) EXPORTS
+// 5) EXPORTS
 // ========================
 
 export default FirebaseService;

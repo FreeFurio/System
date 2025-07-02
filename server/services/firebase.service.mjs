@@ -145,7 +145,8 @@ class FirebaseService {
         type: notificationData.type,
         message: notificationData.message,
         read: notificationData.read || false,
-        timestamp: notificationData.timestamp || Date.now()
+        timestamp: notificationData.timestamp || Date.now(),
+        user: notificationData.user
       });
       return notifAdminRef.key
     } catch (error) {

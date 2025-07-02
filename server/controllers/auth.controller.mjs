@@ -145,11 +145,11 @@ const completeRegistration = async (req, res, next) => {
     };
     const userId = await FirebaseService.saveUser(userData);
 
-    /*
+
     await FirebaseService.createAdminNotification({
       ...userData,
       id: userId
-    });*/
+    });
     
     await FirebaseService.deleteOTP(email);
 

@@ -3,6 +3,9 @@ import { FiBell, FiUser, FiSettings, FiLogOut } from "react-icons/fi";
 import { useUser } from './UserContext';
 import "../../styles/Admin.css";
 import { Link, useLocation, Outlet } from 'react-router-dom';
+import NotificationBell from "./NotificationBell"; // Adjust path if needed
+import { ref } from "firebase/database";
+import { db } from "../../services/firebase";
 
 const DashboardLayout = () => {
   const { user } = useUser();
@@ -63,27 +66,24 @@ const DashboardLayout = () => {
           {/* Header */}
           <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 64, background: '#fafafa', borderBottom: '1px solid #e0e0e0', padding: '0 24px', position: 'relative', flexShrink: 0 }}>
             {/* Notification Bell */}
-            <div style={{ position: 'relative' }} ref={notifRef}>
-              <button
-                className="notification-bell"
-                aria-label="Notifications"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginRight: 16 }}
-                onClick={() => setShowNotif((prev) => !prev)}
-              >
-                <FiBell size={24} />
-              </button>
-              {showNotif && (
-                <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', borderRadius: 8, minWidth: 220, zIndex: 10, padding: 16 }}>
-                  <div style={{ color: '#888', textAlign: 'center', fontSize: 14 }}>No notification</div>
-                </div>
-              )}
-            </div>
+            <NotificationBell style={{ marginRight: '20px' }} />
             {/* Profile Dropdown */}
-            <div style={{ position: 'relative' }} ref={profileRef}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={profileRef}>
               <button
                 className="header-profile-btn"
                 aria-label="Profile"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  marginLeft: '0px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '40px',
+                  width: '40px',
+                }}
                 onClick={() => setShowProfile((prev) => !prev)}
               >
                 <span className="header-profile-avatar">

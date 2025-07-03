@@ -45,8 +45,8 @@ export default function LoginForm() {
       const result = await response.json();
       if (response.ok) {
         setMessage({ text: "Login successful!", type: "success" });
-        setUser({ name: result.name, role: result.role });
-        localStorage.setItem("user", JSON.stringify({ name: result.name, role: result.role }));
+        setUser(result);
+        localStorage.setItem("user", JSON.stringify(result));
         setTimeout(() => {
           navigate('/admin');
         }, 1000);

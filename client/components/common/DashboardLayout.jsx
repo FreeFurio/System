@@ -33,7 +33,9 @@ const DashboardLayout = () => {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem("user");
-    window.location.replace("/login"); // ensures replace and full reload
+    console.log("User after logout (context):", user);
+    console.log("User in localStorage after logout:", localStorage.getItem("user"));
+    window.location.replace("/login");
   };
 
   return (

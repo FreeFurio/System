@@ -15,6 +15,8 @@ const getUser = () => {
 const AdminRoute = ({ children }) => {
   const { user } = useUser();
   const localUser = getUser();
+  console.log("AdminRoute: user from context", user);
+  console.log("AdminRoute: user from localStorage", localUser);
   if (!localUser || localUser.role !== 'admin' || !user || user.role !== 'admin') {
     return <Navigate to="/login" replace />;
   }

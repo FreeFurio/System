@@ -12,14 +12,10 @@ const getUser = () => {
 
 // AdminRoute: Only allows access to children if user is an admin
 const AdminRoute = ({ children }) => {
-  // const user = getUser();
-
-  // if (!user || user.role !== 'admin') {
-    // Not logged in or not an admin, show unauthorized message
-    // return <div>Unauthorized: Admins only.</div>;
-  // }
-
-  // User is admin, allow access
+  const user = getUser();
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/login" replace />;
+  }
   return children;
 };
 

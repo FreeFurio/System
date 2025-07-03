@@ -8,7 +8,7 @@ import { ref } from "firebase/database";
 import { db } from "../../services/firebase";
 
 const DashboardLayout = () => {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const adminName = user?.name || "Admin";
   const adminRole = user?.role || "role";
   const [showNotif, setShowNotif] = useState(false);
@@ -29,6 +29,12 @@ const DashboardLayout = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+    window.location.replace("/login"); // ensures replace and full reload
+  };
 
   return (
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -95,7 +101,7 @@ const DashboardLayout = () => {
                   <button style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
                     <FiSettings style={{ marginRight: 8 }} /> Settings
                   </button>
-                  <button style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c' }}>
+                  <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c' }}>
                     <FiLogOut style={{ marginRight: 8 }} /> Logout
                   </button>
                 </div>

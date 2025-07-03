@@ -66,7 +66,7 @@ const registerOTP = async (req, res, next) => {
     }
 
     const otp = EmailService.generateOTP();
-    const expiresAt = Date.now() + 10 * 60 * 1000; 
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); 
     const hashedPassword = await bcrypt.hash(password, 12);
     const userData = {
       email,
@@ -78,7 +78,7 @@ const registerOTP = async (req, res, next) => {
       otp,
       expiresAt,
       verified: false,
-      createdAt: Date.now()
+      createdAt: new Date().toISOString()
     };
 
     await FirebaseService.saveOTP(email, userData);
@@ -150,7 +150,7 @@ const completeRegistration = async (req, res, next) => {
       type: "approval_needed",
       message: "A new account needs approval.",
       read: false,
-      timestamp: Date.now(),
+      timestamp: new Date().toISOString(),
       user: {
         ...userData,
         id: userId

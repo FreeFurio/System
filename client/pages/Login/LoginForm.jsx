@@ -43,10 +43,11 @@ export default function LoginForm() {
         }),
       });
       const result = await response.json();
+
       if (response.ok) {
         setMessage({ text: "Login successful!", type: "success" });
-        setUser(result);
-        localStorage.setItem("user", JSON.stringify(result));
+        setUser(result.data.user);
+        localStorage.setItem("user", JSON.stringify(result.data.user));
         setTimeout(() => {
           navigate('/admin');
         }, 1000);

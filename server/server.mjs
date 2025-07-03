@@ -26,9 +26,11 @@ const app = express();                             // Creates an Express applica
 
 // Enable CORS (Cross-Origin Resource Sharing) middleware
 app.use(cors({
-  origin: 'http://localhost:5173',  // Only allow requests from this origin (frontend URL as a string, e.g., 'http://localhost:5173')
+  origin: ['http://localhost:5173',
+    'https://system-production-9942.up.railway.app'
+  ], // Only allow requests from this origin (frontend URL as a string, e.g., 'http://localhost:5173')
   credentials: true                 // Allow cookies and credentials to be sent in requests (Boolean: true or false)
-})); 
+}));
 
 
 app.use(
@@ -58,14 +60,14 @@ const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,  // Time window for rate limiting in milliseconds. Example: 3600000 (1 hour)
   message: 'Too many requests from this IP, please try again in an hour!' // Message sent when rate limit is exceeded. Example: string message
 });
-app.use('/api', limiter);  
+app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(mongoSanitize());
 app.use(xss());
 app.use(
   hpp({
-    whitelist: [ 
+    whitelist: [
       'duration',
       'ratingsQuantity',
       'ratingsAverage',
@@ -116,7 +118,7 @@ process.on('unhandledRejection', err => {
   console.log('UNHANDLED REJECTION! Shutting down...');
   console.log(err.name, err.message);
   server.close(() => {
-    process.exit(1); 
+    process.exit(1);
   });
 });
 process.on('SIGTERM', () => {

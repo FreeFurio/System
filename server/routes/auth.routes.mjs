@@ -7,7 +7,8 @@ import {
   verifyOTP, 
   completeRegistration, 
   login,
-  validateOTPRegistration 
+  validateOTPRegistration,
+  setTask
 } from '../controllers/auth.controller.mjs';
 import { body } from 'express-validator';
 
@@ -87,7 +88,28 @@ router.post(
 );
 
 // ========================
-// 3) EXPORTS
+// 3) TASK
+// ========================
+router.post(
+  '/marketinglead/taskContentCreator',
+  [
+    body('objectives')
+      .notEmpty()
+      .withMessage('Objectives is required'),
+    body('gender')
+      .notEmpty()
+      .withMessage('Gender is required'),
+      body('deadline')
+      .notEmpty()
+      .withMessage('Deadline is Required'),
+      body('numContent')
+      .notEmpty()
+      .withMessage('Number of Content is required')
+  ],
+  setTask
+)
+// ========================
+// 4) EXPORTS
 // ========================
 
 export default router;

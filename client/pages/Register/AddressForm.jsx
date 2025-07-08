@@ -20,8 +20,15 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           required
           inputMode="numeric"
           pattern="[0-9]*"
+          placeholder={
+            errors.contactNumber === "This field is required" && !values.contactNumber
+              ? errors.contactNumber
+              : ""
+          }
         />
-        <div className="error-message">{errors.contactNumber}</div>
+        {errors.contactNumber && !(errors.contactNumber === "This field is required" && !values.contactNumber) && (
+          <div className="error-message">{errors.contactNumber}</div>
+        )}
       </div>
       <div className="form-group">
         <label htmlFor="city" className="label">City</label>
@@ -33,8 +40,15 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.city || ""}
           onChange={handleChange}
           required
+          placeholder={
+            errors.city === "This field is required" && !values.city
+              ? errors.city
+              : ""
+          }
         />
-        <div className="error-message">{errors.city}</div>
+        {errors.city && !(errors.city === "This field is required" && !values.city) && (
+          <div className="error-message">{errors.city}</div>
+        )}
       </div>
       <div className="form-group">
         <label htmlFor="state" className="label">State</label>
@@ -46,8 +60,15 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.state || ""}
           onChange={handleChange}
           required
+          placeholder={
+            errors.state === "This field is required" && !values.state
+              ? errors.state
+              : ""
+          }
         />
-        <div className="error-message">{errors.state}</div>
+        {errors.state && !(errors.state === "This field is required" && !values.state) && (
+          <div className="error-message">{errors.state}</div>
+        )}
       </div>
       <div className="form-group">
         <label htmlFor="country" className="label">Country</label>
@@ -59,8 +80,15 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.country || ""}
           onChange={handleChange}
           required
+          placeholder={
+            errors.country === "This field is required" && !values.country
+              ? errors.country
+              : ""
+          }
         />
-        <div className="error-message">{errors.country}</div>
+        {errors.country && !(errors.country === "This field is required" && !values.country) && (
+          <div className="error-message">{errors.country}</div>
+        )}
       </div>
       <div className="form-group">
         <label htmlFor="zipCode" className="label">Zip Code</label>
@@ -72,8 +100,15 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.zipCode || ""}
           onChange={handleChange}
           required
+          placeholder={
+            errors.zipCode === "This field is required" && !values.zipCode
+              ? errors.zipCode
+              : ""
+          }
         />
-        <div className="error-message">{errors.zipCode}</div>
+        {errors.zipCode && !(errors.zipCode === "This field is required" && !values.zipCode) && (
+          <div className="error-message">{errors.zipCode}</div>
+        )}
       </div>
     </>
   );

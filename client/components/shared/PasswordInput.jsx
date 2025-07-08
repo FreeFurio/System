@@ -35,7 +35,7 @@ export default function PasswordInput({
           {visible ? <FiEyeOff size={20} /> : <FiEye size={20} />}
         </span>
       </div>
-      {error && <div className="error-message">{error}</div>}
+      {error && error !== "This field is required" && <div className="error-message">{error}</div>}
     </div>
   );
 }

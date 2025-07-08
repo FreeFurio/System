@@ -91,10 +91,17 @@ html, body {
 .form-container {
   background: #fafafa;
   padding: 1.5rem 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
   max-width: 340px;
   width: 100%;
+  animation: registerFadeIn 0.7s cubic-bezier(.4,2,.3,1);
+  transition: box-shadow 0.22s, border-radius 0.22s;
+}
+
+@keyframes registerFadeIn {
+  from { opacity: 0; transform: translateY(32px) scale(0.98); }
+  to { opacity: 1; transform: none; }
 }
 
 .title {
@@ -147,11 +154,12 @@ html, body {
   height: 38px;
   padding-right: 36px;
   box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
-.input:focus, .select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px #e3f0ff;
+.input:focus, .input:hover, .select:focus, .select:hover {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px #2563eb22, 0 2px 8px rgba(37,99,235,0.08);
   outline: none;
 }
 
@@ -214,47 +222,39 @@ html, body {
     display: none;
 }
 
-.signup-button {
+.signup-button, .back-button, .otp-verify-btn, .otp-cancel-btn {
     width: 100%;
     padding: 1.5rem;
     background-color: #2c4bff;
     color: #ffffff;
     border: none;
-    border-radius: 0.375rem;
+    border-radius: 8px;
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background 0.18s, color 0.18s, transform 0.18s, box-shadow 0.18s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
-.signup-button:hover {
-    background-color: #1d4ed8;
+.signup-button:hover:not(:disabled), .back-button:hover:not(:disabled), .otp-verify-btn:hover:not(:disabled), .otp-cancel-btn:hover:not(:disabled) {
+  background: #1746a0;
+  color: #fff;
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.10);
+}
+
+.signup-button:active:not(:disabled), .back-button:active:not(:disabled), .otp-verify-btn:active:not(:disabled), .otp-cancel-btn:active:not(:disabled) {
+  background: #11336b;
+  transform: scale(0.98);
 }
 
 .signup-button:disabled {
     background-color: #9ca3af;
     cursor: not-allowed;
-}
-
-.back-button {
-    width: 100%;
-    padding: 1.5rem;
-    background-color: #fbe8e8;
-    color: #000000;
-    border: none;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.back-button:hover {
-    background-color: #f1e2e2;
 }
 
 .footer {
@@ -310,15 +310,30 @@ html, body {
 }
 
 .error-message {
-    color: #ef4444;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
+    color: #dc2626;
+    background: #fef2f2;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 4px 0 0 0;
+    font-size: 0.98rem;
+    box-shadow: 0 1px 2px rgba(220,38,38,0.04);
+    animation: fadeInMsg 0.4s;
 }
 
 .success-message {
-  color: #2ecc40;
-  font-size: 0.95em;
-  margin-top: 4px;
+  color: #2563eb;
+  background: #e0f2fe;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 4px 0 0 0;
+  font-size: 0.98rem;
+  box-shadow: 0 1px 2px rgba(37,99,235,0.04);
+  animation: fadeInMsg 0.4s;
+}
+
+@keyframes fadeInMsg {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .password-requirements {
@@ -366,14 +381,43 @@ html, body {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: modalOverlayFadeIn 0.3s cubic-bezier(.4,2,.3,1);
+}
+@keyframes modalOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .otp-modal {
   background: #fff;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 18px;
   min-width: 300px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   text-align: center;
+  animation: modalContentPopIn 0.38s cubic-bezier(.4,2,.3,1);
+}
+@keyframes modalContentPopIn {
+  from { opacity: 0; transform: scale(0.92) translateY(32px); }
+  to { opacity: 1; transform: none; }
+}
+.otp-modal h2 {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #222;
+}
+.otp-modal .input {
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.otp-button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  justify-content: flex-end;
 }
 .eye-icon {
   position: absolute;
@@ -424,60 +468,6 @@ html, body {
   color: #007bff;
   font-size: 0.95em;
   margin-top: 4px;
-}
-
-.otp-button-row {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  justify-content: center;
-}
-
-.otp-verify-btn {
-  background: #2c4bff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.otp-verify-btn:hover {
-  background: #1d4ed8;
-}
-
-.otp-cancel-btn {
-  background: #fbe8e8;
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.otp-cancel-btn:hover {
-  background: #f1e2e2;
-}
-
-.password-strength-indicator {
-  margin-top: 0.25rem;
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-.password-strength-indicator.strong {
-  color: #2ecc40;
-}
-.password-strength-indicator.moderate {
-  color: #f1c40f;
-}
-.password-strength-indicator.poor {
-  color: #e74c3c;
 }
 
 .nav-links {

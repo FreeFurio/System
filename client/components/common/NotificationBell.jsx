@@ -4,13 +4,13 @@ import { ref, onValue, update } from "firebase/database";
 import { FiBell } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-const NotificationBell = () => {
+const NotificationBell = ({ role = 'Admin', ...props }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const notificationsRef = ref(db, "AdminNotification");
+    const notificationsRef = ref(db, `${role}Notification`);
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val() || {};
       // Convert object to array and add the id
@@ -20,9 +20,8 @@ const NotificationBell = () => {
       }));
       setNotifications(notifList.reverse()); // newest first
     });
-
     return () => unsubscribe();
-  }, []);
+  }, [role]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -33,18 +32,18 @@ const NotificationBell = () => {
   const handleNotificationClick = (notif) => {
     // Mark as read in the database
     if (!notif.read) {
-      const notifRef = ref(db, `AdminNotification/${notif.id}`);
+      const notifRef = ref(db, `${role}Notification/${notif.id}`);
       update(notifRef, { read: true });
     }
-    // Navigate if type is approval_needed
-    if (notif.type === "approval_needed") {
+    // Navigate if type is approval_needed (only for Admin)
+    if (notif.type === "approval_needed" && role === 'Admin') {
       navigate("/admin/approval");
     }
     // You can add more types and navigation logic here if needed
   };
 
   return (
-    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+    <div style={{ position: "relative", display: "flex", alignItems: "center" }} {...props}>
       <button
         onClick={handleBellClick}
         style={{

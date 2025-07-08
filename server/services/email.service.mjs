@@ -3,6 +3,7 @@
 // ========================
 import nodemailer from 'nodemailer';
 import { config } from '../config/config.mjs';
+import { AppError } from '../utils/errorHandler.mjs';
 
 // ========================
 // 2) EMAIL TRANSPORTER
@@ -58,7 +59,7 @@ class EmailService {
       };
     } catch (error) {
       console.error('Error sending email:', error);
-      throw new Error('Failed to send email');
+      throw new AppError('Failed to send email', 500);
     }
   }
 

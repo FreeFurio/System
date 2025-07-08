@@ -302,15 +302,8 @@ const emailValid =
               value={fields.firstName}
               onChange={handleInputChange}
               required
-              placeholder={
-                errors.firstName === "This field is required" && !fields.firstName
-                  ? errors.firstName
-                  : ""
-              }
             />
-            {errors.firstName && !(errors.firstName === "This field is required" && !fields.firstName) && (
-              <div className="error-message">{errors.firstName}</div>
-            )}
+            <div className="error-message">{errors.firstName}</div>
           </div>
 
           <div className="form-group">
@@ -325,15 +318,8 @@ const emailValid =
               value={fields.lastName}
               onChange={handleInputChange}
               required
-              placeholder={
-                errors.lastName === "This field is required" && !fields.lastName
-                  ? errors.lastName
-                  : ""
-              }
             />
-            {errors.lastName && !(errors.lastName === "This field is required" && !fields.lastName) && (
-              <div className="error-message">{errors.lastName}</div>
-            )}
+            <div className="error-message">{errors.lastName}</div>
           </div>
 
           <div className="form-group">
@@ -344,11 +330,7 @@ const emailValid =
               value={fields.username}
               onChange={handleUsernameChange}
               className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
-              placeholder={
-                errors.username === "This field is required" && !fields.username
-                  ? errors.username
-                  : "Username"
-              }
+              placeholder="Username"
               autoComplete="username"
               required
             />
@@ -358,7 +340,7 @@ const emailValid =
               <div className="error-message">Username is already used.</div>
             ) : fields.username.length >= 8 && !errors.username ? (
               <div className="success-message">Username is available!</div>
-            ) : errors.username && !(errors.username === "This field is required" && !fields.username) ? (
+            ) : errors.username ? (
               <div className="error-message">{errors.username}</div>
             ) : null}
           </div>
@@ -371,15 +353,11 @@ const emailValid =
               value={fields.email}
               onChange={handleInputChange}
               className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
-              placeholder={
-                errors.email === "This field is required" && !fields.email
-                  ? errors.email
-                  : "Email"
-              }
+              placeholder="Email"
               autoComplete="email"
               required
             />
-            {errors.email && !(errors.email === "This field is required" && !fields.email) && (
+            {errors.email && (
               <div className="error-message">{errors.email}</div>
             )}
           </div>
@@ -391,19 +369,17 @@ const emailValid =
             <select
               id="role"
               name="role"
-              className={`input${(errors.role && (!fields.role || errors.role === "This field is required")) ? " error" : ""}`}
+              className={`input${errors.role ? " error" : ""}`}
               value={fields.role}
               onChange={handleInputChange}
               required
             >
-              <option value="">{errors.role === "This field is required" && !fields.role ? errors.role : "Select your role"}</option>
+              <option value="">Select your role</option>
               <option value="MarketingLead">Marketing Lead</option>
               <option value="ContentCreator">Content Creator</option>
               <option value="GraphicDesigner">Graphic Designer</option>
             </select>
-            {errors.role && !(errors.role === "This field is required" && !fields.role) && (
-              <div className="error-message">{errors.role}</div>
-            )}
+            <div className="error-message">{errors.role}</div>
           </div>
 
           <div className="form-group">
@@ -413,13 +389,9 @@ const emailValid =
             <PasswordInput
               value={fields.password}
               onChange={handleInputChange}
-              error={errors.password === "This field is required" && !fields.password ? "This field is required" : (errors.password && errors.password !== "This field is required" ? errors.password : undefined)}
+              error={errors.password}
               name="password"
-              placeholder={
-                errors.password === "This field is required" && !fields.password
-                  ? errors.password
-                  : "Password"
-              }
+              placeholder="Password"
               success={allPasswordRequirementsMet}
             />
             {fields.password && (
@@ -439,13 +411,9 @@ const emailValid =
             <PasswordInput
               value={fields.retypePassword}
               onChange={handleInputChange}
-              error={errors.retypePassword === "This field is required" && !fields.retypePassword ? "This field is required" : (errors.retypePassword && errors.retypePassword !== "This field is required" ? errors.retypePassword : undefined)}
+              error={errors.retypePassword}
               name="retypePassword"
-              placeholder={
-                errors.retypePassword === "This field is required" && !fields.retypePassword
-                  ? errors.retypePassword
-                  : "Retype Password"
-              }
+              placeholder="Retype Password"
             />
           </div>
 

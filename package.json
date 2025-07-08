@@ -11,8 +11,5 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^3.0.0",
     "vite": "^4.0.0"
-  },
-  "dependencies": {
-    "rc-slider": "^11.1.8"
   }
 }

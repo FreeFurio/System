@@ -28,9 +28,19 @@
 /* Sidebar */
 .admin-dashboard .sidebar {
   width: 256px;
-  background-color: #ffffff;
-  border-right: 1px solid #d9d9d9;
+  background: linear-gradient(135deg, #fff 80%, #f3f4f6 100%);
+  box-shadow: 2px 0 16px rgba(0,0,0,0.06);
+  border-radius: 0 18px 18px 0;
+  transition: box-shadow 0.22s, background 0.22s, border-radius 0.22s;
   padding: 24px;
+  overflow-y: auto;
+  max-height: 100vh;
+  scrollbar-width: thin;
+  scrollbar-color: #e0e0e0 #fff;
+}
+
+.admin-dashboard .sidebar:hover {
+  box-shadow: 8px 0 32px rgba(0,0,0,0.10);
 }
 
 .admin-dashboard .logo {
@@ -87,14 +97,18 @@
 }
 
 .admin-dashboard .nav-item {
-  padding: 8px;
+  padding: 8px 0;
+  font-size: 1rem;
   border-radius: 4px;
   cursor: pointer;
   color: #000000;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
 }
 
 .admin-dashboard .nav-item:hover {
-  background-color: #d9d9d9;
+  background-color: #e0e7ef;
+  color: #2563eb;
+  transform: translateX(6px) scale(1.04);
 }
 
 .admin-dashboard .nav-item.active {
@@ -109,6 +123,7 @@
   min-width: 0;
   padding: 24px 24px 80px 24px; /* Added bottom padding for footer */
   position: relative;
+  transition: box-shadow 0.22s, border-radius 0.22s;
 }
 
 .admin-dashboard .header {
@@ -120,6 +135,9 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-radius: 0 0 12px 12px;
+  transition: box-shadow 0.22s, border-radius 0.22s;
 }
 
 .admin-dashboard .header::after {

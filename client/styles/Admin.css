@@ -31,9 +31,6 @@
   background-color: #ffffff;
   border-right: 1px solid #d9d9d9;
   padding: 24px;
-  box-shadow: 0 4px 24px rgba(44,75,255,0.10), 0 1.5px 8px rgba(0,0,0,0.08);
-  z-index: 10;
-  position: relative;
 }
 
 .admin-dashboard .logo {
@@ -94,26 +91,14 @@
   border-radius: 4px;
   cursor: pointer;
   color: #000000;
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
-  will-change: background, color, box-shadow, transform;
 }
 
 .admin-dashboard .nav-item:hover {
   background-color: #d9d9d9;
-  box-shadow: 0 8px 24px rgba(44,75,255,0.12);
-  transform: translateY(-1px) scale(1.01);
 }
 
 .admin-dashboard .nav-item.active {
   font-weight: 600;
-}
-
-.admin-dashboard .nav-item:active {
-  background-color: #b91c1c;
-  color: #fff;
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
 /* Main Content */
@@ -135,9 +120,6 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 24px;
-  box-shadow: 0 2px 16px rgba(44,75,255,0.08), 0 1.5px 8px rgba(0,0,0,0.06);
-  z-index: 20;
-  position: relative;
 }
 
 .admin-dashboard .header::after {
@@ -281,21 +263,6 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s, color 0.2s;
-  will-change: background, box-shadow, transform, color;
-}
-
-.admin-dashboard .team-button:hover, .header-profile-btn:hover, .notification-bell:hover, .admin-dashboard-footer-link:hover {
-  box-shadow: 0 8px 24px rgba(44,75,255,0.12);
-  transform: translateY(-1px) scale(1.01);
-  color: #1d4ed8;
-}
-
-.admin-dashboard .team-button:active, .header-profile-btn:active, .notification-bell:active, .admin-dashboard-footer-link:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
-  color: #b91c1c;
 }
 
 .admin-dashboard .team-grid {
@@ -308,23 +275,10 @@
   background-color: #d8cccc;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
 }
 
 .admin-dashboard .team-card.full-width {
   grid-column: span 2;
-}
-
-.admin-dashboard .team-card:hover, .admin-dashboard .month-card:hover, .admin-dashboard .promo-card:hover, .admin-dashboard .metric-card:hover, .admin-dashboard .celebration-card:hover {
-  box-shadow: 0 8px 32px rgba(44,75,255,0.10), 0 2px 8px rgba(0,0,0,0.10);
-  transform: translateY(-2px) scale(1.012);
-}
-
-.admin-dashboard .team-card:active, .admin-dashboard .month-card:active, .admin-dashboard .promo-card:active, .admin-dashboard .metric-card:active, .admin-dashboard .celebration-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
 .admin-dashboard .card-content {
@@ -365,9 +319,6 @@
   background-color: #d8cccc;
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
 }
 
 .admin-dashboard .month-header {
@@ -425,9 +376,6 @@
   background-color: #d0c5c5;
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
 }
 
 .admin-dashboard .promo-title {
@@ -457,9 +405,6 @@
   background-color: #d8cccc;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
 }
 
 .admin-dashboard .metric-header {
@@ -498,9 +443,6 @@
   border-radius: 8px;
   color: white;
   margin-top: auto;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
 }
 
 .admin-dashboard .celebration-content {
@@ -668,9 +610,4 @@
   width: 40px;
   height: 40px;
   color: #555;
-}
-
-@keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.97); }
-  100% { opacity: 1; transform: scale(1); }
 }

@@ -137,7 +137,7 @@ class FirebaseService {
   // ========================
   // 4) TASK
   // ========================
-  
+
   // ========================
   // 4.1) CREATE TASK
   // ========================
@@ -153,7 +153,7 @@ class FirebaseService {
     }
   }
 
-    // ========================
+  // ========================
   // 4.2) GET TASK
   // ========================
 
@@ -161,9 +161,17 @@ class FirebaseService {
     try {
       const snapshot = await get(ref(db, 'task/contentcreator'));
       return snapshot.val()
-
     } catch (error) {
       throw new AppError('Failed to get Content Creator Task', 500);
+    }
+  }
+
+  static async getTaskGraphicDesigner() {
+    try {
+      const snapshot = await get(ref(db, 'task/graphicdesigner'));
+      return snapshot.val()
+    } catch (error) {
+      throw new ApprError('Failed to get Graphic Designer Task', 500)
     }
   }
 
@@ -194,13 +202,13 @@ class FirebaseService {
     }
   }
 
-    // ========================
+  // ========================
   // 5.2) GET NOTIFICATIONS
   // ========================
   static async getadminNotification() {
     try {
       const getNotifAdminRef = get(ref(db, 'notification/admin'))
-    } catch (error){
+    } catch (error) {
 
     }
   }

@@ -4,7 +4,7 @@
 
 import FirebaseService from '../services/firebase.service.mjs';
 import { AppError } from '../utils/errorHandler.mjs';
-import { io } from '../server.mjs'
+import { io } from '../server.mjs';
 
 // ========================
 // 2) CONTROLLER FUNCTIONS
@@ -12,10 +12,6 @@ import { io } from '../server.mjs'
 
 // ========================
 // 2.1) CREATING  TASK
-// ========================
-
-// ========================
-// 2.1.1) CREATING CONTENT CREATOR TASK
 // ========================
 
 const setTaskContentCreator = async (req, res, next) => {
@@ -53,18 +49,33 @@ const setTaskContentCreator = async (req, res, next) => {
 // 2.2) GET  TASK
 // ========================
 
-// ========================
-// 2.2.1) GET CONTENT CREATOR TASK
-// ========================
 const getTaskContentCreator = async (req, res, next) => {
     try {
-        const Task = await FirebaseService.getTaskContentCreator();
+        const taskObj = await FirebaseService.getTaskContentCreator();
+        const task = taskObj
+            ? Object.entries(taskObj).map(([key, value]) => ({ id: key, ...value }))
+            : [];
         res.status(200).json({
             status: 'success',
-            data: Task
+            data: task
         });
     } catch (error) {
         next(error)
+    }
+}
+
+const getTaskGraphicDesigner = async (req, res, next) => {
+    try {
+        const taskObj = await FirebaseService.getTaskGraphicDesigner();
+        const task = taskObj
+            ? Object.entries(taskObj).map(([key, value]) => ({ id: key, ...value }))
+            : [];
+        res.status(200).json({
+            status: 'success',
+            data: task
+        })
+    } catch (error) {
+
     }
 }
 
@@ -74,5 +85,6 @@ const getTaskContentCreator = async (req, res, next) => {
 
 export {
     setTaskContentCreator,
-    getTaskContentCreator
+    getTaskContentCreator,
+    getTaskGraphicDesigner
 };

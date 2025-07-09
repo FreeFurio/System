@@ -4,7 +4,8 @@
 import express from 'express';
 import {
     setTaskContentCreator,
-    getTaskContentCreator
+    getTaskContentCreator,
+    getTaskGraphicDesigner
 } from '../controllers/task.controller.mjs';
 import { body } from 'express-validator';
 
@@ -18,9 +19,6 @@ const router = express.Router();
 // 2.1) CREATING TASK
 // ========================
 
-// ========================
-// 2.1.1) CREATING CONTENT CREATOR TASK
-// ========================
 router.post(
     '/content-creator/task',
     [
@@ -48,12 +46,14 @@ router.post(
 // 2.2) GET TASK
 // ========================
 
-// ========================
-// 2.2.1) GET CONTENT CREATOR TASK
-// ========================
 router.get(
     '/content-creator/task',
     getTaskContentCreator
+)
+
+router.get(
+    '/graphic-designer/task',
+    getTaskGraphicDesigner
 )
 
 export default router;

@@ -1,6 +1,7 @@
 // ========================
 // 1) IMPORTS & INITIALIZATION
 // ========================
+
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { config } from '../config/config.mjs';
@@ -15,6 +16,7 @@ import { AppError } from '../utils/errorHandler.mjs';
 // ========================
 // 2.1) REGISTRATION FLOW
 // ========================
+
 const validateOTPRegistration = (req, res, next) => {
   const { email, firstName, lastName, username, password, retypePassword, role } = req.body;
 
@@ -138,9 +140,13 @@ const completeRegistration = async (req, res, next) => {
       registrationDate: new Date().toISOString()
     };
     const userId = await FirebaseService.saveUser(userData);
+    io.emit('accountApproved', {
+      id: userId,
+      ...userData
+    });
 
 
-    await FirebaseService.createAdminNotification({
+    const notifId = await FirebaseService.createAdminNotification({
       type: "approval_needed",
       message: "A new account needs approval.",
       read: false,
@@ -150,6 +156,17 @@ const completeRegistration = async (req, res, next) => {
         id: userId
       }
     });
+    io.emit('notificationAdmin', {
+      id: notifId,
+      type: "approval_needed",
+      message: "A new account needs approval.",
+      read: false,
+      timestamp: Date.now(),
+      user: {
+        ...userData,
+        id: userId
+      }
+    })
 
     await FirebaseService.deleteOTP(email);
 
@@ -181,6 +198,7 @@ const completeRegistration = async (req, res, next) => {
 // ========================
 // 2.2) AUTHENTICATION
 // ========================
+
 const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -232,36 +250,17 @@ const login = async (req, res, next) => {
     next(error);
   }
 };
-
 // ========================
-// 3) TASK
+// 3) APPROVAL OF ACCOUNTS // gawin tomorrow
 // ========================
-const setTask = async (req, res, next) => {
+const getApprovalAccount = (req, res, next) => {
   try {
-    const { objectives, gender, minAge, maxAge, deadline, numContent } = req.body;
-    const task = {objectives, gender, minAge, maxAge, deadline, numContent};
-    console.log(task);
-    if (!objectives || !gender || !minAge || !maxAge || !deadline || !numContent) {
-      return next(new AppError('All fields are required', 400));
-    }
-    await FirebaseService.setTask(task);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Task created successfully',
-      data: {
-        objectives,
-        gender,
-        minAge,
-        maxAge,
-        deadline,
-        numContent
-      }
-    });
   } catch (error) {
-    next(error);
+
   }
 }
+
 // ========================
 // 4) EXPORTS
 // ========================
@@ -272,5 +271,4 @@ export {
   completeRegistration,
   login,
   validateOTPRegistration,
-  setTask
 };

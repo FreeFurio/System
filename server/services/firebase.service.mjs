@@ -134,45 +134,83 @@ class FirebaseService {
       throw new AppError('Failed to check username', 500);
     }
   }
+
   // ========================
-  // 4) SET TASK
+  // 4) TASK
   // ========================
-  static async setTask(task){
+  
+  // ========================
+  // 4.1) CREATE TASK
+  // ========================
+
+  static async setTaskContentCreator(task) {
     try {
-      const taskRef = push(ref(db,`ContentCreatorTask`))
-      await set (taskRef, task);
-      return taskRef.key
-    } catch (error){
+      const setTaskRef = push(ref(db, `task/contentcreator`))
+      await set(setTaskRef, task);
+      return setTaskRef.key
+    } catch (error) {
       console.error('Error saving Content Creator Task:', error);
       throw new AppError('Failed to save Content Creator Task', 500);
     }
   }
 
+    // ========================
+  // 4.2) GET TASK
   // ========================
-  // 5) NOTIFICATIONS
+
+  static async getTaskContentCreator() {
+    try {
+      const snapshot = await get(ref(db, 'task/contentcreator'));
+      return snapshot.val()
+
+    } catch (error) {
+      throw new AppError('Failed to get Content Creator Task', 500);
+    }
+  }
+
   // ========================
+  // 5)  NOTIFICATIONS
+  // ========================
+
+  // ========================
+  // 5.1) CREATE NOTIFICATIONS
+  // ========================
+
   static async createAdminNotification(notificationData) {
     try {
-      const notifAdminRef = push(ref(db, 'AdminNotification'));
+      const createNotifAdminRef = push(ref(db, 'notification/admin'));
 
-      await set(notifAdminRef, {
+      await set(createNotifAdminRef, {
         type: notificationData.type,
         message: notificationData.message,
         read: notificationData.read || false,
         timestamp: notificationData.timestamp || Date.now(),
         user: notificationData.user
       });
+      io.emit('notificationAdmin')
       return notifAdminRef.key
     } catch (error) {
       console.error('Error saving Admin notification:', error);
       throw new AppError('Failed to save Admin notification', 500);
     }
   }
+
+    // ========================
+  // 5.2) GET NOTIFICATIONS
+  // ========================
+  static async getadminNotification() {
+    try {
+      const getNotifAdminRef = get(ref(db, 'notification/admin'))
+    } catch (error){
+
+    }
+  }
 }
 
 
+
 // ========================
-// 5) EXPORTS
+// 7) EXPORTS
 // ========================
 
 export default FirebaseService;

@@ -8,37 +8,44 @@ export default function OngoingTask() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch all tasks, then divide by role
+    setLoading(true);
+    // Fetch Content Creator tasks
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`)
       .then(res => res.json())
       .then(data => {
-        setCreatorTasks(data.data.filter(task => task.role === "Content Creator"));
-        setDesignerTasks(data.data.filter(task => task.role === "Graphic Designer"));
+        setCreatorTasks(data);
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch tasks:", err);
+        console.error("Failed to fetch content creator tasks:", err);
         setLoading(false);
+      });
+    // Fetch Graphic Designer tasks
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/graphic-designer/task`)
+      .then(res => res.json())
+      .then(data => {
+        setDesignerTasks(data);
+      })
+      .catch(err => {
+        console.error("Failed to fetch graphic designer tasks:", err);
       });
 
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
 
     socket.on("ongoingContentCreatorTask", (data) => {
-      if (data.role === "Content Creator") {
-        setCreatorTasks(prev => [data, ...prev]);
-      } else if (data.role === "Graphic Designer") {
-        setDesignerTasks(prev => [data, ...prev]);
-      }
+      setCreatorTasks(prev => [data, ...prev]);
+    });
+    socket.on("ongoingGraphicDesignerTask", (data) => {
+      setDesignerTasks(prev => [data, ...prev]);
     });
 
     return () => socket.disconnect();
   }, []);
 
-  // Dummy delete handler (replace with API call if needed)
-  const handleDelete = (role, id) => {
-    if (role === "Content Creator") {
+  const handleDelete = (type, id) => {
+    if (type === "Content Creator") {
       setCreatorTasks(prev => prev.filter(task => (task.id || task._id) !== id));
-    } else if (role === "Graphic Designer") {
+    } else if (type === "Graphic Designer") {
       setDesignerTasks(prev => prev.filter(task => (task.id || task._id) !== id));
     }
     // TODO: Add API call to delete content from backend

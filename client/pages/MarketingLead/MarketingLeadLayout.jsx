@@ -8,7 +8,8 @@ import '../../styles/Admin.css'; // Reuse Admin styles for consistency
 const sidebarItems = [
   { label: 'Dashboard', path: '/marketing/dashboard' },
   { label: 'Content Calendar', path: '/marketing/content-calendar' },
-  { label: 'Set Task', path: '/marketing/set-task' },
+  { label: 'Set Task (Content Creator)', path: '/marketing/set-task' },
+  { label: 'Set Task (Graphic Designer)', path: '/marketing/set-task-graphic-designer' },
   { label: 'Ongoing Task', path: '/marketing/ongoing-task' },
   { label: 'Set Schedule', path: '/marketing/set-schedule' },
   { label: 'Ongoing Schedule', path: '/marketing/ongoing-schedule' },

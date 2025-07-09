@@ -28,6 +28,7 @@ import OngoingTask from './pages/MarketingLead/OngoingTask';
 import SetSchedule from './pages/MarketingLead/SetSchedule';
 import OngoingSchedule from './pages/MarketingLead/OngoingSchedule';
 import PostedContent from './pages/MarketingLead/PostedContent';
+import SetTaskGraphicDesigner from './pages/MarketingLead/SetTaskGraphicDesigner';
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
           <Route path="approval" element={<ApprovalOfContents />} />
           <Route path="approved" element={<ApprovedContents />} />
           <Route path="set-task" element={<SetTask />} />
+          <Route path="set-task-graphic-designer" element={<SetTaskGraphicDesigner />} />
           <Route path="ongoing-task" element={<OngoingTask />} />
           <Route path="set-schedule" element={<SetSchedule />} />
           <Route path="ongoing-schedule" element={<OngoingSchedule />} />

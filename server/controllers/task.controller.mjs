@@ -4,7 +4,7 @@
 
 import FirebaseService from '../services/firebase.service.mjs';
 import { AppError } from '../utils/errorHandler.mjs';
-import { io } from '../server.mjs'
+import { io } from '../server.mjs';
 
 // ========================
 // 2) CONTROLLER FUNCTIONS

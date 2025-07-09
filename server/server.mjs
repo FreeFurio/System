@@ -103,7 +103,7 @@ export {io};
 
 io.on('connection', (socket) => {
   console.log('Socket.IO client connected:', socket.id);
-  socket.on('siconnect',() => {
+  socket.on('diconnect',() => {
     console.log('Socket.IO client disconnected:', socket.id);
   });
 });

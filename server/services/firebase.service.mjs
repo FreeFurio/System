@@ -162,7 +162,6 @@ class FirebaseService {
     try {
       const snapshot = await get(ref(db, 'task/contentcreator'));
       return snapshot.val()
-
     } catch (error) {
       throw new AppError('Failed to get Content Creator Task', 500);
     }

@@ -18,6 +18,7 @@ import taskRouter from './routes/task.routes.mjs';
 import userRouter from './routes/user.routes.mjs';
 import { config } from './config/config.mjs';
 import errorHandler from './utils/errorHandler.mjs';
+import { createServer } from 'http';
 import { Server as SocketIOServer} from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url); 
@@ -88,6 +89,7 @@ app.use((req, res, next) => {
 // ========================
 // 3) SOCKET.IO SETUP
 // ========================
+const server = createServer(app);
 const io = new SocketIOServer(server , {
   cors: {
     origin: [
@@ -132,7 +134,7 @@ app.use(errorHandler);
 // 6) START SERVER
 // ========================
 const port = config.server.port || 3000;
-const server = app.listen(port, () => {
+server.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 

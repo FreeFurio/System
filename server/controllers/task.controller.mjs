@@ -4,6 +4,7 @@
 
 import FirebaseService from '../services/firebase.service.mjs';
 import { AppError } from '../utils/errorHandler.mjs';
+import { io } from '../server.mjs'
 
 // ========================
 // 2) CONTROLLER FUNCTIONS
@@ -55,14 +56,14 @@ const setTaskContentCreator = async (req, res, next) => {
 // ========================
 // 2.2.1) GET CONTENT CREATOR TASK
 // ========================
-const getTaskContentCreator = async (req,res,next) => {
-    try{
+const getTaskContentCreator = async (req, res, next) => {
+    try {
         const Task = await FirebaseService.getTaskContentCreator();
         res.status(200).json({
             status: 'success',
             data: Task
         });
-    } catch (error){
+    } catch (error) {
         next(error)
     }
 }

@@ -30,6 +30,10 @@ router.post(
         body('gender')
             .notEmpty()
             .withMessage('Gender is required'),
+        body('minAge')
+            .notEmpty(),
+        body('maxAge')
+            .notEmpty(),
         body('deadline')
             .notEmpty()
             .withMessage('Deadline is Required'),

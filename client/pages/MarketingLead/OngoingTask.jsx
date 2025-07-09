@@ -12,8 +12,8 @@ export default function OngoingTask() {
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`)
       .then(res => res.json())
       .then(data => {
-        setCreatorTasks(data.filter(task => task.role === "Content Creator"));
-        setDesignerTasks(data.filter(task => task.role === "Graphic Designer"));
+        setCreatorTasks(data.data.filter(task => task.role === "Content Creator"));
+        setDesignerTasks(data.data.filter(task => task.role === "Graphic Designer"));
         setLoading(false);
       })
       .catch(err => {

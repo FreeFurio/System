@@ -13,7 +13,7 @@ export default function OngoingTask() {
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`)
       .then(res => res.json())
       .then(data => {
-        setCreatorTasks(Array.isArray(data) ? data : []);
+        setCreatorTasks(Array.isArray(data.data) ? data.data : []);
         setLoading(false);
       })
       .catch(err => {
@@ -25,7 +25,7 @@ export default function OngoingTask() {
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/graphic-designer/task`)
       .then(res => res.json())
       .then(data => {
-        setDesignerTasks(Array.isArray(data) ? data : []);
+        setDesignerTasks(Array.isArray(data.data) ? data.data : []);
       })
       .catch(err => {
         console.error("Failed to fetch graphic designer tasks:", err);

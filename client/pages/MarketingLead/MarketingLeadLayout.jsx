@@ -44,7 +44,7 @@ export default function MarketingLeadLayout() {
   return (
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
-        <div className="sidebar">
+        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
           <div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <img src="/assets/issalonlogo.jpg" alt="infinitysalon" style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }} />
           </div>

@@ -97,13 +97,13 @@ body, #root {
   background: #fafafa;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
+  transition: box-shadow 0.4s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1), background 0.3s cubic-bezier(.4,2,.6,1);
+  animation: fadeInScale 0.5s cubic-bezier(.4,2,.6,1);
   padding: 24px 16px;
 }
 
 @keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.97); }
+  0% { opacity: 0; transform: scale(0.96); }
   100% { opacity: 1; transform: scale(1); }
 }
 
@@ -139,7 +139,7 @@ body, #root {
   border-radius: 6px;
   padding: 0 12px;
   font-size: 1rem;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition: border 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1);
   box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
@@ -167,7 +167,7 @@ body, #root {
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  transition: background 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.15s cubic-bezier(.4,2,.6,1), color 0.2s cubic-bezier(.4,2,.6,1);
   will-change: background, box-shadow, transform;
   box-shadow: 0 2px 8px rgba(44,75,255,0.08);
 }

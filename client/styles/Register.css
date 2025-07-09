@@ -93,14 +93,14 @@ html, body {
   padding: 1.5rem 1rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
-  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
-  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
+  transition: box-shadow 0.4s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1), background 0.3s cubic-bezier(.4,2,.6,1);
+  animation: fadeInScale 0.5s cubic-bezier(.4,2,.6,1);
   max-width: 340px;
   width: 100%;
 }
 
 @keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.97); }
+  0% { opacity: 0; transform: scale(0.96); }
   100% { opacity: 1; transform: scale(1); }
 }
 
@@ -150,7 +150,7 @@ html, body {
   border: 1.5px solid #ccc;
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition: border 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1);
   height: 38px;
   padding-right: 36px;
   box-sizing: border-box;
@@ -232,7 +232,7 @@ html, body {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    transition: background 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.15s cubic-bezier(.4,2,.6,1), color 0.2s cubic-bezier(.4,2,.6,1);
     will-change: background, box-shadow, transform;
     display: flex;
     align-items: center;
@@ -260,7 +260,7 @@ html, body {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    transition: background 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.15s cubic-bezier(.4,2,.6,1), color 0.2s cubic-bezier(.4,2,.6,1);
     will-change: background, box-shadow, transform;
     box-shadow: 0 2px 8px rgba(44,75,255,0.08);
 }

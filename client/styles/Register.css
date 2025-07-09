@@ -92,9 +92,16 @@ html, body {
   background: #fafafa;
   padding: 1.5rem 1rem;
   border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
+  transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.2s cubic-bezier(.4,2,.6,1);
+  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
   max-width: 340px;
   width: 100%;
+}
+
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .title {
@@ -143,15 +150,16 @@ html, body {
   border: 1.5px solid #ccc;
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border 0.2s, box-shadow 0.2s;
   height: 38px;
   padding-right: 36px;
   box-sizing: border-box;
+  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
 .input:focus, .select:focus {
   border-color: #007bff;
-  box-shadow: 0 0 0 2px #e3f0ff;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.10);
   outline: none;
 }
 
@@ -224,11 +232,13 @@ html, body {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    will-change: background, box-shadow, transform;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(44,75,255,0.08);
 }
 
 .signup-button:hover {
@@ -250,11 +260,18 @@ html, body {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    will-change: background, box-shadow, transform;
+    box-shadow: 0 2px 8px rgba(44,75,255,0.08);
 }
 
 .back-button:hover {
     background-color: #f1e2e2;
+}
+
+.back-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
 .footer {
@@ -374,7 +391,14 @@ html, body {
   min-width: 300px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.2);
   text-align: center;
+  animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
 }
+
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .eye-icon {
   position: absolute;
   right: 30px;
@@ -443,10 +467,18 @@ html, body {
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  will-change: background, box-shadow, transform;
 }
 
 .otp-verify-btn:hover {
   background: #1d4ed8;
+}
+
+.otp-verify-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
 .otp-cancel-btn {
@@ -459,10 +491,18 @@ html, body {
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  will-change: background, box-shadow, transform;
 }
 
 .otp-cancel-btn:hover {
   background: #f1e2e2;
+}
+
+.otp-cancel-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
 }
 
 .password-strength-indicator {

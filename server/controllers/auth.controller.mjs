@@ -1,6 +1,7 @@
 // ========================
 // 1) IMPORTS & INITIALIZATION
 // ========================
+
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { config } from '../config/config.mjs';
@@ -15,6 +16,7 @@ import {AppError} from '../utils/errorHandler.mjs';
 // ========================
 // 2.1) REGISTRATION FLOW
 // ========================
+
 const validateOTPRegistration = (req, res, next) => {
 
   console.log('Sending Registration data', {
@@ -144,9 +146,13 @@ const completeRegistration = async (req, res, next) => {
       registrationDate: new Date().toISOString()
     };
     const userId = await FirebaseService.saveUser(userData);
+    io.emit('accountApproved', {
+      id: userId,
+      ...userData
+    });
 
 
-    await FirebaseService.createAdminNotification({
+    const notifId = await FirebaseService.createAdminNotification({
       type: "approval_needed",
       message: "A new account needs approval.",
       read: false,
@@ -156,7 +162,20 @@ const completeRegistration = async (req, res, next) => {
         id: userId
       }
     });
-    
+
+    io.emit('notificationAdmin', {
+      id: notifId,
+      type: "approval_needed",
+      message: "A new account needs approval.",
+      read: false,
+      timestamp: Date.now(),
+      user: {
+        ...userData,
+        id: userId
+      }
+    })
+
+
     await FirebaseService.deleteOTP(email);
 
     const token = jwt.sign(
@@ -187,6 +206,7 @@ const completeRegistration = async (req, res, next) => {
 // ========================
 // 2.2) AUTHENTICATION
 // ========================
+
 const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -238,9 +258,21 @@ const login = async (req, res, next) => {
     next(error);
   }
 };
+// ========================
+
+// 3) APPROVAL OF ACCOUNTS // gawin tomorrow
+// ========================
+const getApprovalAccount = (req, res, next) => {
+  try {
+
+  } catch (error) {
+
+  }
+}
 
 // ========================
-// 3) EXPORTS
+// 4) EXPORTS
+
 // ========================
 
 export {
@@ -248,5 +280,6 @@ export {
   verifyOTP,
   completeRegistration,
   login,
-  validateOTPRegistration
+  validateOTPRegistration,
+
 };

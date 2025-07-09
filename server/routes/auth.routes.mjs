@@ -1,13 +1,14 @@
 // ========================
 // 1) IMPORTS & INITIALIZATION
 // ========================
+
 import express from 'express';
 import { 
   registerOTP, 
   verifyOTP, 
   completeRegistration, 
   login,
-  validateOTPRegistration 
+  validateOTPRegistration,
 } from '../controllers/auth.controller.mjs';
 import { body } from 'express-validator';
 
@@ -89,5 +90,4 @@ router.post(
 // ========================
 // 3) EXPORTS
 // ========================
-
 export default router;

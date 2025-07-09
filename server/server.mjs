@@ -13,8 +13,13 @@ import mongoSanitize from 'express-mongo-sanitize'; // Sanitizes user-supplied d
 import xss from 'xss-clean';           // Sanitize user input coming from POST body, GET queries, and url params
 import hpp from 'hpp';                 // Protects against HTTP Parameter Pollution attacks
 import authRouter from './routes/auth.routes.mjs';
+import notificationRouter from './routes/notification.routes.mjs';
+import taskRouter from './routes/task.routes.mjs';
+import userRouter from './routes/user.routes.mjs';
 import { config } from './config/config.mjs';
 import errorHandler from './utils/errorHandler.mjs';
+import { createServer } from 'http';
+import { Server as SocketIOServer} from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url); // Gets the absolute path of the current file. Example: 'C:/Users/yourname/project/server/server.mjs'
 const __dirname = dirname(__filename);             // Gets the directory name of the current file. Example: 'C:/Users/yourname/project/server'
@@ -84,16 +89,41 @@ app.use((req, res, next) => {
 });
 
 // ========================
-// 3) ROUTES
+// 3) SOCKET.IO SETUP
 // ========================
-app.use('/api/v1/auth', authRouter); // Mounts the authentication router on the '/api/v1/auth' path. Example: '/api/v1/auth', authRouter object
-app.use(express.static(path.join(__dirname, '../client/dist'))); // Serves static files from the client build directory. Example: absolute path to '../client/dist'
+const server = createServer(app);
+const io = new SocketIOServer(server , {
+  cors: {
+    origin: [
+      'http://localhost:5173',
+      'https://system-production-9942.up.railway.app'
+    ],
+    credentials: true
+  }
+});
+export {io};
+
+io.on('connection', (socket) => {
+  console.log('Socket.IO client connected:', socket.id);
+  socket.on('siconnect',() => {
+    console.log('Socket.IO client disconnected:', socket.id);
+  });
+});
+// ========================
+// 4) ROUTES
+// ========================
+
+app.use('/api/v1/auth', authRouter); 
+app.use('/api/v1/notifications', notificationRouter);
+app.use('/api/v1/tasks', taskRouter);
+app.use('/api/v1/users', userRouter);
+app.use(express.static(path.join(__dirname, '../client/dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); // Sends the React app's index.html file for any unmatched route. Example: absolute path to 'index.html'
 });
 
 // ========================
-// 4) ERROR HANDLING
+// 5) ERROR HANDLING
 // ========================
 app.all('*', (req, res, next) => {
   res.status(404).json({
@@ -104,15 +134,15 @@ app.all('*', (req, res, next) => {
 app.use(errorHandler);
 
 // ========================
-// 5) START SERVER
+// 6) START SERVER
 // ========================
 const port = config.server.port || 3000;
-const server = app.listen(port, () => {
+server.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
 // ========================
-// 6) UNHANDLED REJECTIONS & GRACEFUL SHUTDOWN
+// 7) UNHANDLED REJECTIONS & GRACEFUL SHUTDOWN
 // ========================
 process.on('unhandledRejection', err => {
   console.log('UNHANDLED REJECTION! Shutting down...');

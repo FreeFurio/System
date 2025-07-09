@@ -20,8 +20,8 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           required
           inputMode="numeric"
           pattern="[0-9]*"
+          placeholder={errors.contactNumber ? errors.contactNumber : "Contact Number"}
         />
-        <div className="error-message">{errors.contactNumber}</div>
       </div>
       <div className="form-group">
         <label htmlFor="city" className="label">City</label>
@@ -33,8 +33,8 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.city || ""}
           onChange={handleChange}
           required
+          placeholder={errors.city ? errors.city : "City"}
         />
-        <div className="error-message">{errors.city}</div>
       </div>
       <div className="form-group">
         <label htmlFor="state" className="label">State</label>
@@ -46,8 +46,8 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.state || ""}
           onChange={handleChange}
           required
+          placeholder={errors.state ? errors.state : "State"}
         />
-        <div className="error-message">{errors.state}</div>
       </div>
       <div className="form-group">
         <label htmlFor="country" className="label">Country</label>
@@ -59,8 +59,8 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.country || ""}
           onChange={handleChange}
           required
+          placeholder={errors.country ? errors.country : "Country"}
         />
-        <div className="error-message">{errors.country}</div>
       </div>
       <div className="form-group">
         <label htmlFor="zipCode" className="label">Zip Code</label>
@@ -72,8 +72,8 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.zipCode || ""}
           onChange={handleChange}
           required
+          placeholder={errors.zipCode ? errors.zipCode : "Zip Code"}
         />
-        <div className="error-message">{errors.zipCode}</div>
       </div>
     </>
   );

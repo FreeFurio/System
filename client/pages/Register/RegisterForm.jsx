@@ -302,8 +302,8 @@ const emailValid =
               value={fields.firstName}
               onChange={handleInputChange}
               required
+              placeholder={errors.firstName ? errors.firstName : "First Name"}
             />
-            <div className="error-message">{errors.firstName}</div>
           </div>
 
           <div className="form-group">
@@ -318,8 +318,8 @@ const emailValid =
               value={fields.lastName}
               onChange={handleInputChange}
               required
+              placeholder={errors.lastName ? errors.lastName : "Last Name"}
             />
-            <div className="error-message">{errors.lastName}</div>
           </div>
 
           <div className="form-group">
@@ -330,7 +330,7 @@ const emailValid =
               value={fields.username}
               onChange={handleUsernameChange}
               className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
-              placeholder="Username"
+              placeholder={errors.username ? errors.username : "Username"}
               autoComplete="username"
               required
             />
@@ -340,8 +340,6 @@ const emailValid =
               <div className="error-message">Username is already used.</div>
             ) : fields.username.length >= 8 && !errors.username ? (
               <div className="success-message">Username is available!</div>
-            ) : errors.username ? (
-              <div className="error-message">{errors.username}</div>
             ) : null}
           </div>
 
@@ -353,13 +351,10 @@ const emailValid =
               value={fields.email}
               onChange={handleInputChange}
               className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
-              placeholder="Email"
+              placeholder={errors.email ? errors.email : "Email"}
               autoComplete="email"
               required
             />
-            {errors.email && (
-              <div className="error-message">{errors.email}</div>
-            )}
           </div>
 
           <div className="form-group">
@@ -379,7 +374,7 @@ const emailValid =
               <option value="ContentCreator">Content Creator</option>
               <option value="GraphicDesigner">Graphic Designer</option>
             </select>
-            <div className="error-message">{errors.role}</div>
+            {errors.role && <div className="error-message">{errors.role}</div>}
           </div>
 
           <div className="form-group">
@@ -391,7 +386,7 @@ const emailValid =
               onChange={handleInputChange}
               error={errors.password}
               name="password"
-              placeholder="Password"
+              placeholder={errors.password ? errors.password : "Password"}
               success={allPasswordRequirementsMet}
             />
             {fields.password && (
@@ -413,7 +408,7 @@ const emailValid =
               onChange={handleInputChange}
               error={errors.retypePassword}
               name="retypePassword"
-              placeholder="Retype Password"
+              placeholder={errors.retypePassword ? errors.retypePassword : "Retype Password"}
             />
           </div>
 

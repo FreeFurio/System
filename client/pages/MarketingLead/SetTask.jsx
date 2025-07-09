@@ -81,6 +81,19 @@ export default function SetTask() {
         flexDirection: 'column',
         gap: 28
       }}>
+        <div style={{textAlign: 'center', marginBottom: 8}}>
+          <span style={{
+            display: 'inline-block',
+            background: '#e0e7ff',
+            color: '#2563eb',
+            fontWeight: 700,
+            fontSize: 16,
+            borderRadius: 8,
+            padding: '4px 18px',
+            marginBottom: 8,
+            letterSpacing: 0.5
+          }}>Content Creator</span>
+        </div>
         <h2 style={{
           fontWeight: 800,
           fontSize: 28,

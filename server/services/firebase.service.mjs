@@ -14,7 +14,6 @@ import {
   equalTo
 } from 'firebase/database';
 import { config } from '../config/config.mjs';
-import { AppError } from '../utils/errorHandler.mjs';
 
 const app = initializeApp(config.firebase);
 const db = getDatabase(app, config.firebase.databaseURL);
@@ -23,7 +22,7 @@ const db = getDatabase(app, config.firebase.databaseURL);
 // 2) UTILITY FUNCTIONS
 // ========================
 const safeKey = (email) => {
-  if (!email) throw new AppError('Email is required', 400);
+  if (!email) throw new Error('Email is required');
   return email.replace(/[.#$\[\]]/g, '_');
 };
 
@@ -42,7 +41,7 @@ class FirebaseService {
       return true;
     } catch (error) {
       console.error('Error saving OTP:', error);
-      throw new AppError('Failed to save OTP', 500);
+      throw new Error('Failed to save OTP');
     }
   }
 
@@ -54,7 +53,7 @@ class FirebaseService {
       return snapshot.exists() ? snapshot.val() : null;
     } catch (error) {
       console.error('Error getting OTP:', error);
-      throw new AppError('Failed to get OTP', 500);
+      throw new Error('Failed to get OTP');
     }
   }
 
@@ -66,7 +65,7 @@ class FirebaseService {
       return true;
     } catch (error) {
       console.error('Error deleting OTP:', error);
-      throw new AppError('Failed to delete OTP', 500);
+      throw new Error('Failed to delete OTP');
     }
   }
 
@@ -81,7 +80,7 @@ class FirebaseService {
       return userRef.key;
     } catch (error) {
       console.error('Error saving user info:', error);
-      throw new AppError('Failed to save user information', 500);
+      throw new Error('Failed to save user information');
     }
   }
 
@@ -106,7 +105,7 @@ class FirebaseService {
       return null;
     } catch (error) {
       console.error('Error finding user by username:', error);
-      throw new AppError('Failed to find user', 500);
+      throw new Error('Failed to find user');
     }
   }
 
@@ -131,25 +130,12 @@ class FirebaseService {
       return false;
     } catch (error) {
       console.error('Error checking username:', error);
-      throw new AppError('Failed to check username', 500);
-    }
-  }
-  // ========================
-  // 4) SET TASK
-  // ========================
-  static async setTask(task){
-    try {
-      const taskRef = push(ref(db,`ContentCreatorTask`))
-      await set (taskRef, task);
-      return taskRef.key
-    } catch (error){
-      console.error('Error saving Content Creator Task:', error);
-      throw new AppError('Failed to save Content Creator Task', 500);
+      throw new Error('Failed to check username');
     }
   }
 
   // ========================
-  // 5) NOTIFICATIONS
+  // 4) NOTIFICATIONS
   // ========================
   static async createAdminNotification(notificationData) {
     try {
@@ -159,13 +145,13 @@ class FirebaseService {
         type: notificationData.type,
         message: notificationData.message,
         read: notificationData.read || false,
-        timestamp: notificationData.timestamp || Date.now(),
+        timestamp: notificationData.timestamp || Date.toISOString(),
         user: notificationData.user
       });
       return notifAdminRef.key
     } catch (error) {
       console.error('Error saving Admin notification:', error);
-      throw new AppError('Failed to save Admin notification', 500);
+      throw new Error('Failed to save Admin notification');
     }
   }
 }

@@ -1,12 +1,13 @@
 // ========================
 // 1) IMPORTS & INITIALIZATION
 // ========================
+
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { config } from '../config/config.mjs';
 import EmailService from '../services/email.service.mjs';
 import FirebaseService from '../services/firebase.service.mjs';
-import { AppError } from '../utils/errorHandler.mjs';
+import {AppError} from '../utils/errorHandler.mjs';
 
 // ========================
 // 2) CONTROLLER FUNCTIONS
@@ -15,12 +16,20 @@ import { AppError } from '../utils/errorHandler.mjs';
 // ========================
 // 2.1) REGISTRATION FLOW
 // ========================
-const validateOTPRegistration = (req, res, next) => {
-  const { email, firstName, lastName, username, password, retypePassword, role } = req.body;
 
+const validateOTPRegistration = (req, res, next) => {
+
+  console.log('Sending Registration data', {
+    ...req.body,
+    role: req.body.role
+  })
+
+  const { email, firstName,lastName, username, password, retypePassword, role } = req.body;
+  
   if (!email || !firstName || !lastName || !username || !password || !retypePassword || !role) {
     return next(new AppError('All fields are required', 400));
   }
+  console.log('Recieved role:', role);
 
   const validRoles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
 
@@ -59,20 +68,19 @@ const registerOTP = async (req, res, next) => {
     }
 
     const otp = EmailService.generateOTP();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); 
     const hashedPassword = await bcrypt.hash(password, 12);
     const userData = {
       email,
       firstName,
       lastName,
       username,
-      password: hashedPassword,
+      password: hashedPassword, 
       role,
       otp,
       expiresAt,
       verified: false,
-      createdAt: Date.now()
+      createdAt: new Date().toISOString()
     };
 
     await FirebaseService.saveOTP(email, userData);
@@ -95,7 +103,7 @@ const verifyOTP = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
     const otpData = await FirebaseService.getOTP(email);
-
+    
     if (!otpData || otpData.expiresAt < Date.now()) {
       return next(new AppError('OTP is invalid or has expired', 400));
     }
@@ -138,9 +146,25 @@ const completeRegistration = async (req, res, next) => {
       registrationDate: new Date().toISOString()
     };
     const userId = await FirebaseService.saveUser(userData);
+    io.emit('accountApproved', {
+      id: userId,
+      ...userData
+    });
 
 
-    await FirebaseService.createAdminNotification({
+    const notifId = await FirebaseService.createAdminNotification({
+      type: "approval_needed",
+      message: "A new account needs approval.",
+      read: false,
+      timestamp: new Date().toISOString(),
+      user: {
+        ...userData,
+        id: userId
+      }
+    });
+
+    io.emit('notificationAdmin', {
+      id: notifId,
       type: "approval_needed",
       message: "A new account needs approval.",
       read: false,
@@ -149,7 +173,8 @@ const completeRegistration = async (req, res, next) => {
         ...userData,
         id: userId
       }
-    });
+    })
+
 
     await FirebaseService.deleteOTP(email);
 
@@ -181,12 +206,13 @@ const completeRegistration = async (req, res, next) => {
 // ========================
 // 2.2) AUTHENTICATION
 // ========================
+
 const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     console.log('Login attempt for username:', username);
 
-    if (!username || !password) {
+    if(!username || !password) {
       return next(new AppError('Please provide username and password!', 400))
     }
 
@@ -232,38 +258,21 @@ const login = async (req, res, next) => {
     next(error);
   }
 };
+// ========================
 
+// 3) APPROVAL OF ACCOUNTS // gawin tomorrow
 // ========================
-// 3) TASK
-// ========================
-const setTask = async (req, res, next) => {
+const getApprovalAccount = (req, res, next) => {
   try {
-    const { objectives, gender, minAge, maxAge, deadline, numContent } = req.body;
-    const task = {objectives, gender, minAge, maxAge, deadline, numContent};
-    console.log(task);
-    if (!objectives || !gender || !minAge || !maxAge || !deadline || !numContent) {
-      return next(new AppError('All fields are required', 400));
-    }
-    await FirebaseService.setTask(task);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Task created successfully',
-      data: {
-        objectives,
-        gender,
-        minAge,
-        maxAge,
-        deadline,
-        numContent
-      }
-    });
   } catch (error) {
-    next(error);
+
   }
 }
+
 // ========================
 // 4) EXPORTS
+
 // ========================
 
 export {
@@ -272,5 +281,5 @@ export {
   completeRegistration,
   login,
   validateOTPRegistration,
-  setTask
+
 };

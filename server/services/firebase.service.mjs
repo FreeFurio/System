@@ -14,7 +14,6 @@ import {
   equalTo
 } from 'firebase/database';
 import { config } from '../config/config.mjs';
-import { AppError } from '../utils/errorHandler.mjs';
 
 const app = initializeApp(config.firebase);
 const db = getDatabase(app, config.firebase.databaseURL);
@@ -23,7 +22,7 @@ const db = getDatabase(app, config.firebase.databaseURL);
 // 2) UTILITY FUNCTIONS
 // ========================
 const safeKey = (email) => {
-  if (!email) throw new AppError('Email is required', 400);
+  if (!email) throw new Error('Email is required');
   return email.replace(/[.#$\[\]]/g, '_');
 };
 
@@ -42,7 +41,7 @@ class FirebaseService {
       return true;
     } catch (error) {
       console.error('Error saving OTP:', error);
-      throw new AppError('Failed to save OTP', 500);
+      throw new Error('Failed to save OTP');
     }
   }
 
@@ -54,7 +53,7 @@ class FirebaseService {
       return snapshot.exists() ? snapshot.val() : null;
     } catch (error) {
       console.error('Error getting OTP:', error);
-      throw new AppError('Failed to get OTP', 500);
+      throw new Error('Failed to get OTP');
     }
   }
 
@@ -66,7 +65,7 @@ class FirebaseService {
       return true;
     } catch (error) {
       console.error('Error deleting OTP:', error);
-      throw new AppError('Failed to delete OTP', 500);
+      throw new Error('Failed to delete OTP');
     }
   }
 
@@ -81,7 +80,7 @@ class FirebaseService {
       return userRef.key;
     } catch (error) {
       console.error('Error saving user info:', error);
-      throw new AppError('Failed to save user information', 500);
+      throw new Error('Failed to save user information');
     }
   }
 
@@ -106,7 +105,7 @@ class FirebaseService {
       return null;
     } catch (error) {
       console.error('Error finding user by username:', error);
-      throw new AppError('Failed to find user', 500);
+      throw new Error('Failed to find user');
     }
   }
 
@@ -134,45 +133,83 @@ class FirebaseService {
       throw new AppError('Failed to check username', 500);
     }
   }
+
   // ========================
-  // 4) SET TASK
+  // 4) TASK
   // ========================
-  static async setTask(task){
+  
+  // ========================
+  // 4.1) CREATE TASK
+  // ========================
+
+  static async setTaskContentCreator(task) {
     try {
-      const taskRef = push(ref(db,`ContentCreatorTask`))
-      await set (taskRef, task);
-      return taskRef.key
-    } catch (error){
+      const setTaskRef = push(ref(db, `task/contentcreator`))
+      await set(setTaskRef, task);
+      return setTaskRef.key
+    } catch (error) {
       console.error('Error saving Content Creator Task:', error);
       throw new AppError('Failed to save Content Creator Task', 500);
     }
   }
 
+    // ========================
+  // 4.2) GET TASK
   // ========================
-  // 5) NOTIFICATIONS
+
+  static async getTaskContentCreator() {
+    try {
+      const snapshot = await get(ref(db, 'task/contentcreator'));
+      return snapshot.val()
+
+    } catch (error) {
+      throw new AppError('Failed to get Content Creator Task', 500);
+    }
+  }
+
   // ========================
+  // 5)  NOTIFICATIONS
+  // ========================
+
+  // ========================
+  // 5.1) CREATE NOTIFICATIONS
+  // ========================
+
   static async createAdminNotification(notificationData) {
     try {
-      const notifAdminRef = push(ref(db, 'AdminNotification'));
+      const createNotifAdminRef = push(ref(db, 'notification/admin'));
 
-      await set(notifAdminRef, {
+      await set(createNotifAdminRef, {
         type: notificationData.type,
         message: notificationData.message,
         read: notificationData.read || false,
-        timestamp: notificationData.timestamp || Date.now(),
+        timestamp: notificationData.timestamp || Date.toISOString(),
         user: notificationData.user
       });
+      io.emit('notificationAdmin')
       return notifAdminRef.key
     } catch (error) {
       console.error('Error saving Admin notification:', error);
-      throw new AppError('Failed to save Admin notification', 500);
+      throw new Error('Failed to save Admin notification');
+    }
+  }
+
+    // ========================
+  // 5.2) GET NOTIFICATIONS
+  // ========================
+  static async getadminNotification() {
+    try {
+      const getNotifAdminRef = get(ref(db, 'notification/admin'))
+    } catch (error){
+
     }
   }
 }
 
 
+
 // ========================
-// 5) EXPORTS
+// 7) EXPORTS
 // ========================
 
 export default FirebaseService;

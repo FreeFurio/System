@@ -40,7 +40,7 @@ export default function SetTask() {
       deadline,
       numContent: numContents
     };
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/task/content-creator`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

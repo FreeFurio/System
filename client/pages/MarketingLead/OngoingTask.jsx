@@ -13,30 +13,32 @@ export default function OngoingTask() {
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`)
       .then(res => res.json())
       .then(data => {
-        setCreatorTasks(data);
+        setCreatorTasks(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
         console.error("Failed to fetch content creator tasks:", err);
+        setCreatorTasks([]);
         setLoading(false);
       });
     // Fetch Graphic Designer tasks
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/graphic-designer/task`)
       .then(res => res.json())
       .then(data => {
-        setDesignerTasks(data);
+        setDesignerTasks(Array.isArray(data) ? data : []);
       })
       .catch(err => {
         console.error("Failed to fetch graphic designer tasks:", err);
+        setDesignerTasks([]);
       });
 
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
 
     socket.on("ongoingContentCreatorTask", (data) => {
-      setCreatorTasks(prev => [data, ...prev]);
+      setCreatorTasks(prev => [data, ...(Array.isArray(prev) ? prev : [])]);
     });
     socket.on("ongoingGraphicDesignerTask", (data) => {
-      setDesignerTasks(prev => [data, ...prev]);
+      setDesignerTasks(prev => [data, ...(Array.isArray(prev) ? prev : [])]);
     });
 
     return () => socket.disconnect();
@@ -44,9 +46,9 @@ export default function OngoingTask() {
 
   const handleDelete = (type, id) => {
     if (type === "Content Creator") {
-      setCreatorTasks(prev => prev.filter(task => (task.id || task._id) !== id));
+      setCreatorTasks(prev => (Array.isArray(prev) ? prev.filter(task => (task.id || task._id) !== id) : []));
     } else if (type === "Graphic Designer") {
-      setDesignerTasks(prev => prev.filter(task => (task.id || task._id) !== id));
+      setDesignerTasks(prev => (Array.isArray(prev) ? prev.filter(task => (task.id || task._id) !== id) : []));
     }
     // TODO: Add API call to delete content from backend
   };
@@ -56,29 +58,33 @@ export default function OngoingTask() {
       <div className="role-section">
         <h2>Content Creator</h2>
         {loading ? "Loading..." : (
-          creatorTasks.length === 0
+          Array.isArray(creatorTasks) && creatorTasks.length === 0
             ? <div style={{ marginBottom: 20 }}>No pending content.</div>
-            : creatorTasks.map(task => (
-                <ContentCard
-                  key={task.id || task._id}
-                  content={task}
-                  onDelete={() => handleDelete("Content Creator", task.id || task._id)}
-                />
-              ))
+            : Array.isArray(creatorTasks)
+              ? creatorTasks.map(task => (
+                  <ContentCard
+                    key={task.id || task._id}
+                    content={task}
+                    onDelete={() => handleDelete("Content Creator", task.id || task._id)}
+                  />
+                ))
+              : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
         )}
       </div>
       <div className="role-section">
         <h2>Graphic Designer</h2>
         {loading ? "Loading..." : (
-          designerTasks.length === 0
+          Array.isArray(designerTasks) && designerTasks.length === 0
             ? <div style={{ marginBottom: 20 }}>No pending content.</div>
-            : designerTasks.map(task => (
-                <ContentCard
-                  key={task.id || task._id}
-                  content={task}
-                  onDelete={() => handleDelete("Graphic Designer", task.id || task._id)}
-                />
-              ))
+            : Array.isArray(designerTasks)
+              ? designerTasks.map(task => (
+                  <ContentCard
+                    key={task.id || task._id}
+                    content={task}
+                    onDelete={() => handleDelete("Graphic Designer", task.id || task._id)}
+                  />
+                ))
+              : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
         )}
       </div>
     </div>

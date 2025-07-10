@@ -20,7 +20,7 @@ const router = express.Router();
 // ========================
 
 router.post(
-    '/content-creator/task',
+    '/marketing/content-creator/task',
     [
         body('objectives')
             .notEmpty()
@@ -45,6 +45,16 @@ router.post(
 // ========================
 // 2.2) GET TASK
 // ========================
+
+router.get(
+    '/marketing/content-creator/task',
+    getTaskContentCreator
+)
+
+router.get(
+    '/marketing/graphic-designer/task',
+    getTaskGraphicDesigner
+)
 
 router.get(
     '/content-creator/task',

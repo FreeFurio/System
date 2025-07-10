@@ -5,10 +5,14 @@ import 'rc-slider/assets/index.css';
 export default function SetTask() {
   const [objective, setObjective] = useState('');
   const [gender, setGender] = useState('');
-  const [deadline, setDeadline] = useState('');
+  const [deadline, setDeadline] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
   const [submitted, setSubmitted] = useState(false);
   const [ageRange, setAgeRange] = useState([20, 40]);
   const [numContents, setNumContents] = useState(1);
+  const [numContentsTouched, setNumContentsTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -27,6 +31,14 @@ export default function SetTask() {
       .filter(group => group.max >= min && group.min <= max)
       .map(group => group.label);
   };
+
+  // For deadline date limits
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const minDate = `${yyyy}-${mm}-${dd}`;
+  const maxDate = `${yyyy + 3}-${mm}-${dd}`;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -113,7 +125,7 @@ export default function SetTask() {
             onChange={e => setObjective(e.target.value)}
             placeholder="Write here..."
             rows={3}
-            style={{ width: '100%', padding: 12, borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: '1rem', background: '#f9fafb', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', minHeight: 60, maxHeight: 200, padding: 12, borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: '1rem', background: '#f9fafb', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
             required
           />
         </div>
@@ -124,8 +136,27 @@ export default function SetTask() {
             type="number"
             id="numContents"
             min={1}
-            value={numContents}
-            onChange={e => setNumContents(Math.max(1, Number(e.target.value)))}
+            value={numContentsTouched ? numContents : 1}
+            onFocus={() => {
+              if (!numContentsTouched && numContents === 1) {
+                setNumContents("");
+              }
+              setNumContentsTouched(true);
+            }}
+            onBlur={e => {
+              if (e.target.value === '' || isNaN(Number(e.target.value))) {
+                setNumContents(1);
+                setNumContentsTouched(false);
+              }
+            }}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === '' || isNaN(Number(val))) {
+                setNumContents("");
+              } else {
+                setNumContents(Math.max(1, Number(val)));
+              }
+            }}
             style={{ width: '100%', padding: 10, borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: '1rem', background: '#f9fafb', outline: 'none' }}
             required
           />
@@ -142,6 +173,10 @@ export default function SetTask() {
         {/* Age Range Slider */}
         <div>
           <label style={{ fontWeight: 700, display: 'block', marginBottom: 8, color: '#374151', fontSize: 16 }}>Age Range</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, marginLeft: 10, marginRight: 10 }}>
+            <span style={{ fontWeight: 700, color: '#f87171', fontSize: 16 }}>{ageRange[0]}</span>
+            <span style={{ fontWeight: 700, color: '#f87171', fontSize: 16 }}>{ageRange[1]}</span>
+          </div>
           <div style={{ padding: '18px 14px 12px 14px', background: '#f9fafb', borderRadius: 12, border: '1.5px solid #e5e7eb', boxShadow: '0 1px 4px 0 #f3f4f6' }}>
             <Slider
               range
@@ -181,6 +216,8 @@ export default function SetTask() {
             type="date"
             id="deadline"
             value={deadline}
+            min={minDate}
+            max={maxDate}
             onChange={e => setDeadline(e.target.value)}
             style={{ padding: 10, borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: '1rem', background: '#f9fafb', outline: 'none', width: '100%' }}
             required

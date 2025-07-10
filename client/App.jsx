@@ -29,6 +29,14 @@ import SetSchedule from './pages/MarketingLead/SetSchedule';
 import OngoingSchedule from './pages/MarketingLead/OngoingSchedule';
 import PostedContent from './pages/MarketingLead/PostedContent';
 import SetTaskGraphicDesigner from './pages/MarketingLead/SetTaskGraphicDesigner';
+import ContentCreatorLayout from './pages/ContentCreator/ContentCreatorLayout';
+import ContentCreatorDashboard from './pages/ContentCreator/Dashboard';
+import CreateContent from './pages/ContentCreator/CreateContent';
+import ContentCreatorTask from './pages/ContentCreator/Task';
+import GraphicDesignerLayout from './pages/GraphicDesigner/GraphicDesignerLayout';
+import GraphicDesignerDashboard from './pages/GraphicDesigner/Dashboard';
+import GraphicDesignerTask from './pages/GraphicDesigner/Task';
+import GraphicCreation from './pages/GraphicDesigner/GraphicCreation';
 
 function App() {
   return (
@@ -67,6 +75,20 @@ function App() {
           <Route path="set-schedule" element={<SetSchedule />} />
           <Route path="ongoing-schedule" element={<OngoingSchedule />} />
           <Route path="posted-content" element={<PostedContent />} />
+        </Route>
+        {/* Content Creator Routes */}
+        <Route path="/content" element={<ContentCreatorLayout />}>
+          <Route index element={<ContentCreatorDashboard />} />
+          <Route path="dashboard" element={<ContentCreatorDashboard />} />
+          <Route path="create" element={<CreateContent />} />
+          <Route path="task" element={<ContentCreatorTask />} />
+        </Route>
+        {/* Graphic Designer Routes */}
+        <Route path="/graphic" element={<GraphicDesignerLayout />}>
+          <Route path="creation" element={<GraphicCreation />} />
+          <Route index element={<GraphicDesignerDashboard />} />
+          <Route path="dashboard" element={<GraphicDesignerDashboard />} />
+          <Route path="task" element={<GraphicDesignerTask />} />
         </Route>
       </Routes>
     </Router>

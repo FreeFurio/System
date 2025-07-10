@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { io } from "socket.io-client";
 import ContentCard from '../../components/common/ContentCard';
+import TaskDetailsModal from '../../components/common/TaskDetailsModal';
 
 export default function OngoingTask() {
   const [creatorTasks, setCreatorTasks] = useState([]);
   const [designerTasks, setDesignerTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
     setLoading(true);
     // Fetch Content Creator tasks
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/content-creator/task`)
       .then(res => res.json())
       .then(data => {
         console.log("Content Creator tasks API response:", data);
@@ -18,19 +20,17 @@ export default function OngoingTask() {
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch content creator tasks:", err);
         setCreatorTasks([]);
         setLoading(false);
       });
     // Fetch Graphic Designer tasks
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/graphic-designer/task`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/graphic-designer/task`)
       .then(res => res.json())
       .then(data => {
         console.log("Graphic Designer tasks API response:", data);
         setDesignerTasks(Array.isArray(data.data) ? data.data : []);
       })
       .catch(err => {
-        console.error("Failed to fetch graphic designer tasks:", err);
         setDesignerTasks([]);
       });
 
@@ -68,6 +68,7 @@ export default function OngoingTask() {
                     key={task.id || task._id}
                     content={task}
                     onDelete={() => handleDelete("Content Creator", task.id || task._id)}
+                    onClick={() => setSelectedTask(task)}
                   />
                 ))
               : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
@@ -84,11 +85,13 @@ export default function OngoingTask() {
                     key={task.id || task._id}
                     content={task}
                     onDelete={() => handleDelete("Graphic Designer", task.id || task._id)}
+                    onClick={() => setSelectedTask(task)}
                   />
                 ))
               : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
         )}
       </div>
+      <TaskDetailsModal task={selectedTask} isOpen={!!selectedTask} onClose={() => setSelectedTask(null)} />
     </div>
   );
 } 

@@ -49,7 +49,18 @@ export default function LoginForm() {
         setUser(result.data.user);
         localStorage.setItem("user", JSON.stringify(result.data.user));
         setTimeout(() => {
-          navigate('/admin');
+          const role = result.data.user?.role;
+          if (role === 'Admin') {
+            navigate('/admin');
+          } else if (role === 'MarketingLead') {
+            navigate('/marketing/dashboard');
+          } else if (role === 'ContentCreator') {
+            navigate('/content/dashboard');
+          } else if (role === 'GraphicDesigner') {
+            navigate('/graphic/dashboard');
+          } else {
+            navigate('/admin');
+          }
         }, 1000);
       } else {
         setMessage({ text: result.message || "Login failed.", type: "error" });

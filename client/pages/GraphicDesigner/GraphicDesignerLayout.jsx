@@ -38,7 +38,7 @@ export default function GraphicDesignerLayout() {
   return (
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
-        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
+        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', overflowX: 'hidden', flexShrink: 0 }}>
           <div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <img src="/assets/issalonlogo.jpg" alt="infinitysalon" style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }} />
           </div>
@@ -55,9 +55,9 @@ export default function GraphicDesignerLayout() {
                 <div className="user-role">{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
               </div>
             </div>
-            <hr style={{ position: 'absolute', left: '-24px', right: '-24px', border: 'none', borderTop: '1px solid #e0e0e0', margin: 0, width: 'calc(100% + 48px)' }} />
+            {/* Removed wide HR */}
           </div>
-          <hr style={{ border: 'none', borderTop: '1px solid #e0e0e0', margin: '0 0 24px 0', width: '100%' }} />
+          {/* Removed extra HR at top */}
           <nav className="navigation">
             {sidebarItems.map(item => (
               <Link

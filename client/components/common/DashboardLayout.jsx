@@ -59,9 +59,7 @@ const DashboardLayout = () => {
                 <div className="user-role">{adminRole}</div>
               </div>
             </div>
-            <hr style={{ position: 'absolute', left: '-24px', right: '-24px', border: 'none', borderTop: '1px solid #e0e0e0', margin: 0, width: 'calc(100% + 48px)' }} />
           </div>
-          <hr style={{ border: 'none', borderTop: '1px solid #e0e0e0', margin: '0 0 24px 0', width: '100%' }} />
           {/* Navigation - can be customized per role in the future */}
           <nav className="navigation">
             <Link to="/admin" className={`nav-item${location.pathname === '/admin' ? ' active' : ''}`}>Dashboard</Link>

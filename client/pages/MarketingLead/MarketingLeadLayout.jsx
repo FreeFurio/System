@@ -45,7 +45,7 @@ export default function MarketingLeadLayout() {
   return (
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
-        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', flexShrink: 0 }}>
+        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', overflowX: 'hidden', flexShrink: 0 }}>
           <div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <img src="/assets/issalonlogo.jpg" alt="infinitysalon" style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }} />
           </div>
@@ -62,15 +62,16 @@ export default function MarketingLeadLayout() {
                 <div className="user-role">{leadRole.charAt(0).toUpperCase() + leadRole.slice(1)}</div>
               </div>
             </div>
-            <hr style={{ position: 'absolute', left: '-24px', right: '-24px', border: 'none', borderTop: '1px solid #e0e0e0', margin: 0, width: 'calc(100% + 48px)' }} />
+            {/* Removed wide HR */}
           </div>
-          <hr style={{ border: 'none', borderTop: '1px solid #e0e0e0', margin: '0 0 24px 0', width: '100%' }} />
+          {/* Removed extra HR at top */}
           <nav className="navigation">
             {sidebarItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
+                style={{ textDecoration: 'none', fontWeight: location.pathname === item.path ? 800 : 600, color: location.pathname === item.path ? '#2563eb' : '#222' }}
               >
                 {item.label}
               </Link>

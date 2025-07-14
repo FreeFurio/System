@@ -94,13 +94,353 @@
 }
 
 .role-section h2 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #2563eb;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: #222;
   margin-bottom: 12px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 
 .accounts-list, .manage-accounts-page-container {
   padding: 0 0 32px 0;
+} 
+
+/* Modern ContentCard styles */
+.content-card-modern {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 36px;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(44,75,255,0.10), 0 2px 8px rgba(0,0,0,0.08);
+  background: #fff;
+  border: none;
+  transition: box-shadow 0.3s, transform 0.2s;
+}
+
+.content-card-modern:hover {
+  box-shadow: 0 12px 32px rgba(44,75,255,0.14), 0 4px 16px rgba(0,0,0,0.12);
+  transform: translateY(-2px) scale(1.012);
+}
+
+.content-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #2563eb;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.08);
+  overflow: hidden;
+}
+.content-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.content-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.content-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.content-card-status {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  text-transform: capitalize;
+  margin-left: 4px;
+  letter-spacing: 0.5px;
+}
+.content-card-desc {
+  color: #6b7280;
+  font-size: 1.05rem;
+  margin-top: 2px;
+}
+
+.content-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.content-card-delete {
+  background: #f87171;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(244,67,54,0.12);
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+}
+.content-card-delete:hover {
+  background: #dc2626;
+  box-shadow: 0 8px 24px rgba(244,67,54,0.18);
+  transform: translateY(-1px) scale(1.07);
+}
+.content-card-delete svg {
+  display: block;
+} 
+
+/* Modern Task Card Redesign */
+.modern-task-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 28px 36px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(44,75,255,0.10), 0 2px 8px rgba(0,0,0,0.08);
+  border: 1.5px solid #e0e7ff;
+  margin-bottom: 22px;
+  transition: box-shadow 0.3s, border 0.2s, transform 0.18s;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.modern-task-card:hover {
+  box-shadow: 0 16px 40px rgba(44,75,255,0.16), 0 6px 20px rgba(0,0,0,0.13);
+  border: 1.5px solid #2563eb;
+  transform: translateY(-2px) scale(1.012);
+}
+.modern-task-card-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2563eb;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.10);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.modern-task-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.modern-task-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.modern-task-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.modern-task-card-title {
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #222;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.modern-task-card-status {
+  display: inline-block;
+  padding: 5px 18px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.10);
+  margin-left: 10px;
+  min-width: 90px;
+  text-align: center;
+}
+.modern-task-card-desc {
+  color: #6b7280;
+  font-size: 1.08rem;
+  font-weight: 400;
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+} 
+
+.clickable-task-card {
+  position: relative;
+  transition: box-shadow 0.22s cubic-bezier(.4,2,.6,1), transform 0.18s cubic-bezier(.4,2,.6,1), border 0.18s cubic-bezier(.4,2,.6,1);
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
+}
+.clickable-task-card:hover, .clickable-task-card:focus {
+  box-shadow: 0 8px 32px rgba(44,75,255,0.13), 0 4px 16px rgba(0,0,0,0.10);
+  border: 1.5px solid #2563eb;
+  transform: translateY(-2px) scale(1.012);
+  background: #f8fafc;
+}
+
+.task-card-action-btn {
+  margin-left: auto;
+  align-self: center;
+  background: #fff;
+  color: #2563eb;
+  border: 1.5px solid #2563eb;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 18px 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.06);
+  transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
+  outline: none;
+}
+.task-card-action-btn:hover, .task-card-action-btn:focus {
+  background: #2563eb;
+  color: #fff;
+  border: 1.5px solid #2563eb;
+  box-shadow: 0 8px 24px rgba(44,75,255,0.13);
+} 
+
+.clickable-account-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
+  border: 1.5px solid #e0e7ff;
+  margin-bottom: 14px;
+  transition: box-shadow 0.22s cubic-bezier(.4,2,.6,1), transform 0.18s cubic-bezier(.4,2,.6,1), border 0.18s cubic-bezier(.4,2,.6,1);
+  cursor: pointer;
+  outline: none;
+  min-height: 0;
+}
+.clickable-account-card:hover, .clickable-account-card:focus {
+  box-shadow: 0 8px 32px rgba(44,75,255,0.13), 0 4px 16px rgba(0,0,0,0.10);
+  border: 1.5px solid #2563eb;
+  transform: translateY(-2px) scale(1.012);
+  background: #f8fafc;
+}
+.account-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2563eb;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.10);
+  flex-shrink: 0;
+}
+.modern-account-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.account-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.account-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+  letter-spacing: 0.01em;
+}
+.account-role {
+  font-size: 0.92rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-left: 6px;
+  text-transform: capitalize;
+}
+.account-email {
+  color: #6b7280;
+  font-size: 0.97rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.modern-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modern-outline-btn {
+  background: #fff;
+  color: #2563eb;
+  border: 1.5px solid #2563eb;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 8px 18px 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(44,75,255,0.06);
+  transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
+  outline: none;
+}
+.modern-outline-btn:hover, .modern-outline-btn:focus {
+  background: #2563eb;
+  color: #fff;
+  border: 1.5px solid #2563eb;
+  box-shadow: 0 8px 24px rgba(44,75,255,0.13);
+} 
+
+.modern-task-card, .clickable-task-card {
+  padding: 14px 20px;
+  gap: 14px;
+  min-height: 0;
+}
+.modern-task-card-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+}
+.modern-task-card-title {
+  font-size: 1rem;
+}
+.modern-task-card-status {
+  font-size: 0.92rem;
+  padding: 3px 12px;
+  min-width: 60px;
+}
+.modern-task-card-desc {
+  font-size: 0.97rem;
+  margin-top: 2px;
+}
+.task-card-action-btn {
+  font-size: 0.97rem;
+  padding: 6px 14px 6px 12px;
 } 

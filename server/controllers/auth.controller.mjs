@@ -18,51 +18,48 @@ import {AppError} from '../utils/errorHandler.mjs';
 // ========================
 
 const validateOTPRegistration = (req, res, next) => {
-
-  console.log('Sending Registration data', {
-    ...req.body,
-    role: req.body.role
-  })
-
   const { email, firstName,lastName, username, password, retypePassword, role } = req.body;
   
   if (!email || !firstName || !lastName || !username || !password || !retypePassword || !role) {
     return next(new AppError('All fields are required', 400));
   }
-  console.log('Recieved role:', role);
 
   const validRoles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-
   if (!validRoles.includes(role)) {
     console.log('Valid reoles are:', validRoles);
     return next(new AppError('Invalid role specified', 400));
   }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return next(new AppError('Please provide a valid email address', 400));
   }
+
   if (password.length < 8) {
     return next(new AppError('Password must be at least 8 characters long', 400));
   }
+
   if (password !== retypePassword) {
     return next(new AppError('Passwords do not match', 400));
   }
 
   const allowedRoles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-
   if (!allowedRoles.includes(role)) {
     return next(new AppError('Invalid role specified', 400));
   }
+
   next();
 };
 
 
 const registerOTP = async (req, res, next) => {
   try {
-
     const { email, firstName, lastName, username, password, role } = req.body;
-    const isUsernameTaken = await FirebaseService.isUsernameTaken(username);
+    if (!email || !firstName || !lastName || !username || !password || !role) {
+      return next(new AppError('All fields are required', 400));
+    }
 
+    const isUsernameTaken = await FirebaseService.isUsernameTaken(username);
     if (isUsernameTaken) {
       return next(new AppError('Username is already taken', 400));
     }
@@ -102,8 +99,11 @@ const registerOTP = async (req, res, next) => {
 const verifyOTP = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
+    if (!otp) {
+      return next(new AppError('All fields are required', 400));
+    }
+
     const otpData = await FirebaseService.getOTP(email);
-    
     if (!otpData || otpData.expiresAt < Date.now()) {
       return next(new AppError('OTP is invalid or has expired', 400));
     }
@@ -129,8 +129,11 @@ const verifyOTP = async (req, res, next) => {
 const completeRegistration = async (req, res, next) => {
   try {
     const { email, contactNumber, city, state, country, zipCode } = req.body;
+    if (!email || !contactNumber || !city || !state || !country || !zipCode) {
+      return next(new AppError('All fields are required', 400));
+    }
+    
     const otpData = await FirebaseService.getOTP(email);
-
     if (!otpData || !otpData.verified) {
       return next(new AppError('Please verify your email first', 400));
     }
@@ -210,27 +213,16 @@ const completeRegistration = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    console.log('Login attempt for username:', username);
-
     if(!username || !password) {
       return next(new AppError('Please provide username and password!', 400))
     }
 
     const user = await FirebaseService.findUserByUsername(username);
-    console.log('User found in database:', user ? 'yes' : 'no');
-    console.log('User data from DB:', {
-      username: user.username,
-      hasPassword: !!user.password,
-      role: user.role
-    });
-
     if (!user) {
       return next(new AppError('Incorrect username or password', 401));
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    console.log('Password check result:', isPasswordCorrect);
-
     if (!isPasswordCorrect) {
       return next(new AppError('Incorrect username or password', 401));
     }
@@ -258,17 +250,7 @@ const login = async (req, res, next) => {
     next(error);
   }
 };
-// ========================
 
-// 3) APPROVAL OF ACCOUNTS // gawin tomorrow
-// ========================
-const getApprovalAccount = (req, res, next) => {
-  try {
-
-  } catch (error) {
-
-  }
-}
 
 // ========================
 // 4) EXPORTS

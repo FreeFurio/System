@@ -194,7 +194,6 @@ class FirebaseService {
         timestamp: notificationData.timestamp || Date.toISOString(),
         user: notificationData.user
       });
-      io.emit('notificationAdmin')
       return notifAdminRef.key
     } catch (error) {
       console.error('Error saving Admin notification:', error);

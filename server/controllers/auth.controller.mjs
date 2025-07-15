@@ -8,6 +8,7 @@ import { config } from '../config/config.mjs';
 import EmailService from '../services/email.service.mjs';
 import FirebaseService from '../services/firebase.service.mjs';
 import {AppError} from '../utils/errorHandler.mjs';
+import { io } from '../server.mjs';
 
 // ========================
 // 2) CONTROLLER FUNCTIONS
@@ -171,7 +172,7 @@ const completeRegistration = async (req, res, next) => {
       type: "approval_needed",
       message: "A new account needs approval.",
       read: false,
-      timestamp: Date.now(),
+      timestamp: new Date().toISOString(),
       user: {
         ...userData,
         id: userId

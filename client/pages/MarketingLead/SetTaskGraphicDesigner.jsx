@@ -60,11 +60,12 @@ export default function SetTaskGraphicDesigner() {
       body: JSON.stringify(payload),
     })
       .then(async (res) => {
-        if (!res.ok) {
-          const err = await res.text();
-          throw new Error(err || 'Failed to submit task');
+        const data = await res.json();
+        if (!res.ok && data.status !== 'success') {
+          const err = data.message || 'Failed to submit task';
+          throw new Error(err);
         }
-        return res.json();
+        return data;
       })
       .then(() => {
         setSubmitted(true);

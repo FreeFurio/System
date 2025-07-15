@@ -60,27 +60,14 @@ export default function AddressPage({ email }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, ...fields }),
       });
-      // Log for debugging
-      console.log("Status:", response.status);
-      const text = await response.text();
-      console.log("Response body:", text);
-
-      if (response.ok) {
+      const data = await response.json();
+      if (response.ok || data.status === 'success') {
         setSubmitted(true);
         setTimeout(() => {
           navigate('/login');
         }, 1000);
       } else {
-        // If status is not ok, but you know data went through, still allow success
-        // You can customize the logic below if you know what the backend returns on success
-        if (response.status === 500 && text && text.toLowerCase().includes("already exists")) {
-          setSubmitted(true);
-          setTimeout(() => {
-            navigate('/login');
-          }, 1000);
-        } else {
-          setSubmitError("Failed to submit information. Please try again.");
-        }
+        setSubmitError(data.message || "Failed to submit information. Please try again.");
       }
     } catch (err) {
       setSubmitError("Failed to submit information. Please try again.");

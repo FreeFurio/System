@@ -12,9 +12,10 @@ export default function OngoingTask() {
   useEffect(() => {
     setLoading(true);
     // Fetch Content Creator tasks
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/content-creator/task`)
       .then(res => res.json())
       .then(data => {
+        console.log("Content Creator tasks API response:", data);
         setCreatorTasks(Array.isArray(data.data) ? data.data : []);
         setLoading(false);
       })
@@ -23,9 +24,10 @@ export default function OngoingTask() {
         setLoading(false);
       });
     // Fetch Graphic Designer tasks
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/graphic-designer/task`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/graphic-designer/task`)
       .then(res => res.json())
       .then(data => {
+        console.log("Graphic Designer tasks API response:", data);
         setDesignerTasks(Array.isArray(data.data) ? data.data : []);
       })
       .catch(err => {

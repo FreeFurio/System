@@ -19,8 +19,9 @@ const router = express.Router();
 // 2.1) CREATING TASK
 // ========================
 
+// Recieving Marketing Lead created task data for Content Creator
 router.post(
-    '/content-creator/task',
+    '/marketing/content-creator/task',   
     [
         body('objectives')
             .notEmpty()
@@ -42,9 +43,21 @@ router.post(
     setTaskContentCreator
 )
 
+// Marketing Lead creating task for 
+
 // ========================
 // 2.2) GET TASK
 // ========================
+
+router.get(
+    '/marketing/content-creator/task',
+    getTaskContentCreator
+)
+
+router.get(
+    '/marketing/graphic-designer/task',
+    getTaskGraphicDesigner
+)
 
 router.get(
     '/content-creator/task',

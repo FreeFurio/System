@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiEdit, FiClipboard } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import '../../styles/Admin.css';
 
 const sidebarItems = [
-  { label: 'Dashboard', path: '/content/dashboard' },
-  { label: 'Create Content', path: '/content/create' },
-  { label: 'Task', path: '/content/task' },
+  { label: 'Dashboard', path: '/content/dashboard', icon: <FiHome size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Create Content', path: '/content/create', icon: <FiEdit size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Task', path: '/content/task', icon: <FiClipboard size={18} style={{ marginRight: 12 }} /> },
 ];
 
 export default function ContentCreatorLayout() {
@@ -38,39 +38,39 @@ export default function ContentCreatorLayout() {
   return (
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
-        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', overflowX: 'hidden', flexShrink: 0 }}>
+        <div className="sidebar" style={{ width: '240px', minWidth: '220px', background: '#f8f9fb', borderRight: '1px solid #ececec', padding: '32px 0 24px 0', borderRadius: 0, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxShadow: 'none', margin: 0, overflow: 'hidden', minHeight: 0 }}>
           <div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <img src="/assets/issalonlogo.jpg" alt="infinitysalon" style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }} />
           </div>
           {/* User Profile */}
-          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 24 }}>
-            <div className="user-profile">
-              <button className="header-profile-btn" aria-label="Profile">
-                <span className="header-profile-avatar">
-                  <FiUser size={24} />
-                </span>
-              </button>
-              <div className="user-info">
-                <div className="user-name">{creatorName}</div>
-                <div className="user-role">{creatorRole.charAt(0).toUpperCase() + creatorRole.slice(1)}</div>
+          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 24, minHeight: 0 }}>
+            <div className="user-profile" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none', width: '100%', marginBottom: 32, minHeight: 0 }}>
+              <span className="header-profile-avatar" style={{ width: 48, height: 48, borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#2563eb', fontWeight: 700 }}>
+                <FiUser size={28} />
+              </span>
+              <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, minHeight: 0 }}>
+                <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, maxWidth: 120, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word', minHeight: 0 }}>{creatorName}</div>
+                <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{creatorRole.charAt(0).toUpperCase() + creatorRole.slice(1)}</div>
               </div>
             </div>
             {/* Removed wide HR */}
           </div>
           {/* Removed extra HR at top */}
-          <nav className="navigation">
+          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, minHeight: 0 }}>
             {sidebarItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
+                style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === item.path ? '#fff' : '#222', background: location.pathname === item.path ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
               >
+                {item.icon}
                 {item.label}
               </Link>
             ))}
           </nav>
         </div>
-        <div className="main-content" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        <div className="main-content" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 0, margin: 0, boxShadow: 'none', padding: 0, minHeight: 0 }}>
           {/* Header */}
           <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 64, background: '#fafafa', borderBottom: '1px solid #e0e0e0', padding: '0 24px', position: 'relative', flexShrink: 0 }}>
             {/* Notification Bell */}

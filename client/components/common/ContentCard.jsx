@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './AccountCard.css';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiTrash2 } from 'react-icons/fi';
+import UserDetailsModal from './UserDetailsModal';
 
 const getStatusColor = (status) => {
   switch ((status || '').toLowerCase()) {
@@ -11,30 +12,59 @@ const getStatusColor = (status) => {
   }
 };
 
-const ContentCard = ({ content, onDelete, showDelete = true, onClick }) => (
-  <div className="modern-task-card clickable-task-card" onClick={onClick} tabIndex={0} style={{ cursor: 'pointer' }}>
-    <div className="modern-task-card-avatar">
-      {content.avatarUrl ? (
-        <img src={content.avatarUrl} alt="avatar" />
-      ) : (
-        <span>{(content.title || 'C').charAt(0).toUpperCase()}</span>
-      )}
-    </div>
-    <div className="modern-task-card-content">
-      <div className="modern-task-card-header">
-        <span className="modern-task-card-title">{content.title || 'Untitled Content'}</span>
-        {content.status && (
-          <span className="modern-task-card-status" style={{ background: getStatusColor(content.status) }}>
-            {content.status}
-          </span>
-        )}
-      </div>
-      <div className="modern-task-card-desc">{content.description || ''}</div>
-    </div>
-    <button className="task-card-action-btn" tabIndex={-1} onClick={e => { e.stopPropagation(); onClick && onClick(); }}>
-      View <FiArrowRight style={{ marginLeft: 6 }} />
-    </button>
-  </div>
-);
+const getAvatarColor = (name) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = hash % 360;
+  return `hsl(${h}, 70%, 86%)`;
+};
 
-export default ContentCard; 
+const ContentCard = ({ content, onDelete, showDelete = true }) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const initial = (content.title || 'C').charAt(0).toUpperCase();
+  const avatarColor = getAvatarColor(content.title || 'C');
+  return (
+    <>
+      <div
+        className="account-card clickable-account-card modern-flat-card"
+        tabIndex={0}
+        onClick={() => setShowDetails(true)}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="account-avatar modern-account-avatar" style={{ background: avatarColor }}>
+          <span>{initial}</span>
+        </div>
+        <div className="account-info modern-account-info">
+          <div className="account-name-row">
+            <span className="account-name">{content.title || 'Untitled Content'}</span>
+            {content.status && (
+              <span className="account-role" style={{ color: getStatusColor(content.status) }}>{content.status}</span>
+            )}
+          </div>
+          <span className="account-email">{content.description || ''}</span>
+        </div>
+        <div className="account-actions modern-account-actions">
+          {showDelete && (
+            <button
+              className="modern-icon-btn delete-icon-btn labeled-delete-btn"
+              title="Delete Content"
+              aria-label={`Delete content ${content.title}`}
+              onClick={e => { e.stopPropagation(); onDelete && onDelete(); }}
+            >
+              <FiTrash2 style={{ marginRight: 6, fontSize: '1.1em' }} /> Delete
+            </button>
+          )}
+        </div>
+      </div>
+      <UserDetailsModal
+        user={content}
+        isOpen={showDetails}
+        onClose={() => setShowDetails(false)}
+      />
+    </>
+  );
+};
+
+export default ContentCard;

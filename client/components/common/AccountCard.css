@@ -3,11 +3,13 @@
   justify-content: space-between;
   align-items: center;
   border: 2px solid #e0e0e0;
-  border-radius: 16px;
+  border-radius: 0 !important;
   padding: 20px 32px;
-  margin: 20px 0;
+  margin: 0 !important;
   background: #fff;
   box-shadow: 0 4px 24px rgba(44,75,255,0.10), 0 2px 8px rgba(0,0,0,0.08);
+  width: 100% !important;
+  max-width: none !important;
   transition: box-shadow 0.4s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1), background 0.3s cubic-bezier(.4,2,.6,1);
   animation: fadeInScale 0.5s cubic-bezier(.4,2,.6,1);
 }
@@ -30,6 +32,7 @@
 .account-actions {
   display: flex;
   gap: 16px;
+  padding-right: 10px;
 }
 
 .accept-btn, .reject-btn {
@@ -70,6 +73,8 @@
   transition: background 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.15s cubic-bezier(.4,2,.6,1), color 0.2s cubic-bezier(.4,2,.6,1);
   will-change: background, box-shadow, transform;
   outline: none;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 .delete-btn:hover {
@@ -88,9 +93,20 @@
 .role-section {
   margin-bottom: 32px;
   padding: 24px 0 8px 0;
-  border-radius: 18px;
-  background: #f9fafb;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.04);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.role-section h2 {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #e53935; /* vivid salon red */
+  letter-spacing: 0.01em;
+  margin-bottom: 14px;
+  text-shadow: 0 2px 12px rgba(255,182,193,0.18);
+  display: inline-block;
+  padding-bottom: 3px;
 }
 
 .role-section h2 {
@@ -325,122 +341,201 @@
 } 
 
 .clickable-account-card {
-  display: flex;
-  align-items: center;
   gap: 14px;
   padding: 14px 20px;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 0 !important;
   box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
   border: 1.5px solid #e0e7ff;
-  margin-bottom: 14px;
-  transition: box-shadow 0.22s cubic-bezier(.4,2,.6,1), transform 0.18s cubic-bezier(.4,2,.6,1), border 0.18s cubic-bezier(.4,2,.6,1);
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  position: relative;
+  overflow: visible;
+  transition: border 0.18s, transform 0.16s;
+
   cursor: pointer;
   outline: none;
   min-height: 0;
 }
-.clickable-account-card:hover, .clickable-account-card:focus {
-  box-shadow: 0 8px 32px rgba(44,75,255,0.13), 0 4px 16px rgba(0,0,0,0.10);
-  border: 1.5px solid #2563eb;
-  transform: translateY(-2px) scale(1.012);
-  background: #f8fafc;
+
+.account-card, .clickable-account-card, .modern-flat-card {
+  background: rgba(255,255,255,0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 182, 193, 0.25); /* light pink border */
+  border-radius: 0 !important;
+  padding: 18px 32px;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  position: relative;
+  overflow: visible;
+  transition: border 0.18s, transform 0.16s;
 }
-.account-avatar {
-  width: 36px;
-  height: 36px;
+.account-card:hover, .clickable-account-card:hover, .modern-flat-card:hover {
+  transform: translateY(-2px) scale(1.012);
+}
+@media (max-width: 600px) {
+  .account-card, .clickable-account-card, .modern-flat-card {
+    padding: 16px 2vw 16px 0;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .account-card, .clickable-account-card, .modern-flat-card {
+    padding: 12px 2vw;
+    gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+}
+.account-card:hover, .clickable-account-card:hover, .modern-flat-card:hover {
+  background: #f8f9fb;
+  border: 1.5px solid #d1d5db;
+  box-shadow: 0 4px 16px rgba(44,75,255,0.10);
+  transform: translateY(-1px) scale(1.008);
+}
+@media (max-width: 600px) {
+  .account-card, .clickable-account-card, .modern-flat-card {
+    padding: 12px 2vw;
+    gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+}
+.account-card:hover, .clickable-account-card:hover, .modern-flat-card:hover {
+  background: #f8f9fb;
+  border: 1.5px solid #d1d5db;
+  box-shadow: 0 16px 48px rgba(44,75,255,0.18), 0 6px 20px rgba(0,0,0,0.13);
+  transform: translateY(-2px) scale(1.012);
+}
+.account-card:hover, .clickable-account-card:hover, .modern-flat-card:hover {
+  background: #f8f9fb;
+  border: 1.5px solid #d1d5db;
+}
+
+.account-avatar, .modern-account-avatar {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #e0e7ff;
+  background: var(--avatar-bg, #e0e7ff) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2563eb;
+  box-shadow: none;
+  flex-shrink: 0;
+  margin-left: 0;
+  border: 2px solid #fff;
+  transition: background 0.18s;
+}
+.account-avatar span, .modern-account-avatar span {
+  line-height: 1;
+  font-size: 1.5rem;
+}
+.account-avatar img, .modern-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.account-info, .modern-account-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+.account-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.account-name {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.01em;
+}
+.account-role {
+  font-size: 0.98rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-left: 8px;
+  text-transform: capitalize;
+}
+.account-email {
+  color: #6b7280;
+  font-size: 1.01rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.account-actions, .modern-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 0 !important;
+}
+
+/* Modern icon button for delete */
+.modern-icon-btn.delete-icon-btn {
+  background: #fff;
+  border: 1.5px solid #f87171;
+  color: #f87171;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2563eb;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.10);
-  flex-shrink: 0;
-}
-.modern-account-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-}
-.account-name-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.account-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #222;
-  letter-spacing: 0.01em;
-}
-.account-role {
-  font-size: 0.92rem;
-  color: #6b7280;
-  font-weight: 500;
-  margin-left: 6px;
-  text-transform: capitalize;
-}
-.account-email {
-  color: #6b7280;
-  font-size: 0.97rem;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-}
-.modern-account-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.modern-outline-btn {
-  background: #fff;
-  color: #2563eb;
-  border: 1.5px solid #2563eb;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 8px 18px 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.06);
   transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
   outline: none;
+  margin-right: 0;
 }
-.modern-outline-btn:hover, .modern-outline-btn:focus {
-  background: #2563eb;
+.modern-icon-btn.delete-icon-btn:hover, .modern-icon-btn.delete-icon-btn:focus {
+  background: #f87171;
   color: #fff;
-  border: 1.5px solid #2563eb;
-  box-shadow: 0 8px 24px rgba(44,75,255,0.13);
+  border: 1.5px solid #f87171;
+  box-shadow: 0 4px 16px rgba(248,113,113,0.13);
 } 
 
-.modern-task-card, .clickable-task-card {
-  padding: 14px 20px;
-  gap: 14px;
-  min-height: 0;
-}
-.modern-task-card-avatar {
-  width: 36px;
+.modern-icon-btn.delete-icon-btn.labeled-delete-btn {
+  min-width: 70px;
   height: 36px;
-  font-size: 1.1rem;
-}
-.modern-task-card-title {
+  padding: 0 16px;
   font-size: 1rem;
+  font-weight: 600;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 18px;
+  background: #fff;
+  border: 1.5px solid #f87171;
+  color: #f87171;
+  transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
 }
-.modern-task-card-status {
-  font-size: 0.92rem;
-  padding: 3px 12px;
-  min-width: 60px;
-}
-.modern-task-card-desc {
-  font-size: 0.97rem;
-  margin-top: 2px;
-}
-.task-card-action-btn {
-  font-size: 0.97rem;
-  padding: 6px 14px 6px 12px;
+.modern-icon-btn.delete-icon-btn.labeled-delete-btn:hover, .modern-icon-btn.delete-icon-btn.labeled-delete-btn:focus {
+  background: #f87171;
+  color: #fff;
+  border: 1.5px solid #f87171;
+  box-shadow: 0 4px 16px rgba(248,113,113,0.13);
 } 

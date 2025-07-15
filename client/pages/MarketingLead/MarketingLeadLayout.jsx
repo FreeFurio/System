@@ -1,21 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import '../../styles/Admin.css'; // Reuse Admin styles for consistency
 
 const sidebarItems = [
-  { label: 'Dashboard', path: '/marketing/dashboard' },
-  { label: 'Content Calendar', path: '/marketing/content-calendar' },
-  { label: 'Set Task (Content Creator)', path: '/marketing/set-task' },
-  { label: 'Set Task (Graphic Designer)', path: '/marketing/set-task-graphic-designer' },
-  { label: 'Ongoing Task', path: '/marketing/ongoing-task' },
-  { label: 'Set Schedule', path: '/marketing/set-schedule' },
-  { label: 'Ongoing Schedule', path: '/marketing/ongoing-schedule' },
-  { label: 'Approval of Contents', path: '/marketing/approval' },
-  { label: 'Approved Contents', path: '/marketing/approved' },
-  { label: 'Posted Content', path: '/marketing/posted-content' },
+  { label: 'Dashboard', path: '/marketing/dashboard', icon: <FiHome size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Content Calendar', path: '/marketing/content-calendar', icon: <FiCalendar size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Set Task (Content Creator)', path: '/marketing/set-task', icon: <FiEdit size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Set Task (Graphic Designer)', path: '/marketing/set-task-graphic-designer', icon: <FiImage size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: <FiClipboard size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Set Schedule', path: '/marketing/set-schedule', icon: <FiClock size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Ongoing Schedule', path: '/marketing/ongoing-schedule', icon: <FiRepeat size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Approval of Contents', path: '/marketing/approval', icon: <FiCheckCircle size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Approved Contents', path: '/marketing/approved', icon: <FiThumbsUp size={18} style={{ marginRight: 12 }} /> },
+  { label: 'Posted Content', path: '/marketing/posted-content', icon: <FiSend size={18} style={{ marginRight: 12 }} /> },
 ];
 
 export default function MarketingLeadLayout() {
@@ -45,40 +45,39 @@ export default function MarketingLeadLayout() {
   return (
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
-        <div className="sidebar" style={{ maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', overflowX: 'hidden', flexShrink: 0 }}>
+        <div className="sidebar" style={{ width: '240px', minWidth: '220px', background: '#f8f9fb', borderRight: '1px solid #ececec', padding: '32px 0 24px 0', borderRadius: 0, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxShadow: 'none', margin: 0, minHeight: 0, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
           <div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <img src="/assets/issalonlogo.jpg" alt="infinitysalon" style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }} />
           </div>
           {/* User Profile */}
-          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 24 }}>
-            <div className="user-profile">
-              <button className="header-profile-btn" aria-label="Profile">
-                <span className="header-profile-avatar">
-                  <FiUser size={24} />
-                </span>
-              </button>
-              <div className="user-info">
-                <div className="user-name">{leadName}</div>
-                <div className="user-role">{leadRole.charAt(0).toUpperCase() + leadRole.slice(1)}</div>
+          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 24, minHeight: 0 }}>
+            <div className="user-profile" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none', width: '100%', marginBottom: 32, minHeight: 0 }}>
+              <span className="header-profile-avatar" style={{ width: 48, height: 48, borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#2563eb', fontWeight: 700 }}>
+                <FiUser size={28} />
+              </span>
+              <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, minHeight: 0 }}>
+                <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, maxWidth: 120, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word', minHeight: 0 }}>{leadName}</div>
+                <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{leadRole.charAt(0).toUpperCase() + leadRole.slice(1)}</div>
               </div>
             </div>
             {/* Removed wide HR */}
           </div>
           {/* Removed extra HR at top */}
-          <nav className="navigation">
+          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, minHeight: 0 }}>
             {sidebarItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
-                style={{ textDecoration: 'none', fontWeight: location.pathname === item.path ? 800 : 600, color: location.pathname === item.path ? '#2563eb' : '#222' }}
+                style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === item.path ? '#fff' : '#222', background: location.pathname === item.path ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
               >
+                {item.icon}
                 {item.label}
               </Link>
             ))}
           </nav>
         </div>
-        <div className="main-content" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        <div className="main-content" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 0, margin: 0, boxShadow: 'none', padding: 0, minHeight: 0 }}>
           {/* Header */}
           <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 64, background: '#fafafa', borderBottom: '1px solid #e0e0e0', padding: '0 24px', position: 'relative', flexShrink: 0 }}>
             {/* Notification Bell */}
@@ -118,7 +117,7 @@ export default function MarketingLeadLayout() {
               )}
             </div>
           </div>
-          <div className="content-area" style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          <div className="content-area" style={{ flex: 1, padding: '24px', overflowY: 'auto', background: '#fff', borderRadius: 0, margin: 0, boxShadow: 'none', minHeight: 0 }}>
             <Outlet />
           </div>
         </div>

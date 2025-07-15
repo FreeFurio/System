@@ -216,12 +216,10 @@ export default function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Registration failed");
+      const data = await response.json();
+      if (!response.ok && data.status !== 'success') {
+        throw new Error(data.message || "Registration failed");
       }
-
       setPendingUser(formData);
       setShowOtpModal(true);
     } catch (error) {
@@ -242,7 +240,8 @@ export default function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
       });
-      if (!response.ok) throw new Error("OTP verification failed");
+      const data = await response.json();
+      if (!response.ok && data.status !== 'success') throw new Error("OTP verification failed");
       setOtpVerified(true); // Show address page
       setShowOtpModal(false);
       setSuccess(true);

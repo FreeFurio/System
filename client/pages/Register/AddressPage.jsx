@@ -58,13 +58,17 @@ export default function AddressPage({ email }) {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/register/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, ...fields }), // <-- FIXED LINE
+        body: JSON.stringify({ email, ...fields }),
       });
-      if (!response.ok) throw new Error("Failed to submit information");
-      setSubmitted(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 1000);
+      const data = await response.json();
+      if (response.ok || data.status === 'success') {
+        setSubmitted(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 1000);
+      } else {
+        setSubmitError(data.message || "Failed to submit information. Please try again.");
+      }
     } catch (err) {
       setSubmitError("Failed to submit information. Please try again.");
     } finally {

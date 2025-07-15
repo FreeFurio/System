@@ -69,8 +69,8 @@ const ApprovalOfAccountsPage = () => {
           No accounts pending approval.
         </div>
       ) : (
-        <div className="accounts-list">
-          <h2>Pending Accounts</h2>
+        <div className="accounts-list" style={{ width: '100%', padding: 0, margin: 0 }}>
+          <h2 style={{margin: 0, padding: '20px 0 8px 0'}}>Pending Accounts</h2>
           {pendingAccounts.map(account => (
             <AccountCard
                 key={account.key}

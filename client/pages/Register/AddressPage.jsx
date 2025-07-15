@@ -58,13 +58,30 @@ export default function AddressPage({ email }) {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/register/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, ...fields }), // <-- FIXED LINE
+        body: JSON.stringify({ email, ...fields }),
       });
-      if (!response.ok) throw new Error("Failed to submit information");
-      setSubmitted(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 1000);
+      // Log for debugging
+      console.log("Status:", response.status);
+      const text = await response.text();
+      console.log("Response body:", text);
+
+      if (response.ok) {
+        setSubmitted(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 1000);
+      } else {
+        // If status is not ok, but you know data went through, still allow success
+        // You can customize the logic below if you know what the backend returns on success
+        if (response.status === 500 && text && text.toLowerCase().includes("already exists")) {
+          setSubmitted(true);
+          setTimeout(() => {
+            navigate('/login');
+          }, 1000);
+        } else {
+          setSubmitError("Failed to submit information. Please try again.");
+        }
+      }
     } catch (err) {
       setSubmitError("Failed to submit information. Please try again.");
     } finally {

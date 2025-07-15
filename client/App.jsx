@@ -37,6 +37,23 @@ import GraphicDesignerLayout from './pages/GraphicDesigner/GraphicDesignerLayout
 import GraphicDesignerDashboard from './pages/GraphicDesigner/Dashboard';
 import GraphicDesignerTask from './pages/GraphicDesigner/Task';
 import GraphicCreation from './pages/GraphicDesigner/GraphicCreation';
+import OutputContent from './pages/ContentCreator/OutputContent';
+
+// Add global font import
+const fontLink = document.createElement('link');
+fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap';
+fontLink.rel = 'stylesheet';
+document.head.appendChild(fontLink);
+
+// Set base font-family globally
+const style = document.createElement('style');
+style.innerHTML = `body, html, #root {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+  background: #f6f8fa;
+  color: #222;
+  letter-spacing: 0.01em;
+}`;
+document.head.appendChild(style);
 
 function App() {
   return (
@@ -81,6 +98,7 @@ function App() {
           <Route index element={<ContentCreatorDashboard />} />
           <Route path="dashboard" element={<ContentCreatorDashboard />} />
           <Route path="create" element={<CreateContent />} />
+          <Route path="output" element={<OutputContent />} />
           <Route path="task" element={<ContentCreatorTask />} />
         </Route>
         {/* Graphic Designer Routes */}

@@ -125,7 +125,7 @@ export default function SetTaskGraphicDesigner() {
             onChange={e => setObjective(e.target.value)}
             placeholder="Write here..."
             rows={3}
-            style={{ width: '100%', minHeight: 60, maxHeight: 200, padding: 12, borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: '1rem', background: '#f9fafb', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', minHeight: 60, maxHeight: 200, padding: 12, borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: '1rem', background: '#f9fafb', resize: 'none', outline: 'none', boxSizing: 'border-box', overflowY: 'auto' }}
             required
           />
         </div>

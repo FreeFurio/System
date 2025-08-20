@@ -31,10 +31,9 @@ router.post(
 router.post(
   '/otp/verify',
   [
-    body('email')
-      .isEmail()
-      .withMessage('Please provide a valid email')
-      .normalizeEmail(),
+    body('username')
+      .notEmpty()
+      .withMessage('Username is required'),
     body('otp')
       .notEmpty()
       .withMessage('OTP is required')
@@ -47,10 +46,9 @@ router.post(
 router.post(
   '/register/complete',
   [
-    body('email')
-      .isEmail()
-      .withMessage('Please provide a valid email')
-      .normalizeEmail(),
+    body('username')
+      .notEmpty()
+      .withMessage('Username is required'),
     body('contactNumber')
       .notEmpty()
       .withMessage('Contact number is required'),

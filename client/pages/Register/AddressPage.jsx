@@ -20,7 +20,7 @@ function validateField(field, value) {
   return "";
 }
 
-export default function AddressPage({ email }) {
+export default function AddressPage({ username }) {
   const navigate = useNavigate();
   const [fields, setFields] = useState({
     contactNumber: "",
@@ -58,7 +58,7 @@ export default function AddressPage({ email }) {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/register/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, ...fields }),
+        body: JSON.stringify({ username, ...fields }),
       });
       const data = await response.json();
       if (response.ok || data.status === 'success') {

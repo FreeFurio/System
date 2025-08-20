@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from '../../components/common/UserContext';
 import "../../styles/LoginForm.css";
+import FacebookLoginButton from "../../components/common/FacebookLoginButton"
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -143,6 +144,7 @@ export default function LoginForm() {
             style={{ textDecoration: 'underline', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             Register
+              <FacebookLoginButton />
           </span>
         </div>
       </div>

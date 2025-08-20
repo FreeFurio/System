@@ -13,14 +13,17 @@ import { AppError } from '../utils/errorHandler.mjs';
 // ========================
 
 const adminNotification = async (req, res, next) => {
+    console.log('📬 adminNotification controller called');
     try {
-        const notification= await FirebaseService.adminNotification();
+        const notification = await FirebaseService.getadminNotification();
+        console.log('📬 adminNotification controller - notifications retrieved:', notification ? Object.keys(notification).length : 0);
 
         res.status(200).json({
             status: 'success',
             data: notification
-        })
+        });
     } catch (error) {
+        console.error('❌ adminNotification controller error:', error);
         next(error);
     }
 }

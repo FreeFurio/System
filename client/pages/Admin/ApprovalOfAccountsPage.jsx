@@ -46,17 +46,19 @@ const ApprovalOfAccountsPage = () => {
   }, []);
 
   const handleApprove = (account) => {
-    const roleRef = ref(db, `${account.role}/${account.key}`);
+    const username = account.username.toLowerCase();
+    const roleRef = ref(db, `${account.role}/${username}`);
     set(roleRef, account)
       .then(() => {
-        const pendingRef = ref(db, `ApprovalofAccounts/${account.key}`);
+        const pendingRef = ref(db, `ApprovalofAccounts/${username}`);
         remove(pendingRef);
       })
       .catch(error => console.error("Error approving account:", error));
   };
 
-  const handleReject = (accountKey) => {
-    const pendingRef = ref(db, `ApprovalofAccounts/${accountKey}`);
+  const handleReject = (account) => {
+    const username = account.username.toLowerCase();
+    const pendingRef = ref(db, `ApprovalofAccounts/${username}`);
     remove(pendingRef).catch(error => console.error("Error rejecting account:", error));
   };
 
@@ -76,7 +78,7 @@ const ApprovalOfAccountsPage = () => {
                 key={account.key}
                 account={account}
                 onAccept={() => handleApprove(account)}
-                onReject={() => handleReject(account.key)}
+                onReject={() => handleReject(account)}
               />
           ))}
         </div>

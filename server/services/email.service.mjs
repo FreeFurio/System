@@ -38,10 +38,14 @@ class EmailService {
   // 4) EMAIL SERVICE METHODS
   // ========================
   static generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('🎲 generateOTP called');
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('🎲 generateOTP - Generated OTP:', otp);
+    return otp;
   }
 
   static async sendEmail(to, subject, html) {
+    console.log('📧 sendEmail called with to:', to, 'subject:', subject);
     try {
       const mailOptions = {
         from: `"Infinity" <${config.email.user}>`,  
@@ -49,23 +53,31 @@ class EmailService {
         subject,                                   
         html                                       
       };
+      console.log('📧 sendEmail - Mail options prepared:', { from: mailOptions.from, to: mailOptions.to, subject: mailOptions.subject });
+      
+      console.log('📧 sendEmail - Sending email via transporter');
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent: %s', info.messageId);
+      console.log('✅ sendEmail - Email sent successfully. Message ID:', info.messageId);
       
       return { 
         success: true, 
         messageId: info.messageId 
       };
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('❌ sendEmail - Error sending email:', error);
       throw new Error('Failed to send email');
     }
   }
 
   static async sendOTPEmail(email, otp) {
+    console.log('📨 sendOTPEmail called with email:', email, 'otp:', otp);
     const emailTemplate = this.generateOTPEmail(otp);
+    console.log('📨 sendOTPEmail - Email template generated');
 
-    return this.sendEmail(email, emailTemplate.subject, emailTemplate.html);
+    console.log('📨 sendOTPEmail - Calling sendEmail');
+    const result = await this.sendEmail(email, emailTemplate.subject, emailTemplate.html);
+    console.log('✅ sendOTPEmail - OTP email sent successfully');
+    return result;
   }
 }
 

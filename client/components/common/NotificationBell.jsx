@@ -10,7 +10,7 @@ const NotificationBell = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const notificationsRef = ref(db, "AdminNotification");
+    const notificationsRef = ref(db, "notification/admin");
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val() || {};
       // Convert object to array and add the id
@@ -33,7 +33,7 @@ const NotificationBell = () => {
   const handleNotificationClick = (notif) => {
     // Mark as read in the database
     if (!notif.read) {
-      const notifRef = ref(db, `AdminNotification/${notif.id}`);
+      const notifRef = ref(db, `notification/admin/${notif.id}`);
       update(notifRef, { read: true });
     }
     // Navigate if type is approval_needed

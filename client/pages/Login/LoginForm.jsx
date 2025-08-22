@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from '../../components/common/UserContext';
-import "../../styles/LoginForm.css";
+import PasswordInput from '../../components/shared/PasswordInput';
+import "../../styles/Register.css";
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -73,78 +74,71 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="login-main">
-      <div className="login-form-container">
-        <h2 className="login-title">Welcome Back</h2>
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <div className="login-field">
-            <label htmlFor="username" className="login-label">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              className={`login-input${errors.username ? " login-input-error" : ""}`}
-              value={fields.username}
-              onChange={handleChange}
-              autoComplete="username"
-              required
-            />
-            {errors.username && <div className="login-message login-message-error">{errors.username}</div>}
-          </div>
-          <div className="login-field">
-            <label htmlFor="password" className="login-label">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className={`login-input${errors.password ? " login-input-error" : ""}`}
-              value={fields.password}
-              onChange={handleChange}
-              autoComplete="current-password"
-              required
-            />
-            {errors.password && <div className="login-message login-message-error">{errors.password}</div>}
-          </div>
-          <div style={{ textAlign: 'right', marginBottom: '1em' }}>
-            <button
-              type="button"
-              className="login-link"
-              style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', padding: 0 }}
-              onClick={() => navigate('/forgot-password')}
-            >
-              Forgot Password?
-            </button>
-          </div>
-          <div className="login-actions">
-            <button
-              type="submit"
-              className="login-btn login-btn-primary"
-              disabled={loading}
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </button>
-          </div>
-        </form>
-        {message.text && (
-          <div
-            className={`login-message ${message.type === "success" ? "login-message-success" : "login-message-error"}`}
-          >
-            {message.text}
-          </div>
-        )}
-        <div className="login-signup-link">
-          Don't have an account?{' '}
-          <span
-            className="login-link"
-            tabIndex={0}
-            role="button"
-            onClick={() => navigate('/register')}
-            onKeyDown={e => { if (e.key === 'Enter') navigate('/register'); }}
-            style={{ textDecoration: 'underline', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-          >
-            Register
-          </span>
+    <div className="form-container" style={{ maxWidth: '400px', padding: '24px 16px' }}>
+      <h2 className="title">Welcome Back</h2>
+      <p className="subtitle">Sign in to access your account</p>
+      <form className="form" onSubmit={handleSubmit} noValidate>
+        <div className="form-group" style={{ marginBottom: '18px' }}>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            className={`input${errors.username ? " error" : ""}`}
+            value={fields.username}
+            onChange={handleChange}
+            autoComplete="username"
+            placeholder=" "
+            required
+            style={{ height: '44px', padding: '12px 16px' }}
+          />
+          <label htmlFor="username" className="label">Username</label>
+          {errors.username && <div className="error-message">{errors.username}</div>}
         </div>
+        <div className="form-group" style={{ marginBottom: '18px' }}>
+          <PasswordInput
+            value={fields.password}
+            onChange={handleChange}
+            error={errors.password}
+            name="password"
+            placeholder=" "
+            label="Password"
+            required
+          />
+        </div>
+        <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+          <button
+            type="button"
+            className="link"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            onClick={() => navigate('/forgot-password')}
+          >
+            Forgot Password?
+          </button>
+        </div>
+        <button
+          type="submit"
+          className="signup-button"
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Log In"}
+        </button>
+      </form>
+      {message.text && (
+        <div
+          className={message.type === "success" ? "success-message" : "error-message"}
+        >
+          {message.text}
+        </div>
+      )}
+      <div className="form-footer">
+        Don't have an account?{' '}
+        <button
+          className="link"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          onClick={() => navigate('/register')}
+        >
+          Register
+        </button>
       </div>
     </div>
   );

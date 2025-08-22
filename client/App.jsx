@@ -13,6 +13,7 @@ import ResetPassword from './pages/Login/ResetPassword';
 import "./styles/Register.css";
 import "./styles/LoginForm.css";
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import SocialsAndInsights from './pages/Admin/SocialsAndInsights';
 import ApprovalOfAccountsPage from './pages/Admin/ApprovalOfAccountsPage';
 import AdminRoute from './components/common/AdminRoute';
 import ManageAccountsPage from './pages/Admin/ManageAccountsPage';
@@ -29,6 +30,7 @@ import SetSchedule from './pages/MarketingLead/SetSchedule';
 import OngoingSchedule from './pages/MarketingLead/OngoingSchedule';
 import PostedContent from './pages/MarketingLead/PostedContent';
 import SetTaskGraphicDesigner from './pages/MarketingLead/SetTaskGraphicDesigner';
+import UnifiedSetTask from './pages/MarketingLead/UnifiedSetTask';
 import ContentCreatorLayout from './pages/ContentCreator/ContentCreatorLayout';
 import ContentCreatorDashboard from './pages/ContentCreator/Dashboard';
 import CreateContent from './pages/ContentCreator/CreateContent';
@@ -78,6 +80,11 @@ function App() {
               <ManageAccountsPage />
             </AdminRoute>
           } />
+          <Route path="socials" element={
+            <AdminRoute>
+              <SocialsAndInsights />
+            </AdminRoute>
+          } />
         </Route>
         {/* Marketing Lead Routes */}
         <Route path="/marketing" element={<MarketingLeadLayout />}>
@@ -88,6 +95,7 @@ function App() {
           <Route path="approved" element={<ApprovedContents />} />
           <Route path="set-task" element={<SetTask />} />
           <Route path="set-task-graphic-designer" element={<SetTaskGraphicDesigner />} />
+          <Route path="set-task-unified" element={<UnifiedSetTask />} />
           <Route path="ongoing-task" element={<OngoingTask />} />
           <Route path="set-schedule" element={<SetSchedule />} />
           <Route path="ongoing-schedule" element={<OngoingSchedule />} />

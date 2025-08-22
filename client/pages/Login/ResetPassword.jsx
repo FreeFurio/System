@@ -40,28 +40,28 @@ export default function ResetPassword() {
         <h2 className="title">Reset Password</h2>
         <form className="form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="label" htmlFor="reset-password">New Password</label>
             <input
               id="reset-password"
               type="password"
               className="input"
-              placeholder="New password"
+              placeholder=" "
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
             />
+            <label className="label" htmlFor="reset-password">New Password</label>
           </div>
           <div className="form-group">
-            <label className="label" htmlFor="reset-retype">Retype Password</label>
             <input
               id="reset-retype"
               type="password"
               className="input"
-              placeholder="Retype new password"
+              placeholder=" "
               value={retype}
               onChange={e => setRetype(e.target.value)}
               required
             />
+            <label className="label" htmlFor="reset-retype">Retype Password</label>
           </div>
           <button className="signup-button" type="submit">Reset Password</button>
         </form>

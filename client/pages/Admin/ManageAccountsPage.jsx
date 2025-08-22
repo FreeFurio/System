@@ -37,6 +37,12 @@ const ManageAccountsPage = () => {
     remove(userRef).catch(error => console.error('Error deleting account:', error));
   };
 
+  const handleModify = (account) => {
+    // TODO: Implement modify functionality
+    console.log('Modify account:', account);
+    alert(`Modify functionality for ${account.firstName} ${account.lastName} will be implemented`);
+  };
+
   if (loading) return <div>Loading...</div>;
 
   const hasAccounts = Object.values(accountsByRole).some(arr => arr && arr.length > 0);
@@ -61,6 +67,7 @@ const ManageAccountsPage = () => {
                     key={account.key}
                     account={account}
                     onDelete={() => handleDelete(role, account.key)}
+                    onModify={() => handleModify(account)}
                   />
                 ))}
               </div>

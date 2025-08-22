@@ -9,7 +9,6 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
   return (
     <>
       <div className="form-group">
-        <label htmlFor="contactNumber" className="label">Contact Number</label>
         <input
           type="tel"
           id="contactNumber"
@@ -20,11 +19,11 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           required
           inputMode="numeric"
           pattern="[0-9]*"
-          placeholder={errors.contactNumber ? errors.contactNumber : "Contact Number"}
+          placeholder=" "
         />
+        <label htmlFor="contactNumber" className="label">Contact Number</label>
       </div>
       <div className="form-group">
-        <label htmlFor="city" className="label">City</label>
         <input
           type="text"
           id="city"
@@ -33,11 +32,11 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.city || ""}
           onChange={handleChange}
           required
-          placeholder={errors.city ? errors.city : "City"}
+          placeholder=" "
         />
+        <label htmlFor="city" className="label">City</label>
       </div>
       <div className="form-group">
-        <label htmlFor="state" className="label">State</label>
         <input
           type="text"
           id="state"
@@ -46,11 +45,11 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.state || ""}
           onChange={handleChange}
           required
-          placeholder={errors.state ? errors.state : "State"}
+          placeholder=" "
         />
+        <label htmlFor="state" className="label">State</label>
       </div>
       <div className="form-group">
-        <label htmlFor="country" className="label">Country</label>
         <input
           type="text"
           id="country"
@@ -59,11 +58,11 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.country || ""}
           onChange={handleChange}
           required
-          placeholder={errors.country ? errors.country : "Country"}
+          placeholder=" "
         />
+        <label htmlFor="country" className="label">Country</label>
       </div>
       <div className="form-group">
-        <label htmlFor="zipCode" className="label">Zip Code</label>
         <input
           type="text"
           id="zipCode"
@@ -72,8 +71,9 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
           value={values.zipCode || ""}
           onChange={handleChange}
           required
-          placeholder={errors.zipCode ? errors.zipCode : "Zip Code"}
+          placeholder=" "
         />
+        <label htmlFor="zipCode" className="label">Zip Code</label>
       </div>
     </>
   );

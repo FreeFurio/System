@@ -121,6 +121,7 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
+            
         {message.text && (
           <div
             className={message.type === "success" ? "success-message" : "error-message"}

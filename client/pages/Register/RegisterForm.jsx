@@ -234,7 +234,7 @@ export default function RegisterForm() {
   };
 
   // OTP submit
-  const handleOtpSubmit = async (email, otp) => {
+  const handleOtpSubmit = async (otp) => {
     setOtpLoading(true);
     setOtpError("");
     try {
@@ -242,7 +242,7 @@ export default function RegisterForm() {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/otp/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ username: pendingUser.username, otp }),
       });
       const data = await response.json();
       if (!response.ok && data.status !== 'success') throw new Error("OTP verification failed");
@@ -258,7 +258,7 @@ export default function RegisterForm() {
 
   // Show address page after OTP is verified
   if (otpVerified && pendingUser) {
-    return <AddressPage email={pendingUser.email} />;
+    return <AddressPage username={pendingUser.username} />;
   }
   const allPasswordRequirementsMet =
     passwordStrength.hasLength &&
@@ -491,7 +491,7 @@ const emailValid =
       )}
       <OTPModal
         show={showOtpModal}
-        onSubmit={(otp) => handleOtpSubmit(pendingUser.email, otp)}
+        onSubmit={handleOtpSubmit}
         onClose={() => setShowOtpModal(false)}
         loading={otpLoading}
         error={otpError}

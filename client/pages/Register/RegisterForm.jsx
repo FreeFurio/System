@@ -188,6 +188,7 @@ export default function RegisterForm() {
   // Registration submit
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 Form submitted!', fields);
 
     // Validate all fields
     const newErrors = {};
@@ -201,18 +202,23 @@ export default function RegisterForm() {
     if (!fields.role) newErrors.role = "Choose a role";
 
     setErrors(newErrors);
+    console.log('🔍 Validation errors:', newErrors);
 
     if (Object.values(newErrors).some((err) => err)) {
+      console.log('❌ Form has validation errors:', Object.entries(newErrors).filter(([key, value]) => value));
+      alert('Please fix the following errors: ' + Object.entries(newErrors).filter(([key, value]) => value).map(([key, value]) => `${key}: ${value}`).join(', '));
       return;
     }
 
     setLoading(true);
+    console.log('📡 Sending request to:', `${import.meta.env.VITE_API_URL}/api/v1/auth/otp/send`);
 
     try {
       // Prepare form data
       const formData = {
         ...fields
       };
+      console.log('📦 Form data:', formData);
 
       // Send to backend
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/otp/send`, {
@@ -220,13 +226,18 @@ export default function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+      console.log('📡 Response status:', response.status);
       const data = await response.json();
+      console.log('📡 Response data:', data);
+      
       if (!response.ok && data.status !== 'success') {
         throw new Error(data.message || "Registration failed");
       }
       setPendingUser(formData);
       setShowOtpModal(true);
+      console.log('✅ OTP modal should show now');
     } catch (error) {
+      console.error('❌ Registration error:', error);
       alert("Registration failed: " + error.message);
     } finally {
       setLoading(false);
@@ -449,6 +460,7 @@ const emailValid =
               {errors.role && <div className="error-message">{errors.role}</div>}
             </div>
           )}
+
 
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
             {currentStep > 1 && (

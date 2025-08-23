@@ -52,6 +52,10 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 0;
+  background-image: url('/assets/talaga.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 @media (min-width: 1800px) and (min-height: 1100px) {
@@ -89,14 +93,19 @@ html, body {
 }
 
 .form-container {
-  background: #fafafa;
+  background: rgba(255, 255, 255, 0.98);
   padding: 1.5rem 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08), 0 8px 24px rgba(44,75,255,0.04);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1);
   transition: box-shadow 0.4s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1), background 0.3s cubic-bezier(.4,2,.6,1);
   animation: fadeInScale 0.5s cubic-bezier(.4,2,.6,1);
   max-width: 340px;
   width: 100%;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  backdrop-filter: blur(20px);
 }
 
 @keyframes fadeInScale {
@@ -104,17 +113,38 @@ html, body {
   100% { opacity: 1; transform: scale(1); }
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
+.form-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24);
+  border-radius: 24px 24px 0 0;
+}
+
+.subtitle {
   text-align: center;
+  color: #6b7280;
+  font-size: 17px;
+  margin: 0 0 32px 0;
+  font-weight: 500;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #ef4444;
+  letter-spacing: -0.8px;
 }
 
 .form {
     display: flex;
     flex-direction: column;
-    gap: 0.08rem;
+    gap: 0;
 }
 
 .form-group {
@@ -122,7 +152,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.08rem;
-  margin-bottom: 4px;
+  margin-bottom: 1.5rem;
 }
 
 .form-group span[role="button"] {
@@ -138,41 +168,85 @@ html, body {
 }
 
 .label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #000000;
+    position: absolute !important;
+    left: 0.75rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: #9ca3af !important;
+    pointer-events: none !important;
+    transition: all 0.2s ease !important;
+    background: transparent !important;
+    z-index: 1 !important;
+    display: block !important;
+    visibility: visible !important;
 }
 
 .input, .select {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  border: 1.5px solid #ccc;
+  padding: 1rem 0.75rem 0.5rem 0.75rem;
+  border-radius: 16px;
+  border: 2px solid #e5e7eb;
   font-size: 1rem;
-  margin-bottom: 0.5rem;
-  transition: border 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1);
-  height: 38px;
-  padding-right: 36px;
+  background: #fafbfc;
+  outline: none;
   box-sizing: border-box;
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 56px;
+  margin-bottom: 0;
+}
+
+.input::placeholder, .select::placeholder {
+  color: transparent;
 }
 
 .input:focus, .select:focus {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.10);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
   outline: none;
+}
+
+.input:focus + .label,
+.input:not(:placeholder-shown) + .label,
+.select:focus + .label,
+.select:not([value=""]) + .label {
+  top: 0 !important;
+  left: 0.75rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #3b82f6 !important;
+  background: #fafbfc !important;
+  padding: 0 0.5rem !important;
+  transform: translateY(-50%) !important;
 }
 
 .input.error {
     border-color: #eb3131;
     box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
-  height: 38px;
-  padding-right: 36px;
-  box-sizing: border-box;
+    height: 56px;
+    padding-right: 36px;
+    box-sizing: border-box;
+}
+
+.input.error:focus + .label,
+.input.error:not(:placeholder-shown) + .label {
+    color: #eb3131;
+    background: #fafbfc;
+    padding: 0 0.5rem;
 }
 
 .input.success {
   border: 2px solid #2ecc40 !important;
+}
+
+.input.success:focus + .label,
+.input.success:not(:placeholder-shown) + .label {
+    color: #2ecc40;
+    background: #fafbfc;
+    padding: 0 0.5rem;
 }
 
 .input.password-input {
@@ -225,24 +299,30 @@ html, body {
 .signup-button {
     width: 100%;
     padding: 1.5rem;
-    background-color: #2c4bff;
+    background-color: #ef4444;
     color: #ffffff;
     border: none;
-    border-radius: 0.375rem;
+    border-radius: 16px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s cubic-bezier(.4,2,.6,1), transform 0.15s cubic-bezier(.4,2,.6,1), color 0.2s cubic-bezier(.4,2,.6,1);
+    transition: all 0.3s ease;
     will-change: background, box-shadow, transform;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    box-shadow: 0 2px 8px rgba(44,75,255,0.08);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
 }
 
 .signup-button:hover {
-    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(239, 68, 68, 0.5);
 }
 
 .signup-button:disabled {
@@ -266,7 +346,9 @@ html, body {
 }
 
 .back-button:hover {
-    background-color: #f1e2e2;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    background: #e5e7eb;
 }
 
 .back-button:active {
@@ -290,7 +372,7 @@ html, body {
 
 .footer-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   height: 100%;
   width: 100%;
@@ -328,14 +410,24 @@ html, body {
 
 .error-message {
     color: #ef4444;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: 500;
+    padding: 12px 20px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
 }
 
 .success-message {
-  color: #2ecc40;
-  font-size: 0.95em;
-  margin-top: 4px;
+  color: #059669;
+  font-size: 14px;
+  margin-top: 8px;
+  font-weight: 500;
+  padding: 12px 20px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
 }
 
 .password-requirements {
@@ -387,11 +479,26 @@ html, body {
 .otp-modal {
   background: #fff;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 24px;
   min-width: 300px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1);
   text-align: center;
   animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.otp-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24);
+  border-radius: 24px 24px 0 0;
 }
 
 @keyframes fadeInScale {
@@ -421,6 +528,32 @@ html, body {
   align-items: center;
 }
 
+.password-input-wrapper .input:focus + .label,
+.password-input-wrapper .input:not(:placeholder-shown) + .label {
+  top: 0;
+  left: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #fafbfc;
+  padding: 0 0.5rem;
+  transform: translateY(-50%);
+}
+
+.password-input-wrapper .input.error:focus + .label,
+.password-input-wrapper .input.error:not(:placeholder-shown) + .label {
+  color: #eb3131;
+  background: #fafbfc;
+  padding: 0 0.5rem;
+}
+
+.password-input-wrapper .input.success:focus + .label,
+.password-input-wrapper .input.success:not(:placeholder-shown) + .label {
+  color: #2ecc40;
+  background: #fafbfc;
+  padding: 0 0.5rem;
+}
+
 .password-input {
   width: 100%;
   padding-right: 2.5rem;
@@ -429,10 +562,18 @@ html, body {
 .toggle-password {
   position: absolute;
   right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
   font-size: 1.2rem;
   color: #888;
   user-select: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  margin-top: 4px;
 }
 
 .password-success-indicator {
@@ -458,22 +599,25 @@ html, body {
 }
 
 .otp-verify-btn {
-  background: #2c4bff;
+  background: #ef4444;
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
   padding: 0.75rem 2rem;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
   will-change: background, box-shadow, transform;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: inherit;
 }
 
 .otp-verify-btn:hover {
-  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(239, 68, 68, 0.5);
 }
 
 .otp-verify-btn:active {
@@ -482,22 +626,26 @@ html, body {
 }
 
 .otp-cancel-btn {
-  background: #fbe8e8;
-  color: #000;
+  background: #f3f4f6;
+  color: #374151;
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
   padding: 0.75rem 2rem;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(44,75,255,0.08);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   will-change: background, box-shadow, transform;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: inherit;
 }
 
 .otp-cancel-btn:hover {
-  background: #f1e2e2;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background: #e5e7eb;
 }
 
 .otp-cancel-btn:active {
@@ -544,8 +692,9 @@ html, body {
 }
 
 .link {
-  color: #007bff;
+  color: #ef4444;
   text-decoration: none;
+  font-weight: 600;
 }
 
 .link:hover {

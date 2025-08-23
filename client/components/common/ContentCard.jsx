@@ -21,10 +21,10 @@ const getAvatarColor = (name) => {
   return `hsl(${h}, 70%, 86%)`;
 };
 
-const ContentCard = ({ content, onDelete, showDelete = true }) => {
+const ContentCard = ({ content, onDelete, showDelete = true, showCreateButton = false, taskId }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const initial = (content.title || 'C').charAt(0).toUpperCase();
-  const avatarColor = getAvatarColor(content.title || 'C');
+  const roleLabel = (content.role || 'U').charAt(0).toUpperCase();
+  const avatarColor = '#ef4444';
   return (
     <>
       <div
@@ -33,8 +33,8 @@ const ContentCard = ({ content, onDelete, showDelete = true }) => {
         onClick={() => setShowDetails(true)}
         style={{ cursor: 'pointer' }}
       >
-        <div className="account-avatar modern-account-avatar" style={{ background: avatarColor }}>
-          <span>{initial}</span>
+        <div className="content-card-avatar" style={{ background: '#e74c3c', color: '#F6C544' }}>
+          <span>{roleLabel}</span>
         </div>
         <div className="account-info modern-account-info">
           <div className="account-name-row">
@@ -46,6 +46,28 @@ const ContentCard = ({ content, onDelete, showDelete = true }) => {
           <span className="account-email">{content.description || ''}</span>
         </div>
         <div className="account-actions modern-account-actions">
+          {showCreateButton && (
+            <button
+              className="modern-icon-btn"
+              style={{
+                background: '#ef4444',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: 600,
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginRight: '8px'
+              }}
+              onClick={e => {
+                e.stopPropagation();
+                window.location.href = `/content/create?taskId=${taskId}`;
+              }}
+            >
+              Create Content
+            </button>
+          )}
           {showDelete && (
             <button
               className="modern-icon-btn delete-icon-btn labeled-delete-btn"
@@ -53,7 +75,7 @@ const ContentCard = ({ content, onDelete, showDelete = true }) => {
               aria-label={`Delete content ${content.title}`}
               onClick={e => { e.stopPropagation(); onDelete && onDelete(); }}
             >
-              <FiTrash2 style={{ marginRight: 6, fontSize: '1.1em' }} /> Delete
+              <FiTrash2 style={{ marginRight: 6, fontSize: '1.1em', color: '#F6C544' }} /> Delete
             </button>
           )}
         </div>

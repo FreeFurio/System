@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../services/firebase"; // Adjust path if needed
 import { ref, onValue, update } from "firebase/database";
-import { FiBell } from "react-icons/fi";
+import { TbBellRingingFilled } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 
 const NotificationBell = () => {
@@ -46,9 +46,10 @@ const NotificationBell = () => {
   return (
     <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
       <button
+        className="notification-bell"
         onClick={handleBellClick}
         style={{
-          fontSize: "24px",
+          fontSize: "28px",
           position: "relative",
           background: "none",
           border: "none",
@@ -57,31 +58,17 @@ const NotificationBell = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "40px",
-          width: "40px",
+          height: "auto",
+          width: "auto",
+          boxShadow: "none",
+          borderRadius: 0,
+          padding: 0
         }}
         aria-label="Notifications"
       >
-        <FiBell />
+        <TbBellRingingFilled className={unreadCount > 0 ? "bell-animate" : ""} color="#F6C544" size={28} />
         {unreadCount > 0 && (
-          <span
-            style={{
-              position: "absolute",
-              top: "6px",
-              right: "6px",
-              background: "red",
-              color: "white",
-              borderRadius: "50%",
-              padding: "2px 6px",
-              fontSize: "12px",
-              fontWeight: "bold",
-              minWidth: "18px",
-              textAlign: "center",
-              lineHeight: "16px",
-            }}
-          >
-            {unreadCount}
-          </span>
+          <span className="notification-badge">{unreadCount}</span>
         )}
       </button>
       {showDropdown && (

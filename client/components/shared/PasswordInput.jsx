@@ -5,15 +5,16 @@ export default function PasswordInput({
   value,
   onChange,
   name = "password",
-  placeholder = "Password",
+  placeholder = " ",
   error,
   success,
   required,
+  label,
 }) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <div>
+    <>
       <div className="password-input-wrapper">
         <input
           type={visible ? "text" : "password"}
@@ -25,6 +26,11 @@ export default function PasswordInput({
           autoComplete="new-password"
           required={required}
         />
+        {label && (
+          <label htmlFor={name} className="label">
+            {label}
+          </label>
+        )}
         <span
           onClick={() => setVisible((v) => !v)}
           className="toggle-password"
@@ -32,11 +38,11 @@ export default function PasswordInput({
           tabIndex={0}
           role="button"
         >
-          {visible ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+          {visible ? <FiEye size={20} /> : <FiEyeOff size={20} />}
         </span>
       </div>
-      {/* Removed error message div below the input */}
-    </div>
+      {error && <div className="error-message">{error}</div>}
+    </>
   );
 }
 

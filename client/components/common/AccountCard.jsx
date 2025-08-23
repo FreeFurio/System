@@ -5,9 +5,9 @@ import { FiTrash2 } from 'react-icons/fi';
 
 const formatRole = (role) => role.replace(/([a-z])([A-Z])/g, '$1 $2');
 
-const AccountCard = ({ account, onAccept, onReject, onDelete }) => {
+const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const initial = (account.firstName || account.name || 'U').charAt(0).toUpperCase();
+  const initial = (account.role || 'U').charAt(0).toUpperCase();
 
   return (
     <>
@@ -89,31 +89,61 @@ const AccountCard = ({ account, onAccept, onReject, onDelete }) => {
           marginLeft: 10,
         }}>
           {onDelete && (
-            <button
-              className="modern-icon-btn delete-icon-btn labeled-delete-btn"
-              style={{
-                background: '#fff',
-                border: '1.5px solid #f87171',
-                color: '#f87171',
-                borderRadius: 10,
-                minWidth: 52,
-                height: 26,
-                fontWeight: 600,
-                fontSize: '0.82rem',
-                padding: '0 7px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 1px 4px rgba(244,67,54,0.06)',
-                cursor: 'pointer',
-                transition: 'background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s',
-              }}
-              title="Delete Account"
-              aria-label="Delete Account"
-              onClick={e => { e.stopPropagation(); onDelete(); }}
-            >
-              Delete
-            </button>
+            <>
+              {onModify && (
+                <button
+                  className="modern-icon-btn modify-icon-btn labeled-modify-btn"
+                  style={{
+                    background: '#fff',
+                    border: '1.5px solid #3b82f6',
+                    color: '#3b82f6',
+                    borderRadius: 10,
+                    minWidth: 52,
+                    height: 26,
+                    fontWeight: 600,
+                    fontSize: '0.82rem',
+                    padding: '0 7px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 1px 4px rgba(59,130,246,0.06)',
+                    cursor: 'pointer',
+                    transition: 'background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s',
+                    marginRight: 6,
+                  }}
+                  title="Modify Account"
+                  aria-label="Modify Account"
+                  onClick={e => { e.stopPropagation(); onModify(); }}
+                >
+                  Modify
+                </button>
+              )}
+              <button
+                className="modern-icon-btn delete-icon-btn labeled-delete-btn"
+                style={{
+                  background: '#fff',
+                  border: '1.5px solid #f87171',
+                  color: '#f87171',
+                  borderRadius: 10,
+                  minWidth: 52,
+                  height: 26,
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  padding: '0 7px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 1px 4px rgba(244,67,54,0.06)',
+                  cursor: 'pointer',
+                  transition: 'background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s',
+                }}
+                title="Delete Account"
+                aria-label="Delete Account"
+                onClick={e => { e.stopPropagation(); onDelete(); }}
+              >
+                Delete
+              </button>
+            </>
           )}
           {!onDelete && (
             <>

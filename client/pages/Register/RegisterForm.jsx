@@ -59,6 +59,10 @@ function getPasswordStrengthLevel(password) {
 }
 
 export default function RegisterForm() {
+  // Step management
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
+
   // Registration fields and state
   const [fields, setFields] = useState({
     firstName: "",
@@ -290,9 +294,27 @@ const lastNameValid =
 const emailValid =
   fields?.email && /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(fields.email);
 
+  // Step validation
+  const isStep1Valid = firstNameValid && lastNameValid;
+  const isStep2Valid = fields.username && !usernameUsed && !errors.username && emailValid && allPasswordRequirementsMet && passwordsMatch;
+  const isStep3Valid = fields.role;
+
+  const handleNextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   return (
     <div className="form-container">
       <h1 className="title">Create your account</h1>
+      <p className="subtitle">Step {currentStep} of {totalSteps}</p>
       {success && (
         <div className="success-message">
           Account created and verified successfully!
@@ -300,147 +322,183 @@ const emailValid =
       )}
       {!success && (
         <form className="form" onSubmit={handleRegisterSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="firstName" className="label">
-              First Name
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              className={`input${errors.firstName ? " error" : ""}${firstNameValid ? " success" : ""}`}
-              value={fields.firstName}
-              onChange={handleInputChange}
-              required
-              placeholder={errors.firstName ? errors.firstName : "First Name"}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="lastName" className="label">
-              Last Name
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              className={`input${errors.lastName ? " error" : ""}${lastNameValid ? " success" : ""}`}
-              value={fields.lastName}
-              onChange={handleInputChange}
-              required
-              placeholder={errors.lastName ? errors.lastName : "Last Name"}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="username" className="label">Username</label>
-            <input
-              type="text"
-              name="username"
-              value={fields.username}
-              onChange={handleUsernameChange}
-              className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
-              placeholder={errors.username ? errors.username : "Username"}
-              autoComplete="username"
-              required
-            />
-            {usernameChecking ? (
-              <div className="checking-message">Checking username availability...</div>
-            ) : usernameUsed ? (
-              <div className="error-message">Username is already used.</div>
-            ) : fields.username.length >= 8 && !errors.username ? (
-              <div className="success-message">Username is available!</div>
-            ) : null}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email" className="label">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={fields.email}
-              onChange={handleInputChange}
-              className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
-              placeholder={errors.email ? errors.email : "Email"}
-              autoComplete="email"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role" className="label">
-              Position/Role
-            </label>
-            <select
-              id="role"
-              name="role"
-              className={`input${errors.role ? " error" : ""}`}
-              value={fields.role}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select your role</option>
-              <option value="MarketingLead">Marketing Lead</option>
-              <option value="ContentCreator">Content Creator</option>
-              <option value="GraphicDesigner">Graphic Designer</option>
-            </select>
-            {errors.role && <div className="error-message">{errors.role}</div>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password" className="label">
-              Password
-            </label>
-            <PasswordInput
-              value={fields.password}
-              onChange={handleInputChange}
-              error={errors.password}
-              name="password"
-              placeholder={errors.password ? errors.password : "Password"}
-              success={allPasswordRequirementsMet}
-            />
-            {fields.password && (
-              <div className={`password-strength-indicator ${passwordStrengthLevel}`}>
-                Password strength:{" "}
-                {passwordStrengthLevel === "strong" && <span>Strong</span>}
-                {passwordStrengthLevel === "moderate" && <span>Moderate</span>}
-                {passwordStrengthLevel === "poor" && <span>Poor</span>}
+          {currentStep === 1 && (
+            <>
+              <div className="form-group">
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  className={`input${errors.firstName ? " error" : ""}${firstNameValid ? " success" : ""}`}
+                  value={fields.firstName}
+                  onChange={handleInputChange}
+                  required
+                  placeholder=" "
+                />
+                <label htmlFor="firstName" className="label">
+                  First Name
+                </label>
+                {errors.firstName && <div className="error-message">{errors.firstName}</div>}
               </div>
-            )}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="retypePassword" className="label">
-              Retype Password
-            </label>
-            <PasswordInput
-              value={fields.retypePassword}
-              onChange={handleInputChange}
-              error={errors.retypePassword}
-              name="retypePassword"
-              placeholder={errors.retypePassword ? errors.retypePassword : "Retype Password"}
-            />
-          </div>
+              <div className="form-group">
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  className={`input${errors.lastName ? " error" : ""}${lastNameValid ? " success" : ""}`}
+                  value={fields.lastName}
+                  onChange={handleInputChange}
+                  required
+                  placeholder=" "
+                />
+                <label htmlFor="lastName" className="label">
+                  Last Name
+                </label>
+                {errors.lastName && <div className="error-message">{errors.lastName}</div>}
+              </div>
+            </>
+          )}
 
-          {passwordsMatch && (
-            <div className="password-success-indicator">
-              <span role="img" aria-label="success">✅</span> Passwords matched!
+          {currentStep === 2 && (
+            <>
+              <div className="form-group">
+                <input
+                  type="text"
+                  name="username"
+                  value={fields.username}
+                  onChange={handleUsernameChange}
+                  className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
+                  placeholder=" "
+                  autoComplete="username"
+                  required
+                />
+                <label htmlFor="username" className="label">Username</label>
+                {usernameChecking ? (
+                  <div className="checking-message">Checking username availability...</div>
+                ) : usernameUsed ? (
+                  <div className="error-message">Username is already used.</div>
+                ) : fields.username.length >= 8 && !errors.username ? (
+                  <div className="success-message">Username is available!</div>
+                ) : errors.username ? (
+                  <div className="error-message">{errors.username}</div>
+                ) : null}
+              </div>
+
+              <div className="form-group">
+                <input
+                  type="email"
+                  name="email"
+                  value={fields.email}
+                  onChange={handleInputChange}
+                  className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
+                  placeholder=" "
+                  autoComplete="email"
+                  required
+                />
+                <label htmlFor="email" className="label">Email</label>
+                {errors.email && <div className="error-message">{errors.email}</div>}
+              </div>
+
+              <div className="form-group">
+                <PasswordInput
+                  value={fields.password}
+                  onChange={handleInputChange}
+                  error={errors.password}
+                  name="password"
+                  placeholder=" "
+                  success={allPasswordRequirementsMet}
+                  label="Password"
+                />
+                {fields.password && (
+                  <div className={`password-strength-indicator ${passwordStrengthLevel}`}>
+                    Password strength:{" "}
+                    {passwordStrengthLevel === "strong" && <span>Strong</span>}
+                    {passwordStrengthLevel === "moderate" && <span>Moderate</span>}
+                    {passwordStrengthLevel === "poor" && <span>Poor</span>}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <PasswordInput
+                  value={fields.retypePassword}
+                  onChange={handleInputChange}
+                  error={errors.retypePassword}
+                  name="retypePassword"
+                  placeholder=" "
+                  label="Retype Password"
+                />
+              </div>
+
+              {passwordsMatch && (
+                <div className="password-success-indicator">
+                  <span role="img" aria-label="success">✅</span> Passwords matched!
+                </div>
+              )}
+            </>
+          )}
+
+          {currentStep === 3 && (
+            <div className="form-group">
+              <select
+                id="role"
+                name="role"
+                className={`input${errors.role ? " error" : ""}`}
+                value={fields.role}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select your role</option>
+                <option value="MarketingLead">Marketing Lead</option>
+                <option value="ContentCreator">Content Creator</option>
+                <option value="GraphicDesigner">Graphic Designer</option>
+              </select>
+              <label htmlFor="role" className="label">
+                Position/Role
+              </label>
+              {errors.role && <div className="error-message">{errors.role}</div>}
             </div>
           )}
 
-          <button
-            type="submit"
-            className="signup-button"
-            disabled={loading}
-            id="submit-btn"
-            onClick={(e) => {
-              console.log('🖱️ Button clicked!');
-              handleRegisterSubmit(e);
-            }}
-          >
-            <span id="submit-text">{loading ? 'Signing Up...' : 'Sign Up'}</span>
-            {loading && <span className="loading" id="submit-loading"></span>}
-          </button>
+
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+            {currentStep > 1 && (
+              <button
+                type="button"
+                className="back-button"
+                onClick={handlePrevStep}
+                style={{ flex: 1 }}
+              >
+                Previous
+              </button>
+            )}
+            {currentStep < totalSteps ? (
+              <button
+                type="button"
+                className="signup-button"
+                onClick={handleNextStep}
+                disabled={
+                  (currentStep === 1 && !isStep1Valid) ||
+                  (currentStep === 2 && !isStep2Valid)
+                }
+                style={{ flex: 1 }}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="signup-button"
+                disabled={loading || !isStep3Valid}
+                id="submit-btn"
+                style={{ flex: 1 }}
+              >
+                <span id="submit-text">Sign Up</span>
+                {loading && <span className="loading" id="submit-loading"></span>}
+              </button>
+            )}
+          </div>
         </form>
       )}
       <OTPModal

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import logo from '../../assets/issalonlogo.jpg';
-import infinityLogo from '../../assets/issalonnails.png';
+import logo from '../../assets/infinitylogo.png';
+import issalonNails from '../../assets/issalonnails.png';
 
 const Layout = () => (
   <>
@@ -18,11 +18,7 @@ const Layout = () => (
     <footer className="footer">
       <div className="footer-container">
         <div className="nail">
-          <img src={infinityLogo} alt="infinitysalon" id="nails" />
-        </div>
-        <div className="footer-links">
-          <a href="#" className="footer-link">Terms & Condition</a>
-          <a href="#" className="footer-link">Policy Privacy</a>
+          <img src={issalonNails} alt="issalonnails" id="nails" style={{ maxWidth: '120px', width: '100%', height: 'auto' }} />
         </div>
       </div>
     </footer>

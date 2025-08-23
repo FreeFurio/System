@@ -34,16 +34,16 @@ const ForgotPassword = () => {
         <h2 className="title">Forgot Password</h2>
         <form className="form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="label" htmlFor="forgot-email">Email</label>
             <input
               id="forgot-email"
               type="email"
               className="input"
-              placeholder="Enter your email"
+              placeholder=" "
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
             />
+            <label className="label" htmlFor="forgot-email">Email</label>
           </div>
           <button className="signup-button" type="submit">Send Reset Link</button>
         </form>

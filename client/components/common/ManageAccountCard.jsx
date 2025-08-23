@@ -14,7 +14,7 @@ const getAvatarColor = (name) => {
 
 const ManageAccountCard = ({ account, onDelete }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const initial = (account.name || 'U').charAt(0).toUpperCase();
+  const initial = (account.role || 'U').charAt(0).toUpperCase();
   const avatarColor = getAvatarColor(account.name || 'U');
   return (
     <>

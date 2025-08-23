@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Register.css";
-import "../../styles/LoginForm.css";
-import LoginForm from './LoginForm';
 import ForgotPassword from './ForgotPassword';
 
 export default function LoginPage() {
@@ -61,8 +59,8 @@ export default function LoginPage() {
 
   if (showForgotPassword) {
     return (
-      <div className="login-page">
-        <div className="login-form-container">
+      <div className="main">
+        <div className="form-container">
           <ForgotPassword onBackToLogin={() => setShowForgotPassword(false)} />
         </div>
       </div>
@@ -70,70 +68,73 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-form-container">
-        <h2>Welcome Back</h2>
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <div className="login-field">
-            <label htmlFor="username" className="login-label">Username</label>
+    <div className="main">
+      <div className="form-container">
+        <h2 className="title">Welcome Back</h2>
+        <p className="subtitle">Sign in to access your account</p>
+        <form className="form" onSubmit={handleSubmit} noValidate>
+          <div className="form-group">
             <input
               type="text"
               id="username"
               name="username"
-              className={`login-input${errors.username ? " login-input-error" : ""}`}
+              className={`input${errors.username ? " error" : ""}`}
               value={fields.username}
               onChange={handleChange}
               autoComplete="username"
+              placeholder=" "
               required
             />
-            {errors.username && <div className="login-message login-message-error">{errors.username}</div>}
+            <label htmlFor="username" className="label">Username</label>
+            {errors.username && <div className="error-message">{errors.username}</div>}
           </div>
-          <div className="login-field">
-            <label htmlFor="password" className="login-label">Password</label>
+          <div className="form-group">
             <input
               type="password"
               id="password"
               name="password"
-              className={`login-input${errors.password ? " login-input-error" : ""}`}
+              className={`input${errors.password ? " error" : ""}`}
               value={fields.password}
               onChange={handleChange}
               autoComplete="current-password"
+              placeholder=" "
               required
             />
-            {errors.password && <div className="login-message login-message-error">{errors.password}</div>}
+            <label htmlFor="password" className="label">Password</label>
+            {errors.password && <div className="error-message">{errors.password}</div>}
           </div>
           <div style={{ textAlign: 'right', marginBottom: '1em' }}>
             <button
               type="button"
-              className="login-link"
-              style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', padding: 0 }}
+              className="link"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               onClick={() => setShowForgotPassword(true)}
             >
               Forgot Password?
             </button>
           </div>
-          <div className="login-actions">
-            <button
-              type="submit"
-              className="login-btn login-btn-primary"
-              disabled={loading}
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="signup-button"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Log In"}
+          </button>
         </form>
             
         {message.text && (
           <div
-            className={`login-message ${message.type === "success" ? "login-message-success" : "login-message-error"}`}
+            className={message.type === "success" ? "success-message" : "error-message"}
           >
             {message.text}
           </div>
         )}
-        <div className="login-footer">
+        <div className="form-footer">
+          <img src="/assets/issalonnails.png" alt="issalonnails" style={{ display: 'block', margin: '0 auto 10px auto', maxWidth: '120px', height: 'auto' }} />
           Don't have an account?{" "}
           <button
-            className="login-link"
+            className="link"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             onClick={() => navigate("/register")}
           >
             Register

@@ -145,15 +145,18 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #e0e7ff;
+  background: #e74c3c;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.7rem;
   font-weight: 700;
-  color: #2563eb;
+  color: #F6C544;
   box-shadow: 0 2px 8px rgba(44,75,255,0.08);
   overflow: hidden;
+}
+.content-card-avatar span {
+  color: #F6C544 !important;
 }
 .content-card-avatar img {
   width: 100%;
@@ -429,13 +432,13 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--avatar-bg, #e0e7ff) !important;
+  background: #e74c3c !important;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #2563eb;
+  color: #F6C544;
   box-shadow: none;
   flex-shrink: 0;
   margin-left: 0;
@@ -445,6 +448,7 @@
 .account-avatar span, .modern-account-avatar span {
   line-height: 1;
   font-size: 1.5rem;
+  color: #F6C544 !important;
 }
 .account-avatar img, .modern-account-avatar img {
   width: 100%;

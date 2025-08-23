@@ -14,6 +14,7 @@ import {
   equalTo
 } from 'firebase/database';
 import { config } from '../config/config.mjs';
+import { AppError } from '../utils/errorHandler.mjs';
 
 const app = initializeApp(config.firebase);
 const db = getDatabase(app, config.firebase.databaseURL);
@@ -185,54 +186,285 @@ class FirebaseService {
   }
 
   // ========================
-  // 4) TASK
+  // 4) WORKFLOW MANAGEMENT
   // ========================
 
-  // ========================
-  // 4.1) CREATE TASK
-  // ========================
-
-  static async setTaskContentCreator(task) {
-    console.log('📝 setTaskContentCreator called with task:', task);
+  static async createWorkflow(workflowData) {
+    console.log('🔄 createWorkflow called with data:', workflowData);
     try {
-      const setTaskRef = push(ref(db, `task/contentcreator`))
-      console.log('📝 setTaskContentCreator Firebase path: task/contentcreator/', setTaskRef.key);
-      await set(setTaskRef, task);
-      console.log('📝 setTaskContentCreator success - Task saved with key:', setTaskRef.key);
-      return setTaskRef.key
+      const workflow = {
+        objectives: workflowData.objectives,
+        gender: workflowData.gender,
+        minAge: workflowData.minAge,
+        maxAge: workflowData.maxAge,
+        deadline: workflowData.deadline,
+        status: 'content_creation',
+        currentStage: 'contentcreator',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        contentCreator: null,
+        marketingApproval: null,
+        graphicDesigner: null,
+        finalApproval: null
+      };
+      
+      if (workflowData.numContent !== undefined) {
+        workflow.numContent = workflowData.numContent;
+      }
+      
+      const workflowRef = push(ref(db, 'workflows'));
+      await set(workflowRef, workflow);
+      console.log('🔄 createWorkflow success - Workflow created with key:', workflowRef.key);
+      return workflowRef.key;
     } catch (error) {
-      console.error('❌ Error saving Content Creator Task:', error);
-      throw new AppError('Failed to save Content Creator Task', 500);
+      console.error('❌ Error creating workflow:', error);
+      throw new AppError('Failed to create workflow', 500);
     }
   }
 
-  // ========================
-  // 4.2) GET TASK
-  // ========================
-
-  static async getTaskContentCreator() {
-    console.log('📋 getTaskContentCreator called');
+  static async getWorkflowsByStage(stage) {
+    console.log('📋 getWorkflowsByStage called with stage:', stage);
     try {
-      const snapshot = await get(ref(db, 'task/contentcreator'));
-      const result = snapshot.val();
-      console.log('📋 getTaskContentCreator result:', result ? Object.keys(result).length + ' tasks found' : 'No tasks found');
+      const snapshot = await get(ref(db, 'workflows'));
+      const workflows = snapshot.val();
+      
+      if (!workflows) {
+        console.log('📋 No workflows found in database');
+        return [];
+      }
+      
+      const result = Object.entries(workflows)
+        .filter(([key, workflow]) => workflow.currentStage === stage)
+        .map(([key, workflow]) => ({ id: key, ...workflow }));
+      
+      console.log('📋 getWorkflowsByStage result:', result.length + ' workflows found for stage:', stage);
       return result;
     } catch (error) {
-      console.error('❌ Error getting Content Creator Task:', error);
-      throw new AppError('Failed to get Content Creator Task', 500);
+      console.error('❌ Error getting workflows by stage:', error);
+      throw new AppError('Failed to get workflows', 500);
     }
   }
 
-  static async getTaskGraphicDesigner() {
-    console.log('🎨 getTaskGraphicDesigner called');
+  static async submitDesign(workflowId, designData) {
+    console.log('🎨 submitDesign called with:', { workflowId, designData });
     try {
-      const snapshot = await get(ref(db, 'task/graphicdesigner'));
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'design_approval',
+        currentStage: 'marketinglead',
+        graphicDesigner: {
+          designs: designData,
+          submittedAt: new Date().toISOString()
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('🎨 submitDesign success - Design submitted');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error submitting design:', error);
+      throw new Error('Failed to submit design');
+    }
+  }
+
+  static async getWorkflowById(workflowId) {
+    console.log('📄 getWorkflowById called with:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        console.log('📄 getWorkflowById - Workflow not found');
+        return null;
+      }
+      
       const result = snapshot.val();
-      console.log('🎨 getTaskGraphicDesigner result:', result ? Object.keys(result).length + ' tasks found' : 'No tasks found');
+      console.log('📄 getWorkflowById success - Workflow found');
+      return { id: workflowId, ...result };
+    } catch (error) {
+      console.error('❌ Error getting workflow by ID:', error);
+      throw new AppError('Failed to get workflow', 500);
+    }
+  }
+
+  static async approveDesign(workflowId, approvedBy) {
+    console.log('✅ approveDesign called with workflowId:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'posted',
+        currentStage: 'completed',
+        finalApproval: {
+          approvedAt: new Date().toISOString(),
+          approvedBy: approvedBy,
+          postedAt: new Date().toISOString()
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('✅ approveDesign success - Design approved and posted');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error approving design:', error);
+      throw new Error('Failed to approve design');
+    }
+  }
+
+  static async getAllWorkflows() {
+    console.log('📋 getAllWorkflows called');
+    try {
+      const snapshot = await get(ref(db, 'workflows'));
+      const workflows = snapshot.val();
+      
+      if (!workflows) return [];
+      
+      const result = Object.entries(workflows)
+        .map(([key, workflow]) => ({ id: key, ...workflow }));
+      
+      console.log('📋 getAllWorkflows result:', result.length + ' workflows found');
       return result;
     } catch (error) {
-      console.error('❌ Error getting Graphic Designer Task:', error);
-      throw new AppError('Failed to get Graphic Designer Task', 500);
+      console.error('❌ Error getting all workflows:', error);
+      throw new AppError('Failed to get workflows', 500);
+    }
+  }
+
+  static async updateWorkflow(workflowId, updateData) {
+    console.log('✏️ updateWorkflow called with:', { workflowId, updateData });
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const currentWorkflow = snapshot.val();
+      const updatedWorkflow = {
+        ...currentWorkflow,
+        ...updateData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('✏️ updateWorkflow success - Workflow updated');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error updating workflow:', error);
+      throw new Error('Failed to update workflow');
+    }
+  }
+
+  static async submitContent(workflowId, contentData) {
+    console.log('📤 submitContent called with:', { workflowId, contentData });
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'content_approval',
+        currentStage: 'marketinglead',
+        contentCreator: {
+          content: contentData,
+          submittedAt: new Date().toISOString()
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('📤 submitContent success - Content submitted');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error submitting content:', error);
+      throw new Error('Failed to submit content');
+    }
+  }
+
+  static async approveContent(workflowId, approvedBy) {
+    console.log('✅ approveContent called with workflowId:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'design_creation',
+        currentStage: 'graphicdesigner',
+        marketingApproval: {
+          approvedAt: new Date().toISOString(),
+          approvedBy: approvedBy
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('✅ approveContent success - Content approved, moved to design stage');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error approving content:', error);
+      throw new Error('Failed to approve content');
+    }
+  }
+
+  static async deleteWorkflow(workflowId) {
+    console.log('🗑️ deleteWorkflow called with:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      await remove(workflowRef);
+      console.log('🗑️ deleteWorkflow success - Workflow deleted');
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting workflow:', error);
+      throw new Error('Failed to delete workflow');
+    }
+  }
+
+  static async getWorkflowsByStatus(status) {
+    console.log('📈 getWorkflowsByStatus called with status:', status);
+    try {
+      const snapshot = await get(ref(db, 'workflows'));
+      const workflows = snapshot.val();
+      
+      if (!workflows) return [];
+      
+      const filteredWorkflows = Object.entries(workflows)
+        .filter(([key, workflow]) => workflow.status === status)
+        .map(([key, workflow]) => ({ id: key, ...workflow }));
+      
+      console.log('📈 getWorkflowsByStatus result:', filteredWorkflows.length + ' workflows found');
+      return filteredWorkflows;
+    } catch (error) {
+      console.error('❌ Error getting workflows by status:', error);
+      throw new AppError('Failed to get workflows', 500);
     }
   }
 

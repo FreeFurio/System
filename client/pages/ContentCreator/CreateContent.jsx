@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContent } from '../../services/contentService';
 
 export default function CreateContent() {
@@ -8,21 +8,43 @@ export default function CreateContent() {
   const [numContentsTouched, setNumContentsTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchParams] = useSearchParams();
+  const taskId = searchParams.get('taskId');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('🔍 CreateContent Debug - taskId from URL:', taskId);
+    if (taskId) {
+      // Fetch the actual workflow data to get objectives
+      fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/contentcreator`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            const workflow = data.data.find(w => w.id === taskId);
+            if (workflow) {
+              setInput(workflow.objectives);
+            }
+          }
+        })
+        .catch(err => console.error('Error fetching workflow:', err));
+    }
+  }, [taskId, searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const res = await createContent({ input });
+      const res = await createContent({ input, numContents, taskId });
       if (res.success) {
-        // INSTANT MOCK DATA for Output page preview
-        const headline = "Sample Headline";
-        const content = input;
-        const hashtags = "#sample #ai #content";
         setLoading(false);
-        navigate('/content/output', { state: { headline, content, hashtags } });
+        // Ensure taskId is passed, use the one from response or URL
+        const finalTaskId = res.taskId || taskId;
+        console.log('🔍 Debug - Navigating with taskId:', finalTaskId);
+        
+        // Pass taskId both in state and URL for redundancy
+        const outputUrl = finalTaskId ? `/content/output?taskId=${finalTaskId}` : '/content/output';
+        navigate(outputUrl, { state: { contents: res.contents, taskId: finalTaskId } });
       } else {
         setError('Failed to create content.');
         setLoading(false);

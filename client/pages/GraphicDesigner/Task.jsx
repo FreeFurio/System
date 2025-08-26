@@ -64,6 +64,34 @@ const TaskCard = ({ task }) => {
         </div>
       )}
       
+      {task.status === 'design_creation' && task.currentStage === 'graphicdesigner' && !task.graphicDesigner?.designs && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+          <button
+            onClick={() => window.location.href = `/graphic/creation?taskId=${task.id}`}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            🎨 Create Design
+          </button>
+        </div>
+      )}
+      
+      {task.graphicDesigner?.designs && (
+        <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeaa7' }}>
+          <strong style={{ color: '#856404' }}>📋 Design Submitted:</strong>
+          <div style={{ fontSize: '14px', marginTop: '8px', color: '#856404' }}>
+            Submitted on {new Date(task.graphicDesigner.submittedAt).toLocaleDateString()}
+          </div>
+        </div>
+      )}
+      
       {task.createdAt && (
         <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
           Created: {formatDate(task.createdAt)}

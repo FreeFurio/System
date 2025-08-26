@@ -125,7 +125,8 @@ export default function ApprovalOfContents() {
       });
       
       if (response.ok) {
-        setWorkflows(prev => prev.filter(w => w.id !== workflowId));
+        // Redirect to Set Task for Graphic Designer page
+        window.location.href = `/marketing/set-task-graphic-designer?workflowId=${workflowId}`;
       }
     } catch (error) {
       console.error('Error approving content:', error);

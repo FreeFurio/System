@@ -10,7 +10,8 @@ import {
     submitDesign,
     approveDesign,
     updateWorkflow,
-    deleteWorkflow
+    deleteWorkflow,
+    assignToGraphicDesigner
 } from '../controllers/task.controller.mjs';
 import { body } from 'express-validator';
 
@@ -169,6 +170,12 @@ router.put(
 router.delete(
     '/workflow/:workflowId',
     deleteWorkflow
+)
+
+// Assign workflow to graphic designer
+router.post(
+    '/workflow/:workflowId/assign-to-graphic-designer',
+    assignToGraphicDesigner
 )
 
 export default router;

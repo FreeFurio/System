@@ -16,6 +16,8 @@ import authRouter from './routes/auth.routes.mjs';
 import notificationRouter from './routes/notification.routes.mjs';
 import taskRouter from './routes/task.routes.mjs';
 import userRouter from './routes/user.routes.mjs';
+import aiRouter from './routes/aiRoutes.js';
+import socialMediaRouter from './routes/socialMediaRoutes.js';
 import { config } from './config/config.mjs';
 import errorHandler from './utils/errorHandler.mjs';
 import { createServer } from 'http';
@@ -29,7 +31,8 @@ const app = express();
 // 2) GLOBAL MIDDLEWARES
 // ========================
 app.use(cors({
-  origin: ['http://localhost:5173',
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
+    'http://localhost:5173',
     'https://system-production-9942.up.railway.app'
   ],
   credentials: true            
@@ -54,18 +57,24 @@ app.use(
     },
   })
 );
-if (process.env.NODE_ENV === 'development') {
+const logLevel = process.env.LOG_LEVEL || 'info';
+if (process.env.NODE_ENV === 'development' || logLevel === 'dev') {
   app.use(morgan('dev'));  
+} else if (process.env.LOG_FILE_ENABLED === 'true') {
+  app.use(morgan('combined'));
 }
 
 const limiter = rateLimit({
-  max: 1000, 
-  windowMs: 15 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in 15 minutes!'
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, 
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
+  message: 'Too many requests from this IP, please try again later!'
 });
 app.use('/api', limiter);
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+const uploadMaxSize = process.env.UPLOAD_MAX_SIZE || '10485760';
+const jsonLimit = Math.min(parseInt(uploadMaxSize), 10485760); // 10MB max
+
+app.use(express.json({ limit: jsonLimit }));
+app.use(express.urlencoded({ extended: true, limit: jsonLimit }));
 app.use(mongoSanitize());
 app.use(xss());
 app.use(
@@ -92,7 +101,7 @@ app.use((req, res, next) => {
 const server = createServer(app);
 const io = new SocketIOServer(server , {
   cors: {
-    origin: [
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
       'http://localhost:5173',
       'https://system-production-9942.up.railway.app'
     ],
@@ -115,6 +124,8 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/tasks', taskRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/ai', aiRouter);
+app.use('/api/v1/social', socialMediaRouter);
 app.use(express.static(path.join(__dirname, '../client/dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 

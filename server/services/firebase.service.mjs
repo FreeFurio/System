@@ -404,8 +404,8 @@ class FirebaseService {
     }
   }
 
-  static async approveContent(workflowId, approvedBy) {
-    console.log('✅ approveContent called with workflowId:', workflowId);
+  static async assignToGraphicDesigner(workflowId) {
+    console.log('🎨 assignToGraphicDesigner called with workflowId:', workflowId);
     try {
       const workflowRef = ref(db, `workflows/${workflowId}`);
       const snapshot = await get(workflowRef);
@@ -419,6 +419,33 @@ class FirebaseService {
         ...workflow,
         status: 'design_creation',
         currentStage: 'graphicdesigner',
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('🎨 assignToGraphicDesigner success - Task assigned to graphic designer');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error assigning to graphic designer:', error);
+      throw new Error('Failed to assign to graphic designer');
+    }
+  }
+
+  static async approveContent(workflowId, approvedBy) {
+    console.log('✅ approveContent called with workflowId:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'ready_for_design_assignment',
+        currentStage: 'marketinglead',
         marketingApproval: {
           approvedAt: new Date().toISOString(),
           approvedBy: approvedBy
@@ -427,7 +454,7 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
-      console.log('✅ approveContent success - Content approved, moved to design stage');
+      console.log('✅ approveContent success - Content approved, ready for design assignment');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error approving content:', error);

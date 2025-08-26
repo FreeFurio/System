@@ -262,6 +262,26 @@ const approveDesign = async (req, res, next) => {
     }
 };
 
+const assignToGraphicDesigner = async (req, res, next) => {
+    console.log('🎨 assignToGraphicDesigner called with params:', req.params);
+    try {
+        const { workflowId } = req.params;
+        
+        const updatedWorkflow = await FirebaseService.assignToGraphicDesigner(workflowId);
+        
+        io.emit('workflowUpdated', updatedWorkflow);
+        
+        res.status(200).json({
+            status: 'success',
+            message: 'Task assigned to graphic designer successfully',
+            data: updatedWorkflow
+        });
+    } catch (error) {
+        console.error('❌ assignToGraphicDesigner - Error:', error);
+        next(error);
+    }
+};
+
 export {
     createWorkflow,
     getWorkflowsByStage,
@@ -270,5 +290,6 @@ export {
     submitDesign,
     approveDesign,
     updateWorkflow,
-    deleteWorkflow
+    deleteWorkflow,
+    assignToGraphicDesigner
 };

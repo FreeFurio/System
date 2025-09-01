@@ -75,11 +75,14 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="form-container" style={{ maxWidth: '400px', padding: '24px 16px' }}>
-      <h2 className="title">Welcome Back</h2>
-      <p className="subtitle">Sign in to access your account</p>
+    <div className="form-container">
+      <div className="form-header">
+        <h2 className="title">Welcome Back</h2>
+        <p className="subtitle">Sign in to access your account</p>
+      </div>
+      
       <form className="form" onSubmit={handleSubmit} noValidate>
-        <div className="form-group" style={{ marginBottom: '18px' }}>
+        <div className="form-group">
           <input
             type="text"
             id="username"
@@ -90,12 +93,12 @@ export default function LoginForm() {
             autoComplete="username"
             placeholder=" "
             required
-            style={{ height: '44px', padding: '12px 16px' }}
           />
           <label htmlFor="username" className="label">Username</label>
           {errors.username && <div className="error-message">{errors.username}</div>}
         </div>
-        <div className="form-group" style={{ marginBottom: '18px' }}>
+        
+        <div className="form-group">
           <PasswordInput
             value={fields.password}
             onChange={handleChange}
@@ -106,39 +109,43 @@ export default function LoginForm() {
             required
           />
         </div>
-        <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+        
+        <div className="forgot-password-link">
           <button
             type="button"
             className="link"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             onClick={() => navigate('/forgot-password')}
           >
             Forgot Password?
           </button>
         </div>
+        
         <button
           type="submit"
           className="signup-button"
           disabled={loading}
         >
-          {loading ? "Logging in..." : "Log In"}
+          {loading ? (
+            <>
+              <span className="loading"></span>
+              Logging in...
+            </>
+          ) : (
+            "Log In"
+          )}
         </button>
       </form>
+      
       {message.text && (
-        <div
-          className={message.type === "success" ? "success-message" : "error-message"}
-        >
+        <div className={message.type === "success" ? "success-message" : "error-message"}>
           {message.text}
         </div>
       )}
+      
       <div className="form-footer">
-        Don't have an account?{' '}
-        <button
-          className="link"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-          onClick={() => navigate('/register')}
-        >
-          Register
+        <span>Don't have an account?</span>
+        <button className="link" onClick={() => navigate('/register')}>
+          Create Account
         </button>
       </div>
     </div>

@@ -94,12 +94,12 @@ html, body {
 
 .form-container {
   background: rgba(255, 255, 255, 0.98);
-  padding: 1.5rem 1rem;
+  padding: 2rem 1.5rem;
   border-radius: 24px;
   box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1);
   transition: box-shadow 0.4s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1), background 0.3s cubic-bezier(.4,2,.6,1);
   animation: fadeInScale 0.5s cubic-bezier(.4,2,.6,1);
-  max-width: 340px;
+  max-width: 420px;
   width: 100%;
   position: relative;
   overflow: hidden;
@@ -122,6 +122,115 @@ html, body {
   height: 6px;
   background: linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24);
   border-radius: 24px 24px 0 0;
+}
+
+/* Form Header */
+.form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* Step Indicator */
+.step-indicator {
+  margin-top: 1.5rem;
+}
+
+.step-progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step-dot.inactive {
+  background: #e5e7eb;
+  color: #9ca3af;
+  border: 2px solid #e5e7eb;
+}
+
+.step-dot.active {
+  background: #ef4444;
+  color: #fff;
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.step-dot.completed {
+  background: #10b981;
+  color: #fff;
+  border: 2px solid #10b981;
+}
+
+.step-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions .back-button,
+.form-actions .signup-button {
+  flex: 1;
+}
+
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: right;
+  margin-bottom: 1.5rem;
+}
+
+.forgot-password-link .link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+/* Form Footer */
+.form-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-footer span {
+  color: #6b7280;
+  margin-right: 0.5rem;
+}
+
+.form-footer .link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.form-footer .back-button {
+  width: 100%;
+  margin-top: 0;
 }
 
 .subtitle {
@@ -211,6 +320,7 @@ html, body {
 
 .input:focus + .label,
 .input:not(:placeholder-shown) + .label,
+.input[value]:not([value=""]) + .label,
 .select:focus + .label,
 .select:not([value=""]) + .label {
   top: 0 !important;
@@ -232,7 +342,8 @@ html, body {
 }
 
 .input.error:focus + .label,
-.input.error:not(:placeholder-shown) + .label {
+.input.error:not(:placeholder-shown) + .label,
+.input.error[value]:not([value=""]) + .label {
     color: #eb3131;
     background: #fafbfc;
     padding: 0 0.5rem;
@@ -470,19 +581,21 @@ html, body {
 .otp-modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
+
 .otp-modal {
   background: #fff;
   padding: 2rem;
   border-radius: 24px;
-  min-width: 300px;
+  min-width: 380px;
+  max-width: 90vw;
   box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1);
-  text-align: center;
   animation: fadeInScale 0.35s cubic-bezier(.4,2,.6,1);
   border: 1px solid rgba(251, 191, 36, 0.2);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -499,6 +612,37 @@ html, body {
   height: 6px;
   background: linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24);
   border-radius: 24px 24px 0 0;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 0.5rem;
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.otp-input {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5rem;
 }
 
 @keyframes fadeInScale {
@@ -593,9 +737,8 @@ html, body {
 
 .otp-button-row {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .otp-verify-btn {
@@ -603,46 +746,54 @@ html, body {
   color: #fff;
   border: none;
   border-radius: 16px;
-  padding: 0.75rem 2rem;
+  padding: 0.875rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
   will-change: background, box-shadow, transform;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-family: inherit;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.otp-verify-btn:hover {
+.otp-verify-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 12px 35px rgba(239, 68, 68, 0.5);
 }
 
 .otp-verify-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
+}
+
+.otp-verify-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .otp-cancel-btn {
   background: #f3f4f6;
   color: #374151;
-  border: none;
+  border: 1px solid #d1d5db;
   border-radius: 16px;
-  padding: 0.75rem 2rem;
+  padding: 0.875rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   will-change: background, box-shadow, transform;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-family: inherit;
+  flex: 1;
 }
 
-.otp-cancel-btn:hover {
+.otp-cancel-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   background: #e5e7eb;
@@ -650,7 +801,12 @@ html, body {
 
 .otp-cancel-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(44,75,255,0.04);
+}
+
+.otp-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .password-strength-indicator {

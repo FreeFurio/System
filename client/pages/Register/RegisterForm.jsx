@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import OTPModal from '../../components/common/OTPModal';
 import AddressPage from './AddressPage';
 import '../../styles/Register.css';
@@ -59,6 +60,8 @@ function getPasswordStrengthLevel(password) {
 }
 
 export default function RegisterForm() {
+  const navigate = useNavigate();
+  
   // Step management
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -313,13 +316,33 @@ const emailValid =
 
   return (
     <div className="form-container">
-      <h1 className="title">Create your account</h1>
-      <p className="subtitle">Step {currentStep} of {totalSteps}</p>
+      <div className="form-header">
+        <h1 className="title">Create Account</h1>
+        <p className="subtitle">Join our salon management platform</p>
+        
+        <div className="step-indicator">
+          <div className="step-progress">
+            {[1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={`step-dot ${
+                  step === currentStep ? 'active' : step < currentStep ? 'completed' : 'inactive'
+                }`}
+              >
+                {step < currentStep ? '✓' : step}
+              </div>
+            ))}
+          </div>
+          <p className="step-text">Step {currentStep} of {totalSteps}</p>
+        </div>
+      </div>
+      
       {success && (
         <div className="success-message">
           Account created and verified successfully!
         </div>
       )}
+      
       {!success && (
         <form className="form" onSubmit={handleRegisterSubmit} noValidate>
           {currentStep === 1 && (
@@ -462,13 +485,12 @@ const emailValid =
           )}
 
 
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+          <div className="form-actions">
             {currentStep > 1 && (
               <button
                 type="button"
                 className="back-button"
                 onClick={handlePrevStep}
-                style={{ flex: 1 }}
               >
                 Previous
               </button>
@@ -482,25 +504,36 @@ const emailValid =
                   (currentStep === 1 && !isStep1Valid) ||
                   (currentStep === 2 && !isStep2Valid)
                 }
-                style={{ flex: 1 }}
               >
-                Next
+                Continue
               </button>
             ) : (
               <button
                 type="submit"
                 className="signup-button"
                 disabled={loading || !isStep3Valid}
-                id="submit-btn"
-                style={{ flex: 1 }}
               >
-                <span id="submit-text">Sign Up</span>
-                {loading && <span className="loading" id="submit-loading"></span>}
+                {loading ? (
+                  <>
+                    <span className="loading"></span>
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </button>
             )}
           </div>
         </form>
       )}
+      
+      <div className="form-footer">
+        <span>Already have an account?</span>
+        <button className="link" onClick={() => navigate('/login')}>
+          Sign In
+        </button>
+      </div>
+      
       <OTPModal
         show={showOtpModal}
         onSubmit={handleOtpSubmit}

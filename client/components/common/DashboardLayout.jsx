@@ -4,15 +4,16 @@ import { useUser } from './UserContext';
 import "../../styles/Admin.css";
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import NotificationBell from "./NotificationBell"; // Adjust path if needed
+import AdminSettings from "../../pages/Admin/AdminSettings";
+import { DarkModeProvider } from './DarkModeContext';
 import { ref } from "firebase/database";
 import { db } from "../../services/firebase";
 
 const DashboardLayout = () => {
   const { user, setUser } = useUser();
-  const adminName = user?.name || "Admin";
-  const adminRole = user?.role || "role";
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
   const location = useLocation();
@@ -41,6 +42,7 @@ const DashboardLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
+    <DarkModeProvider module="admin">
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Full Width Header */}
       <div className="header" style={{ 
@@ -102,17 +104,29 @@ const DashboardLayout = () => {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ width: 40, height: 40, borderRadius: '50%', background: '#e74c3c', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: '#fff', fontWeight: 700 }}>
-                <FiUser size={24} color="#F6C544" />
+              <span className="header-profile-avatar" style={{ 
+                width: 40, height: 40, borderRadius: '50%', 
+                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                fontSize: 22, color: '#fff', fontWeight: 700 
+              }}>
+                {!user?.profilePicture && <FiUser size={24} color="#F6C544" />}
               </span>
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #ececec', borderRadius: 10, minWidth: 200, zIndex: 10, boxShadow: 'none', padding: '12px 0' }}>
                 <div style={{ padding: '0 16px 10px 16px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{adminName}</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{adminRole.charAt(0).toUpperCase() + adminRole.slice(1)}</div>
+                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName} {user?.lastName}</div>
+                  <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Admin'}</div>
                 </div>
-                <button style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button 
+                  onClick={() => {
+                    setShowSettings(true);
+                    setShowProfile(false);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
                   <FiSettings style={{ marginRight: 8 }} /> Settings
                 </button>
                 <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c' }}>
@@ -146,12 +160,18 @@ const DashboardLayout = () => {
           {/* User Profile */}
           <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 32, padding: '0 12px' }}>
             <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
-              <span className="header-profile-avatar" style={{ width: 48, height: 48, borderRadius: '50%', background: '#e74c3c', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#fff', fontWeight: 700 }}>
-                <FiUser size={28} color="#F6C544" />
+              <span className="header-profile-avatar" style={{ 
+                width: 48, height: 48, borderRadius: '50%', 
+                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                fontSize: 28, color: '#fff', fontWeight: 700 
+              }}>
+                {!user?.profilePicture && <FiUser size={28} color="#F6C544" />}
               </span>
               <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{adminName}</div>
-                <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{adminRole}</div>
+                <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
+                <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Admin'}</div>
               </div>
             </div>
           </div>
@@ -206,7 +226,13 @@ const DashboardLayout = () => {
           </div>
         </div>
       </footer>
+      
+      <AdminSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </div>
+    </DarkModeProvider>
   );
 };
 

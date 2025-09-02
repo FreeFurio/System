@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OTPModal from '../../components/common/OTPModal';
 import AddressPage from './AddressPage';
+import Toast from '../../components/common/Toast';
 import '../../styles/Register.css';
 import PasswordInput from '../../components/shared/PasswordInput';
 
@@ -89,6 +90,9 @@ export default function RegisterForm() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [pendingUser, setPendingUser] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
 
   // Address fields and state
   const [addressFields, setAddressFields] = useState({
@@ -170,22 +174,31 @@ export default function RegisterForm() {
     setUsernameChecking(true);
     // Simulate API/database check (replace with your real API call) 
     //Example to for our database
-    const isUsed = await fakeCheckUsername(value);
+    const isUsed = await checkUsernameAvailability(value);
     setUsernameChecking(false);
     setUsernameUsed(isUsed);
     if (isUsed) {
       setErrors((prev) => ({ ...prev, username: "Username is already used." }));
+    } else if (value.length >= 8) {
+      // Username is available - success state is shown via green border
+      // No toast needed for username availability
     }
   };
 
-  // Simulated API call (replace with your real API call)
-  //Example to for our database
-  const fakeCheckUsername = async (username) => {
-    // Simulate a delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    // Example: these usernames are taken
-    const taken = ["admin", "user", "test"];
-    return taken.includes(username.toLowerCase());
+  // Real API call to check username availability
+  const checkUsernameAvailability = async (username) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/check-username`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const result = await response.json();
+      return result.taken || false;
+    } catch (error) {
+      console.error('Error checking username:', error);
+      return false; // Assume available on error
+    }
   };
 
   // Registration submit
@@ -209,7 +222,10 @@ export default function RegisterForm() {
 
     if (Object.values(newErrors).some((err) => err)) {
       console.log('❌ Form has validation errors:', Object.entries(newErrors).filter(([key, value]) => value));
-      alert('Please fix the following errors: ' + Object.entries(newErrors).filter(([key, value]) => value).map(([key, value]) => `${key}: ${value}`).join(', '));
+      const errorList = Object.entries(newErrors).filter(([key, value]) => value).map(([key, value]) => `${key}: ${value}`).join(', ');
+      setToastMessage('Please fix the following errors: ' + errorList);
+      setToastType('error');
+      setShowToast(true);
       return;
     }
 
@@ -241,7 +257,9 @@ export default function RegisterForm() {
       console.log('✅ OTP modal should show now');
     } catch (error) {
       console.error('❌ Registration error:', error);
-      alert("Registration failed: " + error.message);
+      setToastMessage("Registration failed: " + error.message);
+      setToastType('error');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -263,6 +281,9 @@ export default function RegisterForm() {
       setOtpVerified(true); // Show address page
       setShowOtpModal(false);
       setSuccess(true);
+      setToastMessage(['Account created and verified successfully!']);
+      setToastType('success');
+      setShowToast(true);
     } catch (error) {
       setOtpError("Invalid OTP or failed to save address. Please try again.");
     } finally {
@@ -315,7 +336,7 @@ const emailValid =
   };
 
   return (
-    <div className="form-container">
+    <div className="form-container" key={currentStep}>
       <div className="form-header">
         <h1 className="title">Create Account</h1>
         <p className="subtitle">Join our salon management platform</p>
@@ -337,90 +358,94 @@ const emailValid =
         </div>
       </div>
       
-      {success && (
-        <div className="success-message">
-          Account created and verified successfully!
-        </div>
-      )}
+
       
       {!success && (
         <form className="form" onSubmit={handleRegisterSubmit} noValidate>
           {currentStep === 1 && (
-            <>
+            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
               <div className="form-group">
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  className={`input${errors.firstName ? " error" : ""}${firstNameValid ? " success" : ""}`}
-                  value={fields.firstName}
-                  onChange={handleInputChange}
-                  required
-                  placeholder=" "
-                />
-                <label htmlFor="firstName" className="label">
-                  First Name
-                </label>
-                {errors.firstName && <div className="error-message">{errors.firstName}</div>}
+                <div className="password-input-wrapper">
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    className={`input${errors.firstName ? " error" : ""}${firstNameValid ? " success" : ""}`}
+                    value={fields.firstName}
+                    onChange={handleInputChange}
+                    required
+                    placeholder=" "
+                  />
+                  <label htmlFor="firstName" className="label">
+                    First Name
+                  </label>
+                </div>
+
               </div>
 
               <div className="form-group">
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  className={`input${errors.lastName ? " error" : ""}${lastNameValid ? " success" : ""}`}
-                  value={fields.lastName}
-                  onChange={handleInputChange}
-                  required
-                  placeholder=" "
-                />
-                <label htmlFor="lastName" className="label">
-                  Last Name
-                </label>
-                {errors.lastName && <div className="error-message">{errors.lastName}</div>}
+                <div className="password-input-wrapper">
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    className={`input${errors.lastName ? " error" : ""}${lastNameValid ? " success" : ""}`}
+                    value={fields.lastName}
+                    onChange={handleInputChange}
+                    required
+                    placeholder=" "
+                  />
+                  <label htmlFor="lastName" className="label">
+                    Last Name
+                  </label>
+                </div>
+
               </div>
-            </>
+            </div>
           )}
 
           {currentStep === 2 && (
-            <>
+            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
               <div className="form-group">
-                <input
-                  type="text"
-                  name="username"
-                  value={fields.username}
-                  onChange={handleUsernameChange}
-                  className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
-                  placeholder=" "
-                  autoComplete="username"
-                  required
-                />
-                <label htmlFor="username" className="label">Username</label>
-                {usernameChecking ? (
+                <div className="password-input-wrapper">
+                  <input
+                    type="text"
+                    name="username"
+                    value={fields.username}
+                    onChange={handleUsernameChange}
+                    className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
+                    placeholder=" "
+                    autoComplete="username"
+                    required
+                  />
+                  <label htmlFor="username" className="label">Username</label>
+                </div>
+                {usernameChecking && (
                   <div className="checking-message">Checking username availability...</div>
-                ) : usernameUsed ? (
-                  <div className="error-message">Username is already used.</div>
-                ) : fields.username.length >= 8 && !errors.username ? (
-                  <div className="success-message">Username is available!</div>
-                ) : errors.username ? (
+                )}
+                {errors.username && (
                   <div className="error-message">{errors.username}</div>
-                ) : null}
+                )}
+                {fields.username && !usernameUsed && !errors.username && fields.username.length >= 8 && (
+                  <div className="success-message">Username is available!</div>
+                )}
               </div>
 
               <div className="form-group">
-                <input
-                  type="email"
-                  name="email"
-                  value={fields.email}
-                  onChange={handleInputChange}
-                  className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
-                  placeholder=" "
-                  autoComplete="email"
-                  required
-                />
-                <label htmlFor="email" className="label">Email</label>
-                {errors.email && <div className="error-message">{errors.email}</div>}
+                <div className="password-input-wrapper">
+                  <input
+                    type="email"
+                    name="email"
+                    value={fields.email}
+                    onChange={handleInputChange}
+                    className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
+                    placeholder=" "
+                    autoComplete="email"
+                    required
+                  />
+                  <label htmlFor="email" className="label">Email</label>
+                </div>
+
               </div>
 
               <div className="form-group">
@@ -434,11 +459,16 @@ const emailValid =
                   label="Password"
                 />
                 {fields.password && (
-                  <div className={`password-strength-indicator ${passwordStrengthLevel}`}>
-                    Password strength:{" "}
-                    {passwordStrengthLevel === "strong" && <span>Strong</span>}
-                    {passwordStrengthLevel === "moderate" && <span>Moderate</span>}
-                    {passwordStrengthLevel === "poor" && <span>Poor</span>}
+                  <div className="success-message" style={{
+                    color: passwordStrengthLevel === 'strong' ? '#059669' : 
+                           passwordStrengthLevel === 'moderate' ? '#f59e0b' : '#ef4444',
+                    background: passwordStrengthLevel === 'strong' ? '#f0fdf4' : 
+                                passwordStrengthLevel === 'moderate' ? '#fffbeb' : '#fef2f2',
+                    borderColor: passwordStrengthLevel === 'strong' ? '#bbf7d0' : 
+                                 passwordStrengthLevel === 'moderate' ? '#fed7aa' : '#fecaca'
+                  }}>
+                    Password strength: {passwordStrengthLevel === 'strong' ? 'Strong' : 
+                                       passwordStrengthLevel === 'moderate' ? 'Moderate' : 'Poor'}
                   </div>
                 )}
               </div>
@@ -452,35 +482,36 @@ const emailValid =
                   placeholder=" "
                   label="Retype Password"
                 />
+                {fields.retypePassword && fields.password && fields.password === fields.retypePassword && (
+                  <div className="success-message">Passwords match!</div>
+                )}
               </div>
 
-              {passwordsMatch && (
-                <div className="password-success-indicator">
-                  <span role="img" aria-label="success">✅</span> Passwords matched!
-                </div>
-              )}
-            </>
+
+            </div>
           )}
 
           {currentStep === 3 && (
-            <div className="form-group">
-              <select
-                id="role"
-                name="role"
-                className={`input${errors.role ? " error" : ""}`}
-                value={fields.role}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Select your role</option>
-                <option value="MarketingLead">Marketing Lead</option>
-                <option value="ContentCreator">Content Creator</option>
-                <option value="GraphicDesigner">Graphic Designer</option>
-              </select>
-              <label htmlFor="role" className="label">
-                Position/Role
-              </label>
-              {errors.role && <div className="error-message">{errors.role}</div>}
+            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+              <div className="form-group">
+                <select
+                  id="role"
+                  name="role"
+                  className={`input${errors.role ? " error" : ""}`}
+                  value={fields.role}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select your role</option>
+                  <option value="MarketingLead">Marketing Lead</option>
+                  <option value="ContentCreator">Content Creator</option>
+                  <option value="GraphicDesigner">Graphic Designer</option>
+                </select>
+                <label htmlFor="role" className="label">
+                  Position/Role
+                </label>
+
+              </div>
             </div>
           )}
 
@@ -541,6 +572,14 @@ const emailValid =
         loading={otpLoading}
         error={otpError}
       />
+      
+      {showToast && (
+        <Toast
+          messages={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 } 

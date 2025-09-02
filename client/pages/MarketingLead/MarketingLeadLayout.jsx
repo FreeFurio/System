@@ -3,6 +3,8 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend, FiChevronDown, FiMenu } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
+import { DarkModeProvider } from '../../components/common/DarkModeContext';
+import MarketingSettings from './MarketingSettings';
 import '../../styles/Admin.css'; // Reuse Admin styles for consistency
 
 const sidebarItems = [
@@ -25,11 +27,11 @@ const sidebarItems = [
 
 export default function MarketingLeadLayout() {
   const { user, setUser } = useUser();
-  const leadName = user?.name || "Marketing Lead";
-  const leadRole = user?.role || "role";
+  // Remove local variables, use user context directly
   const [showProfile, setShowProfile] = useState(false);
   const [showSetTaskDropdown, setShowSetTaskDropdown] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const profileRef = useRef(null);
   const setTaskRef = useRef(null);
   const location = useLocation();
@@ -55,6 +57,7 @@ export default function MarketingLeadLayout() {
   };
 
   return (
+    <DarkModeProvider module="marketing">
     <div className="admin-dashboard" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Full Width Header */}
       <div className="header" style={{ 
@@ -123,10 +126,16 @@ export default function MarketingLeadLayout() {
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
                 <div style={{ padding: '0 16px 10px 16px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{leadName}</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{leadRole.charAt(0).toUpperCase() + leadRole.slice(1)}</div>
+                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName} {user?.lastName}</div>
+                  <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Marketing Lead'}</div>
                 </div>
-                <button style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button 
+                  onClick={() => {
+                    setShowSettings(true);
+                    setShowProfile(false);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
                   <FiSettings style={{ marginRight: 8 }} /> Settings
                 </button>
                 <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c' }}>
@@ -164,8 +173,8 @@ export default function MarketingLeadLayout() {
                   <FiUser size={28} color="#F6C544" />
                 </span>
                 <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{leadName}</div>
-                  <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{leadRole.charAt(0).toUpperCase() + leadRole.slice(1)}</div>
+                  <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
+                  <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Marketing Lead'}</div>
                 </div>
               </div>
             </div>
@@ -274,6 +283,12 @@ export default function MarketingLeadLayout() {
           </div>
         </div>
       </footer>
+      
+      <MarketingSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </div>
+    </DarkModeProvider>
   );
 } 

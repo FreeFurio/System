@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../services/firebase';
-import { ref, onValue, off, remove } from 'firebase/database';
+import { ref, onValue, off, remove, update, set } from 'firebase/database';
 import AccountCard from '../../components/common/AccountCard';
+import Toast from '../../components/common/Toast';
+import ModifyUserModal from '../../components/common/ModifyUserModal';
 
 const ROLES = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
 
 const ManageAccountsPage = () => {
   const [accountsByRole, setAccountsByRole] = useState({});
   const [loading, setLoading] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showModifyModal, setShowModifyModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const listeners = [];
@@ -38,9 +44,42 @@ const ManageAccountsPage = () => {
   };
 
   const handleModify = (account) => {
-    // TODO: Implement modify functionality
-    console.log('Modify account:', account);
-    alert(`Modify functionality for ${account.firstName} ${account.lastName} will be implemented`);
+    setSelectedUser(account);
+    setShowModifyModal(true);
+  };
+
+  const handleSaveModify = async (updatedUser) => {
+    try {
+      const { key, role: newRole, ...userData } = updatedUser;
+      const originalUser = selectedUser;
+      const oldRole = originalUser.role;
+      
+      if (newRole !== oldRole) {
+        // Role changed - move user to new role collection
+        const newRoleRef = ref(db, `${newRole}/${key}`);
+        const oldRoleRef = ref(db, `${oldRole}/${key}`);
+        
+        // Add to new role
+        await set(newRoleRef, { ...userData, role: newRole });
+        
+        // Remove from old role
+        await remove(oldRoleRef);
+        
+        setToastMessage(`${updatedUser.firstName} ${updatedUser.lastName} moved to ${newRole} successfully`);
+      } else {
+        // Same role - just update
+        const userRef = ref(db, `${newRole}/${key}`);
+        await update(userRef, userData);
+        
+        setToastMessage(`${updatedUser.firstName} ${updatedUser.lastName} updated successfully`);
+      }
+      
+      setShowToast(true);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setToastMessage('Failed to update user');
+      setShowToast(true);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -75,6 +114,24 @@ const ManageAccountsPage = () => {
           )
         ))}
       </div>
+      
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastMessage.includes('successfully') ? 'success' : 'error'}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+      
+      <ModifyUserModal
+        user={selectedUser}
+        isOpen={showModifyModal}
+        onClose={() => {
+          setShowModifyModal(false);
+          setSelectedUser(null);
+        }}
+        onSave={handleSaveModify}
+      />
     </div>
   );
 };

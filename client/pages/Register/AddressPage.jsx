@@ -79,20 +79,34 @@ export default function AddressPage({ username }) {
   
   if (submitted) {
     return (
-      <div className="form-success">
-        <h2>Register Completed!</h2>
+      <div className="form-container">
+        <div className="form-header">
+          <h2 className="title">Registration Complete!</h2>
+          <p className="subtitle">Your account has been created successfully</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="address-page">
-      <h2>Enter Additional Information</h2>
+    <div className="form-container">
+      <div className="form-header">
+        <h2 className="title">Additional Information</h2>
+        <p className="subtitle">Complete your profile setup</p>
+      </div>
+      
       <form className="form" onSubmit={handleSubmit} noValidate>
         <AddressForm values={fields} errors={errors} onChange={handleChange} />
         {submitError && <div className="error-message">{submitError}</div>}
         <button type="submit" className="signup-button" disabled={loading}>
-          {loading ? "Submitting..." : "Submit"}
+          {loading ? (
+            <>
+              <span className="loading"></span>
+              Submitting...
+            </>
+          ) : (
+            "Complete Registration"
+          )}
         </button>
       </form>
     </div>

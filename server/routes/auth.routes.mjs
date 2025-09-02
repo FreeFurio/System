@@ -9,7 +9,9 @@ import {
   completeRegistration, 
   login,
   validateOTPRegistration,
+  resetPassword,
 } from '../controllers/auth.controller.mjs';
+import FirebaseService from '../services/firebase.service.mjs';
 import { body } from 'express-validator';
 
 const router = express.Router();
@@ -83,6 +85,45 @@ router.post(
       .withMessage('Password is required')
   ],
   login  
+);
+
+router.post(
+  '/check-username',
+  [
+    body('username')
+      .trim()
+      .notEmpty()
+      .withMessage('Username is required')
+  ],
+  async (req, res, next) => {
+    try {
+      const { username } = req.body;
+      const taken = await FirebaseService.isUsernameTaken(username);
+      res.json({ taken });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ========================
+// 2.3) PASSWORD RESET
+// ========================
+router.post(
+  '/reset-password',
+  [
+    body('username')
+      .trim()
+      .notEmpty()
+      .withMessage('Username is required'),
+    body('newPassword')
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters long'),
+    body('confirmPassword')
+      .notEmpty()
+      .withMessage('Confirm password is required')
+  ],
+  resetPassword
 );
 
 // ========================

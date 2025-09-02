@@ -147,8 +147,57 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
           )}
           {!onDelete && (
             <>
-              <button className="modern-outline-btn accept-btn" style={{marginRight: 8}} onClick={e => { e.stopPropagation(); onAccept(); }}>Accept</button>
-              <button className="modern-outline-btn reject-btn" onClick={e => { e.stopPropagation(); onReject(); }}>Reject</button>
+              <button
+                className="modern-icon-btn accept-icon-btn labeled-accept-btn"
+                style={{
+                  background: '#10b981',
+                  border: '1.5px solid #10b981',
+                  color: '#fff',
+                  borderRadius: 10,
+                  minWidth: 52,
+                  height: 26,
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  padding: '0 7px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 1px 4px rgba(16,185,129,0.06)',
+                  cursor: 'pointer',
+                  transition: 'background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s',
+                  marginRight: 6,
+                }}
+                title="Accept Account"
+                aria-label="Accept Account"
+                onClick={e => { e.stopPropagation(); onAccept(); }}
+              >
+                Accept
+              </button>
+              <button
+                className="modern-icon-btn reject-icon-btn labeled-reject-btn"
+                style={{
+                  background: '#fff',
+                  border: '1.5px solid #f87171',
+                  color: '#f87171',
+                  borderRadius: 10,
+                  minWidth: 52,
+                  height: 26,
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  padding: '0 7px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 1px 4px rgba(248,113,113,0.06)',
+                  cursor: 'pointer',
+                  transition: 'background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s',
+                }}
+                title="Reject Account"
+                aria-label="Reject Account"
+                onClick={e => { e.stopPropagation(); onReject(); }}
+              >
+                Reject
+              </button>
             </>
           )}
         </div>
@@ -157,6 +206,10 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
         user={account}
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}
+        onAccept={onAccept}
+        onReject={onReject}
+        onModify={onModify}
+        onDelete={onDelete}
       />
     </>
   );

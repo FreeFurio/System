@@ -121,7 +121,7 @@ class FirebaseService {
         
         if (directSnapshot.exists()) {
           const user = directSnapshot.val();
-          console.log('🔍 findUserByUsername found user via direct lookup:', user.username, 'in role:', role);
+          console.log('🔍 findUserByUsername found user via direct lookup:', user?.username || 'unknown', 'in role:', role);
           return { ...user, role };
         }
         
@@ -586,6 +586,137 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error rejecting user:', error);
       throw new Error('Failed to reject user');
+    }
+  }
+
+  static async updateUserLastLogin(username, role) {
+    console.log('🕒 updateUserLastLogin called with username:', username, 'role:', role);
+    try {
+      const safeUsername = safeKey(username);
+      const userRef = ref(db, `${role}/${safeUsername}/lastLogin`);
+      await set(userRef, new Date().toISOString());
+      console.log('🕒 updateUserLastLogin success - Last login updated');
+      return true;
+    } catch (error) {
+      console.error('❌ Error updating last login:', error);
+      throw new Error('Failed to update last login');
+    }
+  }
+
+  static async updateUserPassword(userPath, hashedPassword) {
+    console.log('🔒 updateUserPassword called for path:', userPath);
+    try {
+      const passwordRef = ref(db, `${userPath}/password`);
+      const forceResetRef = ref(db, `${userPath}/forcePasswordReset`);
+      
+      await set(passwordRef, hashedPassword);
+      await set(forceResetRef, false);
+      
+      console.log('🔒 updateUserPassword success - Password updated and reset flag cleared');
+      return true;
+    } catch (error) {
+      console.error('❌ Error updating password:', error);
+      throw new Error('Failed to update password');
+    }
+  }
+
+  static async getLoginSecuritySettings() {
+    try {
+      const settingsRef = ref(db, 'systemSettings/loginSecurity');
+      const snapshot = await get(settingsRef);
+      
+      if (snapshot.exists()) {
+        return snapshot.val();
+      }
+      
+      // Default settings
+      return {
+        enableAccountLockout: true,
+        maxLoginAttempts: 5,
+        lockoutDuration: 30
+      };
+    } catch (error) {
+      console.error('❌ Error getting login security settings:', error);
+      return {
+        enableAccountLockout: true,
+        maxLoginAttempts: 5,
+        lockoutDuration: 30
+      };
+    }
+  }
+
+  static async checkAccountLockout(username) {
+    try {
+      const safeUsername = safeKey(username);
+      const lockoutRef = ref(db, `loginAttempts/${safeUsername}`);
+      const snapshot = await get(lockoutRef);
+      
+      if (!snapshot.exists()) {
+        return { isLocked: false };
+      }
+      
+      const data = snapshot.val();
+      const now = Date.now();
+      
+      if (data.lockedUntil && data.lockedUntil > now) {
+        return {
+          isLocked: true,
+          unlockTime: data.lockedUntil
+        };
+      }
+      
+      return { isLocked: false };
+    } catch (error) {
+      console.error('❌ Error checking account lockout:', error);
+      return { isLocked: false };
+    }
+  }
+
+  static async recordFailedAttempt(username, securitySettings) {
+    try {
+      if (!securitySettings.enableAccountLockout) {
+        return;
+      }
+      
+      const safeUsername = safeKey(username);
+      const attemptsRef = ref(db, `loginAttempts/${safeUsername}`);
+      const snapshot = await get(attemptsRef);
+      
+      let attempts = 1;
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        attempts = (data.attempts || 0) + 1;
+      }
+      
+      const now = Date.now();
+      const updateData = {
+        attempts,
+        lastAttempt: now,
+        username
+      };
+      
+      // Lock account if max attempts reached
+      if (attempts >= securitySettings.maxLoginAttempts) {
+        updateData.lockedUntil = now + (securitySettings.lockoutDuration * 60 * 1000);
+        updateData.lockedAt = now;
+        console.log('🔒 Account locked:', username, 'until', new Date(updateData.lockedUntil));
+      }
+      
+      await set(attemptsRef, updateData);
+      console.log('📈 Failed attempt recorded:', username, 'attempts:', attempts);
+    } catch (error) {
+      console.error('❌ Error recording failed attempt:', error);
+    }
+  }
+
+  static async clearFailedAttempts(username) {
+    try {
+      const safeUsername = safeKey(username);
+      const attemptsRef = ref(db, `loginAttempts/${safeUsername}`);
+      await remove(attemptsRef);
+      console.log('✅ Failed attempts cleared for:', username);
+    } catch (error) {
+      console.error('❌ Error clearing failed attempts:', error);
     }
   }
 }

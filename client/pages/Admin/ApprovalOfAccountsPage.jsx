@@ -1,14 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../services/firebase';
-import { ref, onValue, off, remove, set, get } from 'firebase/database';
+import { ref, onValue, off, remove, set, get, update } from 'firebase/database';
 import AccountCard from '../../components/common/AccountCard';
 
 const ApprovalOfAccountsPage = () => {
   const [pendingAccounts, setPendingAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const markApprovalNotificationsAsRead = async () => {
+    try {
+      const notificationsRef = ref(db, 'notification/admin');
+      const snapshot = await get(notificationsRef);
+      const notifications = snapshot.val();
+      
+      if (notifications) {
+        const updates = {};
+        Object.entries(notifications).forEach(([id, notification]) => {
+          if (notification.type === 'approval_needed' && !notification.read) {
+            updates[`notification/admin/${id}/read`] = true;
+          }
+        });
+        
+        if (Object.keys(updates).length > 0) {
+          await update(ref(db), updates);
+        }
+      }
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
+
   useEffect(() => {
     const approvalAccountsRef = ref(db, 'ApprovalofAccounts');
+    
+    // Mark approval notifications as read when page loads
+    markApprovalNotificationsAsRead();
 
     get(approvalAccountsRef).then((snapshot) => {
       const data = snapshot.val();

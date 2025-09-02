@@ -18,6 +18,8 @@ import ApprovalOfAccountsPage from './pages/Admin/ApprovalOfAccountsPage';
 import AdminRoute from './components/common/AdminRoute';
 import ManageAccountsPage from './pages/Admin/ManageAccountsPage';
 import DashboardLayout from './components/common/DashboardLayout';
+import { UserProvider } from './components/common/UserContext';
+import './styles/darkmode.css';
 // Marketing Lead imports
 import MarketingLeadLayout from './pages/MarketingLead/MarketingLeadLayout';
 import Dashboard from './pages/MarketingLead/Dashboard';
@@ -59,7 +61,8 @@ document.head.appendChild(style);
 
 function App() {
   return (
-    <Router>
+    <UserProvider>
+        <Router>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/login" element={<LoginForm />} />
@@ -117,7 +120,8 @@ function App() {
           <Route path="task" element={<GraphicDesignerTask />} />
         </Route>
       </Routes>
-    </Router>
+        </Router>
+    </UserProvider>
   );
 }
 

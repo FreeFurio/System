@@ -109,7 +109,8 @@ const DashboardLayout = () => {
                 background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
                 backgroundSize: 'cover', backgroundPosition: 'center',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                fontSize: 22, color: '#fff', fontWeight: 700 
+                fontSize: 22, color: '#fff', fontWeight: 700,
+                flexShrink: 0
               }}>
                 {!user?.profilePicture && <FiUser size={24} color="#F6C544" />}
               </span>
@@ -165,7 +166,8 @@ const DashboardLayout = () => {
                 background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
                 backgroundSize: 'cover', backgroundPosition: 'center',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                fontSize: 28, color: '#fff', fontWeight: 700 
+                fontSize: 28, color: '#fff', fontWeight: 700,
+                flexShrink: 0
               }}>
                 {!user?.profilePicture && <FiUser size={28} color="#F6C544" />}
               </span>
@@ -236,4 +238,4 @@ const DashboardLayout = () => {
   );
 };
 
-export default DashboardLayout; 
+export default DashboardLayout;

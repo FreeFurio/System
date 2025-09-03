@@ -81,8 +81,6 @@ const ForgotPassword = () => {
         </button>
       </form>
       
-
-      
       <div className="form-footer">
         <button className="back-button" onClick={() => navigate('/login')}>
           Back to Login

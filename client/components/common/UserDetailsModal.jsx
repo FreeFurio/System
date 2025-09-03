@@ -45,39 +45,40 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
       backdropFilter: "blur(4px)"
     }}>
       <div style={{
-        background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)", 
+        background: "#ffffff", 
         padding: 0, 
-        borderRadius: 0, 
+        borderRadius: 16, 
         width: 420, 
         maxHeight: '80vh',
         position: "relative", 
-        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-        border: '1px solid #e2e8f0',
+        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+        border: '1px solid #e5e7eb',
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         display: 'flex',
         flexDirection: 'column'
       }}>
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)',
+          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
           padding: '24px 32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          color: '#fff'
+          color: '#fff',
+          borderRadius: '16px 16px 0 0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{
               width: 56,
               height: 56,
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)',
+              background: '#60a5fa',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '1.5rem',
               fontWeight: 700,
-              color: '#fbbf24',
+              color: '#ffffff',
               border: '3px solid rgba(255,255,255,0.3)'
             }}>
               {initial}
@@ -103,7 +104,7 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: '#fff'
+              color: '#ffffff'
             }}
           >
             <FiX size={20} />
@@ -111,13 +112,14 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
         </div>
         
         {/* Content */}
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: '24px', overflowY: 'auto', flex: 1, background: '#ffffff' }}>
           {user.createdAt && (
             <div style={{ 
               marginBottom: '24px', 
               padding: '16px', 
-              background: '#f1f5f9', 
-              border: '1px solid #e2e8f0',
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
               display: 'flex',
               alignItems: 'center',
               gap: '12px'
@@ -141,10 +143,11 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                   <div key={key} style={{ 
                     display: 'flex', 
                     alignItems: 'center',
-                    padding: '10px 14px',
-                    background: '#fff',
-                    border: '1px solid #e2e8f0',
-                    gap: '10px'
+                    padding: '16px',
+                    background: '#f8fafc',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    gap: '12px'
                   }}>
                     {Icon && <Icon size={16} color="#64748b" />}
                     <div style={{ flex: 1 }}>
@@ -165,8 +168,9 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
         {(onAccept || onReject || onModify || onDelete) && (
           <div style={{
             padding: '20px 24px',
-            borderTop: '1px solid #e2e8f0',
+            borderTop: '1px solid #e5e7eb',
             background: '#f8fafc',
+            borderRadius: '0 0 16px 16px',
             display: 'flex',
             gap: '12px',
             justifyContent: 'flex-end'
@@ -223,19 +227,18 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
               <button
                 onClick={() => { onModify(); onClose(); }}
                 style={{
-                  background: '#fff',
-                  border: '1.5px solid #3b82f6',
+                  background: 'transparent',
+                  border: '2px solid #3b82f6',
                   color: '#3b82f6',
-                  borderRadius: 10,
+                  borderRadius: 8,
                   minWidth: 80,
-                  height: 36,
+                  height: 40,
                   fontWeight: 600,
-                  fontSize: '0.9rem',
+                  fontSize: '0.875rem',
                   padding: '0 16px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(59,130,246,0.15)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}
@@ -247,19 +250,18 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
               <button
                 onClick={() => { onDelete(); onClose(); }}
                 style={{
-                  background: '#fff',
-                  border: '1.5px solid #f87171',
-                  color: '#f87171',
-                  borderRadius: 10,
+                  background: 'transparent',
+                  border: '2px solid #ef4444',
+                  color: '#ef4444',
+                  borderRadius: 8,
                   minWidth: 80,
-                  height: 36,
+                  height: 40,
                   fontWeight: 600,
-                  fontSize: '0.9rem',
+                  fontSize: '0.875rem',
                   padding: '0 16px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(248,113,113,0.15)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}

@@ -8,16 +8,16 @@ export const UserProvider = ({ children }) => {
     return stored ? JSON.parse(stored) : null;
   });
 
-  // Listen for localStorage changes (logout in other tabs)
+  // Update localStorage when user changes
   useEffect(() => {
-    const syncLogout = (event) => {
-      if (event.key === "user") {
-        setUser(event.newValue ? JSON.parse(event.newValue) : null);
-      }
-    };
-    window.addEventListener("storage", syncLogout);
-    return () => window.removeEventListener("storage", syncLogout);
-  }, []);
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
+
+
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
@@ -26,4 +26,4 @@ export const UserProvider = ({ children }) => {
   );
 };
 
-export const useUser = () => useContext(UserContext); 
+export const useUser = () => useContext(UserContext);

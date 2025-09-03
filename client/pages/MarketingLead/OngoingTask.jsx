@@ -24,81 +24,238 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
       alignItems: 'center', justifyContent: 'center', zIndex: 1000
     }}>
       <div style={{
-        backgroundColor: 'white', padding: '24px', borderRadius: '8px',
-        width: '500px', maxHeight: '80vh', overflow: 'auto'
+        backgroundColor: 'white', 
+        padding: '32px', 
+        borderRadius: '16px',
+        width: '600px', 
+        maxHeight: '80vh', 
+        overflow: 'auto',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
       }}>
-        <h3>Edit {type} Task</h3>
-        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }}>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Objectives:</label>
+        <h3 style={{ 
+          fontSize: '1.5rem', 
+          fontWeight: '700', 
+          color: '#1f2937', 
+          margin: '0 0 24px 0' 
+        }}>
+          Edit {type} Task
+        </h3>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <label style={{ 
+              fontWeight: '600', 
+              display: 'block', 
+              marginBottom: '8px', 
+              color: '#374151', 
+              fontSize: '14px' 
+            }}>
+              Objectives:
+            </label>
             <textarea
               value={formData.objectives}
               onChange={(e) => setFormData({...formData, objectives: e.target.value})}
-              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+              style={{ 
+                width: '100%', 
+                padding: '12px 16px', 
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                minHeight: '80px',
+                outline: 'none',
+                transition: 'border-color 0.2s ease'
+              }}
+              onFocus={e => e.target.style.borderColor = '#3b82f6'}
+              onBlur={e => e.target.style.borderColor = '#d1d5db'}
               rows="3"
             />
           </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Gender:</label>
+          <div>
+            <label style={{ 
+              fontWeight: '600', 
+              display: 'block', 
+              marginBottom: '8px', 
+              color: '#374151', 
+              fontSize: '14px' 
+            }}>
+              Gender:
+            </label>
             <select
               value={formData.gender}
               onChange={(e) => setFormData({...formData, gender: e.target.value})}
-              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+              style={{ 
+                width: '100%', 
+                padding: '12px 16px', 
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color 0.2s ease'
+              }}
+              onFocus={e => e.target.style.borderColor = '#3b82f6'}
+              onBlur={e => e.target.style.borderColor = '#d1d5db'}
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Both">Both</option>
             </select>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label>Min Age:</label>
+              <label style={{ 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '8px', 
+                color: '#374151', 
+                fontSize: '14px' 
+              }}>
+                Min Age:
+              </label>
               <input
                 type="number"
                 value={formData.minAge}
                 onChange={(e) => setFormData({...formData, minAge: e.target.value})}
-                style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px 16px', 
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                onBlur={e => e.target.style.borderColor = '#d1d5db'}
               />
             </div>
             <div>
-              <label>Max Age:</label>
+              <label style={{ 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '8px', 
+                color: '#374151', 
+                fontSize: '14px' 
+              }}>
+                Max Age:
+              </label>
               <input
                 type="number"
                 value={formData.maxAge}
                 onChange={(e) => setFormData({...formData, maxAge: e.target.value})}
-                style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px 16px', 
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                onBlur={e => e.target.style.borderColor = '#d1d5db'}
               />
             </div>
           </div>
           {type === 'Graphic Designer' && (
-            <div style={{ marginBottom: '16px' }}>
-              <label>Number of Content:</label>
+            <div>
+              <label style={{ 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '8px', 
+                color: '#374151', 
+                fontSize: '14px' 
+              }}>
+                Number of Content:
+              </label>
               <input
                 type="number"
                 value={formData.numContent}
                 onChange={(e) => setFormData({...formData, numContent: e.target.value})}
-                style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px 16px', 
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                onBlur={e => e.target.style.borderColor = '#d1d5db'}
               />
             </div>
           )}
-          <div style={{ marginBottom: '16px' }}>
-            <label>Deadline:</label>
+          <div>
+            <label style={{ 
+              fontWeight: '600', 
+              display: 'block', 
+              marginBottom: '8px', 
+              color: '#374151', 
+              fontSize: '14px' 
+            }}>
+              Deadline:
+            </label>
             <input
               type="datetime-local"
               value={formData.deadline}
               onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+              style={{ 
+                width: '100%', 
+                padding: '12px 16px', 
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                outline: 'none',
+                transition: 'border-color 0.2s ease'
+              }}
+              onFocus={e => e.target.style.borderColor = '#3b82f6'}
+              onBlur={e => e.target.style.borderColor = '#d1d5db'}
             />
           </div>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button type="button" onClick={onClose} style={{
-              padding: '8px 16px', backgroundColor: '#6c757d', color: 'white',
-              border: 'none', borderRadius: '4px', cursor: 'pointer'
-            }}>Cancel</button>
-            <button type="submit" style={{
-              padding: '8px 16px', backgroundColor: '#007bff', color: 'white',
-              border: 'none', borderRadius: '4px', cursor: 'pointer'
-            }}>Save</button>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <button 
+              type="button" 
+              onClick={onClose} 
+              style={{
+                padding: '12px 24px', 
+                backgroundColor: '#6b7280', 
+                color: 'white',
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={e => e.target.style.backgroundColor = '#4b5563'}
+              onMouseLeave={e => e.target.style.backgroundColor = '#6b7280'}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              style={{
+                padding: '12px 24px', 
+                backgroundColor: '#3b82f6', 
+                color: 'white',
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={e => e.target.style.backgroundColor = '#2563eb'}
+              onMouseLeave={e => e.target.style.backgroundColor = '#3b82f6'}
+            >
+              Save Changes
+            </button>
           </div>
         </form>
       </div>
@@ -109,10 +266,19 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
 const TaskCard = ({ task, type, onEdit, onDelete }) => {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'created': return '#007bff';
-      case 'pending_approval': return '#ffc107';
-      case 'approved': return '#28a745';
-      default: return '#6c757d';
+      case 'created': return '#3b82f6';
+      case 'pending_approval': return '#f59e0b';
+      case 'approved': return '#10b981';
+      default: return '#6b7280';
+    }
+  };
+
+  const getStatusBg = (status) => {
+    switch (status) {
+      case 'created': return '#eff6ff';
+      case 'pending_approval': return '#fffbeb';
+      case 'approved': return '#f0fdf4';
+      default: return '#f9fafb';
     }
   };
 
@@ -127,70 +293,161 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
 
   return (
     <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '16px',
-      marginBottom: '12px',
-      backgroundColor: '#fff'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h4 style={{ margin: 0, color: '#333' }}>{type} Task</h4>
-        <span style={{
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          color: '#fff',
-          backgroundColor: getStatusColor(task.status)
+      border: '1px solid #e5e7eb',
+      borderRadius: '12px',
+      padding: '24px',
+      marginBottom: '16px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+      transition: 'all 0.2s ease'
+    }}
+    onMouseEnter={e => {
+      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+      e.target.style.transform = 'translateY(-1px)';
+    }}
+    onMouseLeave={e => {
+      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+      e.target.style.transform = 'translateY(0)';
+    }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#1f2937', 
+          fontSize: '1.125rem', 
+          fontWeight: '600' 
         }}>
-          {task.status?.toUpperCase() || 'CREATED'}
+          {type} Task
+        </h4>
+        <span style={{
+          padding: '6px 12px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: '600',
+          color: getStatusColor(task.status),
+          backgroundColor: getStatusBg(task.status),
+          border: `1px solid ${getStatusColor(task.status)}20`
+        }}>
+          {task.status?.replace(/_/g, ' ').toUpperCase() || 'CREATED'}
         </span>
       </div>
       
-      <div style={{ marginBottom: '8px' }}>
-        <strong>Objectives:</strong> {task.objectives}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ 
+          fontSize: '14px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '4px' 
+        }}>
+          Objectives:
+        </div>
+        <div style={{ 
+          fontSize: '14px', 
+          color: '#6b7280', 
+          lineHeight: '1.5' 
+        }}>
+          {task.objectives}
+        </div>
       </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px', color: '#666' }}>
-        <div><strong>Gender:</strong> {task.gender}</div>
-        <div><strong>Age:</strong> {task.minAge}-{task.maxAge}</div>
-        {task.numContent && <div><strong>Content Count:</strong> {task.numContent}</div>}
-        <div><strong>Deadline:</strong> {formatDate(task.deadline)}</div>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
+        gap: '12px', 
+        marginBottom: '16px',
+        padding: '16px',
+        backgroundColor: '#f8fafc',
+        borderRadius: '8px'
+      }}>
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>GENDER</div>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.gender}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>AGE RANGE</div>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.minAge}-{task.maxAge}</div>
+        </div>
+        {task.numContent && (
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>CONTENT COUNT</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.numContent}</div>
+          </div>
+        )}
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>DEADLINE</div>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{formatDate(task.deadline)}</div>
+        </div>
       </div>
       
       {task.createdAt && (
-        <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
+        <div style={{ 
+          fontSize: '12px', 
+          color: '#9ca3af', 
+          marginBottom: '16px',
+          fontStyle: 'italic'
+        }}>
           Created: {formatDate(task.createdAt)}
         </div>
       )}
       
       {task.content && (
-        <div style={{ marginTop: '12px', padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
-          <strong>Submitted Content:</strong>
-          <div style={{ fontSize: '14px', marginTop: '4px' }}>
-            <div><strong>Headline:</strong> {task.content.headline}</div>
-            <div><strong>Caption:</strong> {task.content.caption}</div>
+        <div style={{ 
+          marginBottom: '16px', 
+          padding: '16px', 
+          backgroundColor: '#f0fdf4', 
+          borderRadius: '8px',
+          border: '1px solid #bbf7d0'
+        }}>
+          <div style={{ 
+            fontSize: '14px', 
+            fontWeight: '600', 
+            color: '#059669', 
+            marginBottom: '8px' 
+          }}>
+            Submitted Content:
+          </div>
+          <div style={{ fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
+            <div style={{ marginBottom: '4px' }}><strong>Headline:</strong> {task.content.headline}</div>
+            <div style={{ marginBottom: '4px' }}><strong>Caption:</strong> {task.content.caption}</div>
             <div><strong>Hashtags:</strong> {task.content.hashtag}</div>
           </div>
         </div>
       )}
       
-      <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
         <button
           onClick={() => onEdit(task)}
           style={{
-            padding: '6px 12px', backgroundColor: '#28a745', color: 'white',
-            border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+            padding: '8px 16px', 
+            backgroundColor: '#3b82f6', 
+            color: 'white',
+            border: 'none', 
+            borderRadius: '8px', 
+            cursor: 'pointer', 
+            fontSize: '14px',
+            fontWeight: '600',
+            transition: 'background-color 0.2s ease'
           }}
+          onMouseEnter={e => e.target.style.backgroundColor = '#2563eb'}
+          onMouseLeave={e => e.target.style.backgroundColor = '#3b82f6'}
         >
           Edit
         </button>
         <button
           onClick={() => onDelete(task)}
           style={{
-            padding: '6px 12px', backgroundColor: '#dc3545', color: 'white',
-            border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+            padding: '8px 16px', 
+            backgroundColor: '#ef4444', 
+            color: 'white',
+            border: 'none', 
+            borderRadius: '8px', 
+            cursor: 'pointer', 
+            fontSize: '14px',
+            fontWeight: '600',
+            transition: 'background-color 0.2s ease'
           }}
+          onMouseEnter={e => e.target.style.backgroundColor = '#dc2626'}
+          onMouseLeave={e => e.target.style.backgroundColor = '#ef4444'}
         >
           Delete
         </button>
@@ -335,42 +592,129 @@ export default function OngoingTask() {
   };
 
   return (
-    <div className="manage-accounts-page-container">
-      <div className="role-section">
-        <h2>Content Creator Tasks</h2>
-        {loading ? "Loading..." : (
-          Array.isArray(creatorTasks) && creatorTasks.length === 0
-            ? <div style={{ marginBottom: 20 }}>No ongoing tasks.</div>
-            : Array.isArray(creatorTasks)
-              ? creatorTasks.map(task => (
-                  <TaskCard 
-                    key={task.id || task._id} 
-                    task={task} 
-                    type="Content Creator" 
-                    onEdit={(task) => handleEdit(task, 'Content Creator')}
-                    onDelete={(task) => handleDelete(task, 'Content Creator')}
-                  />
-                ))
-              : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
-        )}
+    <div style={{ padding: '0', maxWidth: '100%' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '32px' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
+          Ongoing Tasks
+        </h1>
+        <p style={{ color: '#6b7280', margin: 0 }}>
+          Monitor and manage active tasks for content creators and graphic designers
+        </p>
       </div>
-      <div className="role-section">
-        <h2>Graphic Designer Tasks</h2>
-        {loading ? "Loading..." : (
-          Array.isArray(designerTasks) && designerTasks.length === 0
-            ? <div style={{ marginBottom: 20 }}>No ongoing tasks.</div>
-            : Array.isArray(designerTasks)
-              ? designerTasks.map(task => (
-                  <TaskCard 
-                    key={task.id || task._id} 
-                    task={task} 
-                    type="Graphic Designer" 
-                    onEdit={(task) => handleEdit(task, 'Graphic Designer')}
-                    onDelete={(task) => handleDelete(task, 'Graphic Designer')}
-                  />
-                ))
-              : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
-        )}
+
+      {/* Content Creator Tasks */}
+      <div style={{ marginBottom: '40px' }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            Content Creator Tasks
+          </h2>
+          {loading ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#6b7280',
+              fontSize: '14px'
+            }}>
+              Loading tasks...
+            </div>
+          ) : (
+            Array.isArray(creatorTasks) && creatorTasks.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px', 
+                color: '#9ca3af',
+                fontSize: '14px'
+              }}>
+                No ongoing tasks for content creators.
+              </div>
+            ) : Array.isArray(creatorTasks) ? (
+              creatorTasks.map(task => (
+                <TaskCard 
+                  key={task.id || task._id} 
+                  task={task} 
+                  type="Content Creator" 
+                  onEdit={(task) => handleEdit(task, 'Content Creator')}
+                  onDelete={(task) => handleDelete(task, 'Content Creator')}
+                />
+              ))
+            ) : (
+              <div style={{ color: '#ef4444', padding: '20px', textAlign: 'center' }}>
+                Error: Tasks data is not available.
+              </div>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Graphic Designer Tasks */}
+      <div>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            Graphic Designer Tasks
+          </h2>
+          {loading ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#6b7280',
+              fontSize: '14px'
+            }}>
+              Loading tasks...
+            </div>
+          ) : (
+            Array.isArray(designerTasks) && designerTasks.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px', 
+                color: '#9ca3af',
+                fontSize: '14px'
+              }}>
+                No ongoing tasks for graphic designers.
+              </div>
+            ) : Array.isArray(designerTasks) ? (
+              designerTasks.map(task => (
+                <TaskCard 
+                  key={task.id || task._id} 
+                  task={task} 
+                  type="Graphic Designer" 
+                  onEdit={(task) => handleEdit(task, 'Graphic Designer')}
+                  onDelete={(task) => handleDelete(task, 'Graphic Designer')}
+                />
+              ))
+            ) : (
+              <div style={{ color: '#ef4444', padding: '20px', textAlign: 'center' }}>
+                Error: Tasks data is not available.
+              </div>
+            )
+          )}
+        </div>
       </div>
       
       {editingTask && (
@@ -383,4 +727,4 @@ export default function OngoingTask() {
       )}
     </div>
   );
-} 
+}

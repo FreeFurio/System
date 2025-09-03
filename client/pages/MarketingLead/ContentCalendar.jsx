@@ -42,7 +42,21 @@ export default function ContentCalendar() {
     const dateKey = formatDate(day);
     const items = calendarData[dateKey] || [];
     return items.map(item => (
-      <span key={item.id} className={`indicator ${item.type}`} title={item.title}></span>
+      <span 
+        key={item.id} 
+        title={item.title}
+        style={{
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          background: 
+            item.type === 'ongoing' ? '#3b82f6' :
+            item.type === 'approval' ? '#f59e0b' :
+            item.type === 'approved' ? '#10b981' :
+            item.type === 'rejected' ? '#ef4444' :
+            item.type === 'scheduled' ? '#8b5cf6' : '#6b7280'
+        }}
+      ></span>
     ));
   };
 
@@ -80,7 +94,12 @@ export default function ContentCalendar() {
 
     // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+      days.push(<div key={`empty-${i}`} style={{
+        minHeight: '120px',
+        background: '#f9fafb',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px'
+      }}></div>);
     }
 
     // Days of the month
@@ -91,11 +110,39 @@ export default function ContentCalendar() {
       days.push(
         <div 
           key={day} 
-          className={`calendar-day ${hasContent ? 'has-content' : ''}`}
+          style={{
+            minHeight: '120px',
+            padding: '8px',
+            background: hasContent ? '#f0f9ff' : '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            position: 'relative'
+          }}
           onClick={() => handleDateClick(day)}
+          onMouseEnter={(e) => {
+            e.target.style.background = hasContent ? '#dbeafe' : '#f8fafc';
+            e.target.style.transform = 'translateY(-1px)';
+            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = hasContent ? '#f0f9ff' : '#fff';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = 'none';
+          }}
         >
-          <span className="day-number">{day}</span>
-          <div className="indicators">
+          <span style={{
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#374151'
+          }}>{day}</span>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '4px',
+            marginTop: '4px'
+          }}>
             {renderIndicators(day)}
           </div>
         </div>

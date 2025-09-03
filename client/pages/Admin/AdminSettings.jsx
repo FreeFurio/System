@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiLock, FiShield, FiMoon, FiSun, FiCamera, FiSave } from 'react-icons/fi';
+import { FiUser, FiLock, FiShield, FiCamera, FiSave } from 'react-icons/fi';
 import { useUser } from '../../components/common/UserContext';
-import { useDarkMode } from '../../components/common/DarkModeContext';
+
 
 const AdminSettings = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   const { user, setUser } = useUser();
-  const { darkMode, toggleDarkMode } = useDarkMode();
+
   const [activeTab, setActiveTab] = useState('profile');
   const [settings, setSettings] = useState({
     // Profile Settings
@@ -204,8 +204,7 @@ const AdminSettings = ({ isOpen, onClose }) => {
   const tabs = [
     { id: 'profile', label: 'Profile', icon: FiUser },
     { id: 'password', label: 'Password Policies', icon: FiLock },
-    { id: 'security', label: 'Login Security', icon: FiShield },
-    { id: 'appearance', label: 'Appearance', icon: FiMoon }
+    { id: 'security', label: 'Login Security', icon: FiShield }
   ];
 
   return (
@@ -255,8 +254,8 @@ const AdminSettings = ({ isOpen, onClose }) => {
                 onClick={() => setActiveTab(tab.id)}
                 style={{
                   width: '100%', padding: '12px 16px', border: 'none',
-                  background: activeTab === tab.id ? '#eff6ff' : 'transparent',
-                  color: activeTab === tab.id ? '#2563eb' : '#6b7280',
+                  background: activeTab === tab.id ? '#2563eb' : 'transparent',
+                  color: activeTab === tab.id ? '#ffffff' : '#6b7280',
                   borderRadius: '8px', cursor: 'pointer', marginBottom: '4px',
                   display: 'flex', alignItems: 'center', gap: '12px',
                   fontSize: '0.875rem', fontWeight: '500', textAlign: 'left'
@@ -486,54 +485,7 @@ const AdminSettings = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Appearance */}
-          {activeTab === 'appearance' && (
-            <div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#1f2937', margin: '0 0 24px 0' }}>
-                Appearance
-              </h2>
-              
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '20px', background: '#f8fafc', borderRadius: '12px',
-                border: '1px solid #e5e7eb'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{
-                    width: '48px', height: '48px', borderRadius: '12px',
-                    background: darkMode ? '#374151' : '#f3f4f6',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    {darkMode ? <FiMoon size={24} color="#fff" /> : <FiSun size={24} color="#374151" />}
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '500', color: '#374151', margin: 0 }}>
-                      Dark Mode
-                    </h3>
-                    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '4px 0 0 0' }}>
-                      Switch between light and dark themes
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={toggleDarkMode}
-                  style={{
-                    width: '56px', height: '32px', borderRadius: '16px',
-                    background: darkMode ? '#3b82f6' : '#d1d5db',
-                    border: 'none', cursor: 'pointer', position: 'relative',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{
-                    width: '24px', height: '24px', borderRadius: '50%',
-                    background: '#fff', position: 'absolute', top: '4px',
-                    left: darkMode ? '28px' : '4px',
-                    transition: 'all 0.2s ease'
-                  }}></div>
-                </button>
-              </div>
-            </div>
-          )}
+
 
           {/* Save Button */}
           <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #e5e7eb' }}>

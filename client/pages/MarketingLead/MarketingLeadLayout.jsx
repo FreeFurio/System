@@ -5,24 +5,24 @@ import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import { DarkModeProvider } from '../../components/common/DarkModeContext';
 import MarketingSettings from './MarketingSettings';
-import '../../styles/Admin.css'; // Reuse Admin styles for consistency
+import '../../styles/Admin.css'; // Use exact admin styles
 
 const sidebarItems = [
-  { label: 'Dashboard', path: '/marketing/dashboard', icon: <span className="sidebar-icon-wrapper"><FiHome size={22} color="#F6C544" /></span> },
-  { label: 'Content Calendar', path: '/marketing/content-calendar', icon: <span className="sidebar-icon-wrapper"><FiCalendar size={22} color="#F6C544" /></span> },
+  { label: 'Dashboard', path: '/marketing/dashboard', icon: FiHome },
+  { label: 'Content Calendar', path: '/marketing/content-calendar', icon: FiCalendar },
   { 
     label: 'Set Task', 
     hasDropdown: true,
-    icon: <span className="sidebar-icon-wrapper"><FiEdit size={22} color="#F6C544" /></span>,
+    icon: FiEdit,
     subItems: [
       { label: 'Content Creator', path: '/marketing/set-task', icon: '💻' },
       { label: 'Graphic Designer', path: '/marketing/set-task-graphic-designer', icon: '🎨' }
     ]
   },
-  { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: <span className="sidebar-icon-wrapper"><FiClipboard size={22} color="#F6C544" /></span> },
-  { label: 'Approval of Contents', path: '/marketing/approval', icon: <span className="sidebar-icon-wrapper"><FiCheckCircle size={22} color="#F6C544" /></span> },
-  { label: 'Approved Contents', path: '/marketing/approved', icon: <span className="sidebar-icon-wrapper"><FiThumbsUp size={22} color="#F6C544" /></span> },
-  { label: 'Posted Content', path: '/marketing/posted-content', icon: <span className="sidebar-icon-wrapper"><FiSend size={22} color="#F6C544" /></span> },
+  { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: FiClipboard },
+  { label: 'Approval of Contents', path: '/marketing/approval', icon: FiCheckCircle },
+  { label: 'Approved Contents', path: '/marketing/approved', icon: FiThumbsUp },
+  { label: 'Posted Content', path: '/marketing/posted-content', icon: FiSend },
 ];
 
 export default function MarketingLeadLayout() {
@@ -119,14 +119,28 @@ export default function MarketingLeadLayout() {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ background: '#e0e7ff', color: '#2563eb', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700 }}>
+              <span className="header-profile-avatar" style={{ 
+                width: 40, 
+                height: 40, 
+                borderRadius: '50%', 
+                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontSize: 22, 
+                color: '#fff', 
+                fontWeight: 700,
+                flexShrink: 0
+              }}>
                 <FiUser size={24} color="#F6C544" />
               </span>
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
                 <div style={{ padding: '0 16px 10px 16px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName} {user?.lastName}</div>
+                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName || 'Marketing'} {user?.lastName || 'Lead'}</div>
                   <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Marketing Lead'}</div>
                 </div>
                 <button 
@@ -149,36 +163,78 @@ export default function MarketingLeadLayout() {
       
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
         {!sidebarCollapsed && (
-          <div className="sidebar" style={{ 
-            width: '240px', 
-            minWidth: '220px', 
-            background: '#f8f9fb', 
-            borderRight: '1px solid #ececec', 
-            padding: '32px 0 24px 0', 
-            borderRadius: 0, 
-            fontFamily: 'Inter, Segoe UI, Arial, sans-serif', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'stretch', 
-            margin: 0, 
-            minHeight: 0, 
-            overflowY: 'auto', 
+          <div className="sidebar" style={{
+            width: '220px',
+            background: '#f8f9fb',
+            borderRight: '1px solid #ececec',
+            padding: '32px 0 24px 0',
+            borderRadius: 0,
+            minWidth: '180px',
+            fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            boxShadow: 'none',
+            margin: 0,
+            minHeight: 0,
+            overflowY: 'auto',
             maxHeight: 'calc(100vh - 124px)'
           }}>
 
             {/* User Profile */}
-            <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 24, minHeight: 0 }}>
-              <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
-                <span className="header-profile-avatar" style={{ width: 48, height: 48, borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#2563eb', fontWeight: 700 }}>
+            <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 32, padding: '0 12px' }}>
+              <div className="user-profile" style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 16, 
+                padding: '14px 12px', 
+                background: '#f8f9fb', 
+                borderRadius: 0, 
+                boxShadow: 'none'
+              }}>
+                <span className="header-profile-avatar" style={{ 
+                  width: 48, 
+                  height: 48, 
+                  borderRadius: '50%', 
+                  background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
+                  backgroundSize: 'cover', 
+                  backgroundPosition: 'center',
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontSize: 28, 
+                  color: '#fff', 
+                  fontWeight: 700,
+                  flexShrink: 0
+                }}>
                   <FiUser size={28} color="#F6C544" />
                 </span>
                 <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
-                  <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Marketing Lead'}</div>
+                  <div className="user-name" style={{ 
+                    fontWeight: 700, 
+                    fontSize: 17, 
+                    color: '#222', 
+                    lineHeight: 1.1, 
+                    whiteSpace: 'nowrap', 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis' 
+                  }}>{user?.firstName || 'Marketing'} {user?.lastName || 'Lead'}</div>
+                  <div className="user-role" style={{ 
+                    fontSize: 13, 
+                    color: '#6b7280', 
+                    fontWeight: 500, 
+                    marginTop: 2 
+                  }}>{user?.role || 'Marketing Lead'}</div>
                 </div>
               </div>
             </div>
-            <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, minHeight: 0 }}>
+            <nav className="navigation" style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: 8, 
+              marginTop: 10, 
+              minHeight: 0
+            }}>
               {sidebarItems.map((item, index) => (
                 <div key={item.path || index} style={{ position: 'relative' }}>
                   {item.hasDropdown ? (
@@ -186,12 +242,24 @@ export default function MarketingLeadLayout() {
                       <button
                         onClick={() => setShowSetTaskDropdown(!showSetTaskDropdown)}
                         className={`nav-item${(location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? ' active' : ''}`}
-                        style={{ 
-                          color: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#1f2937' : 'inherit',
-                          justifyContent: 'space-between'
+                        style={{
+                          width: '100%',
+                          padding: '12px 24px',
+                          fontWeight: 600,
+                          borderRadius: 8,
+                          color: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#fff' : '#222',
+                          background: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#e53935' : 'none',
+                          marginBottom: 4,
+                          textDecoration: 'none',
+                          transition: 'background 0.2s, color 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          border: 'none',
+                          cursor: 'pointer'
                         }}
                       >
-                        {item.icon}
+                        <item.icon size={18} style={{ marginRight: 12 }} />
                         {item.label}
                         <FiChevronDown 
                           size={16} 
@@ -260,8 +328,20 @@ export default function MarketingLeadLayout() {
                     <Link
                       to={item.path}
                       className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
+                      style={{
+                        padding: '12px 24px',
+                        fontWeight: 600,
+                        borderRadius: 8,
+                        color: location.pathname === item.path ? '#fff' : '#222',
+                        background: location.pathname === item.path ? '#e53935' : 'none',
+                        marginBottom: 4,
+                        textDecoration: 'none',
+                        transition: 'background 0.2s, color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
                     >
-                      {item.icon}
+                      <item.icon size={18} style={{ marginRight: 12 }} />
                       {item.label}
                     </Link>
                   )}
@@ -270,8 +350,22 @@ export default function MarketingLeadLayout() {
             </nav>
           </div>
         )}
-        <div className="main-content" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 0, margin: 0, boxShadow: 'none', padding: 0, minHeight: 0 }}>
-          <div className="content-area" style={{ flex: 1, padding: '24px', overflowY: 'auto', background: '#fff', borderRadius: 0, margin: 0, boxShadow: 'none', minHeight: 0 }}>
+        <div className="main-content" style={{ 
+          flex: 1, 
+          position: 'relative', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          background: '#fff', 
+          borderRadius: 0, 
+          margin: 0, 
+          boxShadow: 'none', 
+          padding: '0 0 0 0' 
+        }}>
+          <div className="content-area" style={{ 
+            flex: 1, 
+            padding: '24px', 
+            overflowY: 'auto' 
+          }}>
             <Outlet />
           </div>
         </div>
@@ -291,4 +385,4 @@ export default function MarketingLeadLayout() {
     </div>
     </DarkModeProvider>
   );
-} 
+}

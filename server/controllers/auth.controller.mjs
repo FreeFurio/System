@@ -18,9 +18,9 @@ import { io } from '../server.mjs';
 // 2.1) REGISTRATION FLOW
 // ========================
 
-const validateOTPRegistration = (req, res, next) => {
+const validateOTPRegistration = async (req, res, next) => {
   console.log('🔍 validateOTPRegistration called with body:', req.body);
-  const { email, firstName,lastName, username, password, retypePassword, role } = req.body;
+  const { email, firstName, lastName, username, password, retypePassword, role } = req.body;
   
   if (!email || !firstName || !lastName || !username || !password || !retypePassword || !role) {
     console.log('❌ validateOTPRegistration - Missing required fields');
@@ -37,6 +37,11 @@ const validateOTPRegistration = (req, res, next) => {
   if (!emailRegex.test(email)) {
     console.log('❌ validateOTPRegistration - Invalid email format:', email);
     return next(new AppError('Please provide a valid email address', 400));
+  }
+
+  if (password !== retypePassword) {
+    console.log('❌ validateOTPRegistration - Passwords do not match');
+    return next(new AppError('Passwords do not match', 400));
   }
 
   // Get password policies from Firebase
@@ -84,17 +89,6 @@ const validateOTPRegistration = (req, res, next) => {
     if (password.length < 8) {
       return next(new AppError('Password must be at least 8 characters long', 400));
     }
-  }
-
-  if (password !== retypePassword) {
-    console.log('❌ validateOTPRegistration - Passwords do not match');
-    return next(new AppError('Passwords do not match', 400));
-  }
-
-  const allowedRoles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-  if (!allowedRoles.includes(role)) {
-    console.log('❌ validateOTPRegistration - Role not allowed:', role);
-    return next(new AppError('Invalid role specified', 400));
   }
 
   console.log('✅ validateOTPRegistration - All validations passed');

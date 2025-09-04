@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContent } from '../../services/contentService';
+import { componentStyles } from '../../styles/designSystem';
 
 export default function CreateContent() {
   const [input, setInput] = useState('');
@@ -8,6 +9,8 @@ export default function CreateContent() {
   const [numContentsTouched, setNumContentsTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [generationStep, setGenerationStep] = useState(0);
+  const [showProgress, setShowProgress] = useState(false);
   const [searchParams] = useSearchParams();
   const taskId = searchParams.get('taskId');
   const navigate = useNavigate();
@@ -34,267 +37,459 @@ export default function CreateContent() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setShowProgress(true);
+    
+    // Simulate generation steps
+    const steps = [
+      'Analyzing your content brief...',
+      'Generating creative headlines...',
+      'Crafting engaging captions...',
+      'Creating relevant hashtags...',
+      'Finalizing your content...'
+    ];
+    
     try {
+      // Show progress steps
+      for (let i = 0; i < steps.length; i++) {
+        setGenerationStep(i);
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      
       const res = await createContent({ input, numContents, taskId });
       if (res.success) {
         setLoading(false);
-        // Ensure taskId is passed, use the one from response or URL
+        setShowProgress(false);
         const finalTaskId = res.taskId || taskId;
-        console.log('🔍 Debug - Navigating with taskId:', finalTaskId);
-        
-        // Pass taskId both in state and URL for redundancy
         const outputUrl = finalTaskId ? `/content/output?taskId=${finalTaskId}` : '/content/output';
         navigate(outputUrl, { state: { contents: res.contents, taskId: finalTaskId } });
       } else {
         setError('Failed to create content.');
         setLoading(false);
+        setShowProgress(false);
       }
     } catch (err) {
       setError('An error occurred.');
       setLoading(false);
+      setShowProgress(false);
     }
   };
+
+  if (showProgress) {
+    const steps = [
+      { text: 'Analyzing your content brief...', icon: '🔍' },
+      { text: 'Generating creative headlines...', icon: '💡' },
+      { text: 'Crafting engaging captions...', icon: '✍️' },
+      { text: 'Creating relevant hashtags...', icon: '🏷️' },
+      { text: 'Finalizing your content...', icon: '✨' }
+    ];
+    
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{
+          background: '#ffffff',
+          borderRadius: 24,
+          padding: '48px',
+          maxWidth: '500px',
+          width: '90%',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            fontSize: '32px',
+            animation: 'pulse 2s infinite'
+          }}>
+            🤖
+          </div>
+          
+          <h2 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: '#1e293b',
+            margin: '0 0 16px 0'
+          }}>AI is Working...</h2>
+          
+          <p style={{
+            color: '#64748b',
+            fontSize: '16px',
+            margin: '0 0 32px 0'
+          }}>Creating amazing content just for you</p>
+          
+          <div style={{ textAlign: 'left' }}>
+            {steps.map((step, index) => (
+              <div key={index} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                padding: '12px 0',
+                opacity: index <= generationStep ? 1 : 0.3,
+                transition: 'opacity 0.3s ease'
+              }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: index <= generationStep ? '#10b981' : '#e5e7eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '16px',
+                  transition: 'background 0.3s ease'
+                }}>
+                  {index < generationStep ? '✓' : index === generationStep ? step.icon : '○'}
+                </div>
+                <span style={{
+                  fontSize: '15px',
+                  fontWeight: index === generationStep ? '600' : '500',
+                  color: index <= generationStep ? '#1e293b' : '#94a3b8'
+                }}>
+                  {step.text}
+                </span>
+              </div>
+            ))}
+          </div>
+          
+          <div style={{
+            width: '100%',
+            height: '4px',
+            background: '#e5e7eb',
+            borderRadius: '2px',
+            marginTop: '24px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${((generationStep + 1) / steps.length) * 100}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
+              borderRadius: '2px',
+              transition: 'width 0.8s ease'
+            }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #ffffff 0%, #fef7ed 100%)', 
-      padding: '40px 20px',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', 
+      padding: '32px 20px',
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
     }}>
       <div style={{
-        maxWidth: 580,
-        margin: '0 auto',
-        background: '#ffffff',
-        borderRadius: 24,
-        boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1)',
-        padding: '48px 40px',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(251, 191, 36, 0.2)'
+        maxWidth: 800,
+        margin: '0 auto'
       }}>
-        {/* Decorative gradient overlay */}
+        {/* Header Section */}
         <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '6px',
-          background: 'linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24)',
-          borderRadius: '24px 24px 0 0'
-        }} />
-        
-        <div style={{textAlign: 'center', marginBottom: 32}}>
+          textAlign: 'center',
+          marginBottom: '40px'
+        }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '8px',
-            background: '#ef4444',
+            gap: '12px',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             color: '#ffffff',
             fontWeight: 600,
             fontSize: 14,
-            borderRadius: 20,
-            padding: '8px 20px',
-            marginBottom: 16,
+            borderRadius: 25,
+            padding: '10px 24px',
+            marginBottom: 20,
             letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
+            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)'
           }}>
-            <span style={{fontSize: '16px'}}>🤖</span>
-            AI Content Producer
+            <span style={{fontSize: '18px'}}>🤖</span>
+            AI Content Generator
           </div>
           <h1 style={{
             fontWeight: 800,
-            fontSize: 36,
-            color: '#ef4444',
+            fontSize: 42,
+            background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
             margin: 0,
-            letterSpacing: '-0.8px'
-          }}>Create Content</h1>
+            letterSpacing: '-1px'
+          }}>Create Amazing Content</h1>
           <p style={{
-            color: '#6b7280',
-            fontSize: 17,
-            margin: '8px 0 0 0',
+            color: '#64748b',
+            fontSize: 18,
+            margin: '12px 0 0 0',
             fontWeight: 500
-          }}>What's your content all about?</p>
-          <p style={{
-            color: '#9ca3af',
-            fontSize: 15,
-            margin: '4px 0 0 0',
-            fontWeight: 400
-          }}>Describe your idea and we'll generate a headline, content, and hashtags for you.</p>
+          }}>Generate engaging content with AI assistance</p>
         </div>
-        
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-        <div style={{ position: 'relative' }}>
-          <label style={{ 
-            fontWeight: 700, 
-            display: 'block', 
-            marginBottom: 12, 
-            color: '#1f2937', 
-            fontSize: 16,
-            letterSpacing: '0.3px'
-          }}>Content Description</label>
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder=""
-            rows={4}
-            style={{ 
-              width: '100%', 
-              minHeight: 100, 
-              maxHeight: 200, 
-              padding: '16px 20px', 
-              borderRadius: 16, 
-              border: '2px solid #e5e7eb', 
-              fontSize: 15, 
-              background: '#fafbfc', 
-              resize: 'none', 
-              outline: 'none', 
-              boxSizing: 'border-box',
-              fontFamily: 'inherit',
-              lineHeight: 1.6,
-              transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-            onFocus={e => {
-              e.target.style.borderColor = '#fbbf24';
-              e.target.style.boxShadow = '0 0 0 3px rgba(251, 191, 36, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            onBlur={e => {
-              e.target.style.borderColor = '#e5e7eb';
-              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            required
-          />
-        </div>
-        
-        {/* Number of Contents */}
-        <div>
-          <label htmlFor="numContents" style={{ 
-            fontWeight: 700, 
-            display: 'block', 
-            marginBottom: 12, 
-            color: '#1f2937', 
-            fontSize: 16,
-            letterSpacing: '0.3px'
-          }}>Number of Contents</label>
-          <input
-            type="number"
-            id="numContents"
-            min={1}
-            value={numContentsTouched ? numContents : 1}
-            onFocus={(e) => {
-              if (!numContentsTouched && numContents === 1) {
-                setNumContents("");
-              }
-              setNumContentsTouched(true);
-              e.target.style.borderColor = '#fbbf24';
-              e.target.style.boxShadow = '0 0 0 3px rgba(251, 191, 36, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            onBlur={e => {
-              if (e.target.value === '' || isNaN(Number(e.target.value))) {
-                setNumContents(1);
-                setNumContentsTouched(false);
-              }
-              e.target.style.borderColor = '#e5e7eb';
-              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            onChange={e => {
-              const val = e.target.value;
-              if (val === '' || isNaN(Number(val))) {
-                setNumContents("");
-              } else {
-                setNumContents(Math.max(1, Number(val)));
-              }
-            }}
-            style={{ 
-              width: '100%', 
-              padding: '16px 20px', 
-              borderRadius: 16, 
-              border: '2px solid #e5e7eb', 
-              fontSize: 15, 
-              background: '#fafbfc', 
-              outline: 'none',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-            required
-          />
-        </div>
-        
-        <button 
-          type="submit" 
-          disabled={!input.trim() || loading} 
-          style={{ 
-            marginTop: 24, 
-            background: (!input.trim() || loading) ? '#9ca3af' : '#ef4444', 
-            color: '#ffffff', 
-            border: 'none', 
-            borderRadius: 16, 
-            padding: '18px 32px', 
-            fontWeight: 600, 
-            fontSize: 17, 
-            cursor: (!input.trim() || loading) ? 'not-allowed' : 'pointer', 
-            letterSpacing: '0.8px', 
-            boxShadow: (!input.trim() || loading) 
-              ? '0 4px 12px rgba(156, 163, 175, 0.4)' 
-              : '0 8px 25px rgba(239, 68, 68, 0.4)', 
-            transition: 'all 0.3s ease',
-            position: 'relative',
-            overflow: 'hidden',
-            textTransform: 'uppercase',
-            fontFamily: 'inherit'
-          }}
-          onMouseEnter={e => {
-            if (input.trim() && !loading) {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 12px 35px rgba(239, 68, 68, 0.5)';
-            }
-          }}
-          onMouseLeave={e => {
-            if (input.trim() && !loading) {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.4)';
-            }
-          }}
-        >
-          {loading ? (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{ 
-                width: '16px', 
-                height: '16px', 
-                border: '2px solid #ffffff', 
-                borderTop: '2px solid transparent', 
-                borderRadius: '50%', 
-                animation: 'spin 1s linear infinite' 
-              }} />
-              Generating...
-            </span>
-          ) : (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{fontSize: '18px'}}>🤖</span>
-              Generate
-            </span>
-          )}
-        </button>
-        
-        {error && (
-          <div style={{ 
-            color: '#ef4444', 
-            marginTop: 16, 
-            fontWeight: 500, 
-            textAlign: 'center',
-            padding: '12px 20px',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: 12,
-            fontSize: 14
+
+        {/* Main Form Card */}
+        <div style={{
+          background: '#ffffff',
+          borderRadius: 20,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          padding: '0',
+          overflow: 'hidden',
+          border: '1px solid #e2e8f0'
+        }}>
+          {/* Form Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+            padding: '32px 40px',
+            borderBottom: '1px solid #e2e8f0'
           }}>
-            ❌ {error}
+            <h2 style={{
+              fontSize: 24,
+              fontWeight: 700,
+              color: '#1e293b',
+              margin: '0 0 8px 0'
+            }}>Content Details</h2>
+            <p style={{
+              color: '#64748b',
+              fontSize: 16,
+              margin: 0
+            }}>Tell us about the content you want to create</p>
           </div>
-        )}
-      </form>
+        
+          {/* Form Content */}
+          <form onSubmit={handleSubmit} style={{ padding: '40px' }}>
+            <div style={{ display: 'grid', gap: '32px' }}>
+              {/* Content Description Section */}
+              <div style={{
+                background: '#f8fafc',
+                padding: '24px',
+                borderRadius: 12,
+                border: '1px solid #e2e8f0'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
+                  <span style={{ fontSize: '20px' }}>📝</span>
+                  <label style={{ 
+                    fontWeight: 700, 
+                    color: '#1e293b', 
+                    fontSize: 18
+                  }}>Content Description</label>
+                </div>
+                <p style={{
+                  color: '#64748b',
+                  fontSize: 14,
+                  margin: '0 0 16px 0'
+                }}>Describe what you want your content to be about. Be specific about your goals and target message.</p>
+                <textarea
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  placeholder="Example: A social media post about our new eco-friendly product line targeting environmentally conscious millennials..."
+                  rows={5}
+                  style={{ 
+                    width: '100%', 
+                    minHeight: 120, 
+                    padding: '16px 20px', 
+                    borderRadius: 12, 
+                    border: '2px solid #e2e8f0', 
+                    fontSize: 15, 
+                    background: '#ffffff', 
+                    resize: 'vertical', 
+                    outline: 'none', 
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                    lineHeight: 1.6,
+                    transition: 'all 0.2s ease'
+                  }}
+                  onFocus={e => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = '#e2e8f0';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  required
+                />
+              </div>
+        
+              {/* Generation Settings */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '24px'
+              }}>
+                {/* Number of Contents */}
+                <div style={{
+                  background: '#f8fafc',
+                  padding: '24px',
+                  borderRadius: 12,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
+                    <span style={{ fontSize: '20px' }}>🔢</span>
+                    <label htmlFor="numContents" style={{ 
+                      fontWeight: 700, 
+                      color: '#1e293b', 
+                      fontSize: 16
+                    }}>Number of Variations</label>
+                  </div>
+                  <p style={{
+                    color: '#64748b',
+                    fontSize: 14,
+                    margin: '0 0 16px 0'
+                  }}>How many different versions would you like?</p>
+                  <input
+                    type="number"
+                    id="numContents"
+                    min={1}
+                    max={5}
+                    value={numContentsTouched ? numContents : 1}
+                    onFocus={(e) => {
+                      if (!numContentsTouched && numContents === 1) {
+                        setNumContents("");
+                      }
+                      setNumContentsTouched(true);
+                      e.target.style.borderColor = '#3b82f6';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    }}
+                    onBlur={e => {
+                      if (e.target.value === '' || isNaN(Number(e.target.value))) {
+                        setNumContents(1);
+                        setNumContentsTouched(false);
+                      }
+                      e.target.style.borderColor = '#e2e8f0';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === '' || isNaN(Number(val))) {
+                        setNumContents("");
+                      } else {
+                        setNumContents(Math.max(1, Math.min(5, Number(val))));
+                      }
+                    }}
+                    style={{ 
+                      width: '100%', 
+                      padding: '16px 20px', 
+                      borderRadius: 12, 
+                      border: '2px solid #e2e8f0', 
+                      fontSize: 15, 
+                      background: '#ffffff', 
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s ease'
+                    }}
+                    required
+                  />
+                </div>
+
+                {/* Content Type Info */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                  padding: '24px',
+                  borderRadius: 12,
+                  border: '1px solid #93c5fd'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
+                    <span style={{ fontSize: '20px' }}>✨</span>
+                    <h3 style={{ 
+                      fontWeight: 700, 
+                      color: '#1e40af', 
+                      fontSize: 16,
+                      margin: 0
+                    }}>What You'll Get</h3>
+                  </div>
+                  <ul style={{
+                    color: '#1e40af',
+                    fontSize: 14,
+                    margin: 0,
+                    paddingLeft: 20,
+                    lineHeight: 1.6
+                  }}>
+                    <li>📰 Engaging Headlines</li>
+                    <li>📝 Compelling Captions</li>
+                    <li>🏷️ Relevant Hashtags</li>
+                    <li>🎯 Optimized for Engagement</li>
+                  </ul>
+                </div>
+              </div>
+        
+              {/* Generate Button */}
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <button 
+                  type="submit" 
+                  disabled={!input.trim() || loading} 
+                  style={{ 
+                    ...componentStyles.button,
+                    ...(!input.trim() || loading 
+                      ? { background: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)', cursor: 'not-allowed', boxShadow: '0 4px 12px rgba(156, 163, 175, 0.3)' }
+                      : componentStyles.buttonPrimary),
+                    padding: '20px 48px',
+                    fontSize: '16px',
+                    minWidth: '200px'
+                  }}
+                  onMouseEnter={e => {
+                    if (input.trim() && !loading) {
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = '0 15px 35px rgba(59, 130, 246, 0.5)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (input.trim() && !loading) {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.4)';
+                    }
+                  }}
+                >
+                  {loading ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                      <span style={{ 
+                        width: '18px', 
+                        height: '18px', 
+                        border: '2px solid #ffffff', 
+                        borderTop: '2px solid transparent', 
+                        borderRadius: '50%', 
+                        animation: 'spin 1s linear infinite' 
+                      }} />
+                      Generating Content...
+                    </span>
+                  ) : (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                      <span style={{fontSize: '20px'}}>🚀</span>
+                      Generate Content
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+        
+            {error && (
+              <div style={{ 
+                color: '#dc2626', 
+                marginTop: 24, 
+                fontWeight: 500, 
+                textAlign: 'center',
+                padding: '16px 24px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 12,
+                fontSize: 14,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}>
+                <span>❌</span>
+                {error}
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );

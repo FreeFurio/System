@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../services/firebase';
 import { ref, get } from 'firebase/database';
 import { FiUsers, FiTrendingUp, FiTarget, FiActivity, FiBarChart2, FiCalendar, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { componentStyles, statusColors } from '../../styles/designSystem';
 
 const MarketingDashboard = () => {
   const [stats, setStats] = useState({
@@ -76,46 +77,29 @@ const MarketingDashboard = () => {
   }
 
   const StatCard = ({ icon: Icon, title, value, color, bgColor }) => (
-    <div style={{
-      background: '#fff', borderRadius: '12px', padding: '24px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb',
-      display: 'flex', alignItems: 'center', gap: '16px'
-    }}>
-      <div style={{
-        width: '48px', height: '48px', borderRadius: '12px',
-        background: bgColor, display: 'flex', alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+    <div style={componentStyles.statCard}>
+      <div style={{ ...componentStyles.statIcon, background: bgColor }}>
         <Icon size={24} color={color} />
       </div>
       <div>
-        <h3 style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#1f2937' }}>
-          {value}
-        </h3>
-        <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>
-          {title}
-        </p>
+        <h3 style={componentStyles.statValue}>{value}</h3>
+        <p style={componentStyles.statLabel}>{title}</p>
       </div>
     </div>
   );
 
   return (
-    <div style={{ padding: '0', maxWidth: '100%' }}>
+    <div style={componentStyles.pageContainer}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
-          Marketing Lead Dashboard
-        </h1>
-        <p style={{ color: '#6b7280', margin: 0 }}>
+      <div style={componentStyles.pageHeader}>
+        <h1 style={componentStyles.pageTitle}>Marketing Lead Dashboard</h1>
+        <p style={componentStyles.pageSubtitle}>
           Overview of your content management and marketing activities
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '24px', marginBottom: '32px'
-      }}>
+      <div style={componentStyles.statsGrid}>
         <StatCard
           icon={FiClock}
           title="Pending Content"
@@ -147,12 +131,9 @@ const MarketingDashboard = () => {
       </div>
 
       {/* Content & Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={componentStyles.twoColumnGrid}>
         {/* Content Overview */}
-        <div style={{
-          background: '#fff', borderRadius: '12px', padding: '24px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb'
-        }}>
+        <div style={componentStyles.card}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', margin: '0 0 20px 0' }}>
             Content Overview
           </h2>
@@ -211,10 +192,7 @@ const MarketingDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div style={{
-          background: '#fff', borderRadius: '12px', padding: '24px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb'
-        }}>
+        <div style={componentStyles.card}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', margin: '0 0 20px 0' }}>
             Recent Activity
           </h2>

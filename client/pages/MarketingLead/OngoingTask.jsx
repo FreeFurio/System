@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { io } from "socket.io-client";
+import { cachedFetch } from '../../utils/apiCache';
 
 const EditTaskModal = ({ task, type, onClose, onSave }) => {
   const formatDateForInput = (dateString) => {
@@ -390,26 +391,73 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
         </div>
       )}
       
+      {/* Content Preview - Same design as ApprovalOfContents */}
       {task.content && (
-        <div style={{ 
-          marginBottom: '16px', 
-          padding: '16px', 
-          backgroundColor: '#f0fdf4', 
-          borderRadius: '8px',
-          border: '1px solid #bbf7d0'
+        <div style={{
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          padding: '20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          border: '1px solid #0ea5e9'
         }}>
-          <div style={{ 
-            fontSize: '14px', 
-            fontWeight: '600', 
-            color: '#059669', 
-            marginBottom: '8px' 
-          }}>
-            Submitted Content:
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>✨</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e' }}>Submitted Content</span>
+            </div>
           </div>
-          <div style={{ fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
-            <div style={{ marginBottom: '4px' }}><strong>Headline:</strong> {task.content.headline}</div>
-            <div style={{ marginBottom: '4px' }}><strong>Caption:</strong> {task.content.caption}</div>
-            <div><strong>Hashtags:</strong> {task.content.hashtag}</div>
+          
+          <div style={{ display: 'grid', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>📰</span> HEADLINE
+              </div>
+              <div style={{ 
+                fontSize: '15px', 
+                color: '#1e293b', 
+                fontWeight: '600',
+                background: '#ffffff',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #bae6fd'
+              }}>
+                {task.content.headline}
+              </div>
+            </div>
+            
+            <div>
+              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>📝</span> CAPTION
+              </div>
+              <div style={{ 
+                fontSize: '14px', 
+                color: '#374151', 
+                lineHeight: 1.6,
+                background: '#ffffff',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #bae6fd'
+              }}>
+                {task.content.caption}
+              </div>
+            </div>
+            
+            <div>
+              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🏷️</span> HASHTAGS
+              </div>
+              <div style={{ 
+                fontSize: '14px', 
+                color: '#3b82f6', 
+                fontWeight: '600',
+                background: '#ffffff',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #bae6fd'
+              }}>
+                {task.content.hashtag}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -462,31 +510,37 @@ export default function OngoingTask() {
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
   const [editingType, setEditingType] = useState(null);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    
     setLoading(true);
-    // Fetch Content Creator tasks
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/content-creator/task`)
-      .then(res => res.json())
-      .then(data => {
-        console.log("Content Creator tasks API response:", data);
-        setCreatorTasks(Array.isArray(data.data) ? data.data : []);
-        setLoading(false);
-      })
-      .catch(err => {
+    
+    const fetchTasks = async () => {
+      try {
+        // Fetch Content Creator tasks
+        const creatorResponse = await cachedFetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/content-creator/task`);
+        const creatorData = await creatorResponse.json();
+        console.log("Content Creator tasks API response:", creatorData);
+        setCreatorTasks(Array.isArray(creatorData.data) ? creatorData.data : []);
+        
+        // Fetch Graphic Designer tasks
+        const designerResponse = await cachedFetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/graphic-designer/task`);
+        const designerData = await designerResponse.json();
+        console.log("Graphic Designer tasks API response:", designerData);
+        setDesignerTasks(Array.isArray(designerData.data) ? designerData.data : []);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
         setCreatorTasks([]);
-        setLoading(false);
-      });
-    // Fetch Graphic Designer tasks
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/graphic-designer/task`)
-      .then(res => res.json())
-      .then(data => {
-        console.log("Graphic Designer tasks API response:", data);
-        setDesignerTasks(Array.isArray(data.data) ? data.data : []);
-      })
-      .catch(err => {
         setDesignerTasks([]);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTasks();
 
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
 

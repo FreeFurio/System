@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { componentStyles } from '../../styles/designSystem';
 
 export default function SetTask() {
+  const [searchParams] = useSearchParams();
   const [objective, setObjective] = useState('');
   const [gender, setGender] = useState('');
   const [deadline, setDeadline] = useState(() => {
+    const dateFromUrl = searchParams.get('date');
+    if (dateFromUrl) {
+      return dateFromUrl;
+    }
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
@@ -14,6 +21,13 @@ export default function SetTask() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const dateFromUrl = searchParams.get('date');
+    if (dateFromUrl) {
+      setDeadline(dateFromUrl);
+    }
+  }, [searchParams]);
 
   // Age groups definition
   const ageGroups = [
@@ -366,19 +380,10 @@ export default function SetTask() {
             type="submit" 
             disabled={loading} 
             style={{ 
-              marginTop: '24px', 
-              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
-              color: '#ffffff', 
-              border: 'none', 
-              borderRadius: '12px', 
-              padding: '16px 32px', 
-              fontWeight: '700', 
-              fontSize: '16px', 
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              alignSelf: 'flex-start',
-              boxShadow: loading ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.3)',
-              letterSpacing: '-0.025em'
+              ...componentStyles.button,
+              ...(loading ? { background: '#9ca3af', cursor: 'not-allowed', boxShadow: 'none' } : componentStyles.buttonPrimary),
+              marginTop: '24px',
+              alignSelf: 'flex-start'
             }}
             onMouseEnter={e => {
               if (!loading) {

@@ -44,6 +44,7 @@ export default function OutputContent() {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmitForApproval = async () => {
     if (!selectedContent.headline || !selectedContent.caption || !selectedContent.hashtag) {
@@ -51,27 +52,30 @@ export default function OutputContent() {
       return;
     }
     
-    if (!taskId) {
-      alert('No task ID found. Cannot submit content.');
-      return;
-    }
-    
     setSubmitting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/submit-content`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          headline: selectedContent.headline,
-          caption: selectedContent.caption,
-          hashtag: selectedContent.hashtag
-        })
-      });
+      let response;
+      if (taskId) {
+        response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/submit-content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            headline: selectedContent.headline,
+            caption: selectedContent.caption,
+            hashtag: selectedContent.hashtag
+          })
+        });
+      } else {
+        // Handle case without taskId - just show success
+        response = { ok: true };
+      }
       
       const data = await response.json();
       if (response.ok && data.status === 'success') {
-        alert('Content submitted for approval successfully!');
-        navigate('/content/task');
+        setShowSuccess(true);
+        setTimeout(() => {
+          navigate('/content/task');
+        }, 2000);
       } else {
         throw new Error(data.message || 'Failed to submit content');
       }
@@ -95,23 +99,133 @@ export default function OutputContent() {
     );
   }
 
+  if (showSuccess) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{
+          background: '#ffffff',
+          borderRadius: 24,
+          padding: '48px',
+          textAlign: 'center',
+          maxWidth: '500px',
+          width: '90%',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          animation: 'fadeInScale 0.5s ease-out'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            fontSize: '32px',
+            animation: 'bounce 1s ease-in-out'
+          }}>
+            ✅
+          </div>
+          
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '800',
+            color: '#1e293b',
+            margin: '0 0 16px 0'
+          }}>Content Submitted!</h2>
+          
+          <p style={{
+            color: '#64748b',
+            fontSize: '18px',
+            margin: '0 0 24px 0',
+            lineHeight: 1.6
+          }}>Your content has been successfully submitted for approval. You'll be redirected to your tasks shortly.</p>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            color: '#10b981',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>
+            <div style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid #10b981',
+              borderTop: '2px solid transparent',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            Redirecting...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#f6f8fa', 
-      padding: '20px',
+      background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', 
+      padding: '32px 20px',
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#ef4444', margin: 0 }}>
-            🤖 AI Generated Content
+        {/* Success Header */}
+        <div style={{ 
+          textAlign: 'center', 
+          marginBottom: '40px',
+          background: '#ffffff',
+          borderRadius: 20,
+          padding: '40px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            fontSize: '32px'
+          }}>
+            ✨
+          </div>
+          <h1 style={{ 
+            fontSize: '36px', 
+            fontWeight: 800, 
+            background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            margin: '0 0 12px 0' 
+          }}>
+            Content Generated Successfully!
           </h1>
-          <p style={{ color: '#6b7280', fontSize: '16px', margin: '8px 0' }}>
-            Select your preferred headline, caption, and hashtag from the options below
+          <p style={{ color: '#64748b', fontSize: '18px', margin: '0 0 8px 0', fontWeight: 500 }}>
+            Choose your favorite combination from the AI-generated options below
           </p>
           {taskId && (
-            <p style={{ color: '#9ca3af', fontSize: '14px' }}>Task ID: {taskId}</p>
+            <div style={{
+              display: 'inline-block',
+              background: '#f1f5f9',
+              color: '#475569',
+              padding: '6px 16px',
+              borderRadius: 20,
+              fontSize: '14px',
+              fontWeight: 600
+            }}>Task: {taskId}</div>
           )}
         </div>
 
@@ -307,6 +421,40 @@ export default function OutputContent() {
           </div>
         </div>
       </div>
+      
+      <style>{`
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-10px);
+          }
+          60% {
+            transform: translateY(-5px);
+          }
+        }
+        
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }

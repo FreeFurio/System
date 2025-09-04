@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { componentStyles } from '../../styles/designSystem';
 
 export default function SetTask() {
+  const [searchParams] = useSearchParams();
   const [objective, setObjective] = useState('');
   const [gender, setGender] = useState('');
   const [deadline, setDeadline] = useState(() => {
+    const dateFromUrl = searchParams.get('date');
+    if (dateFromUrl) {
+      return dateFromUrl;
+    }
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
@@ -14,6 +21,13 @@ export default function SetTask() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const dateFromUrl = searchParams.get('date');
+    if (dateFromUrl) {
+      setDeadline(dateFromUrl);
+    }
+  }, [searchParams]);
 
   // Age groups definition
   const ageGroups = [
@@ -79,420 +93,345 @@ export default function SetTask() {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #ffffff 0%, #fef7ed 100%)', 
-      padding: '40px 20px',
-      fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
-    }}>
-      <div style={{
-        maxWidth: 580,
-        margin: '0 auto',
-        background: '#ffffff',
-        borderRadius: 24,
-        boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1)',
-        padding: '48px 40px',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(251, 191, 36, 0.2)'
-      }}>
-        {/* Decorative gradient overlay */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '6px',
-          background: 'linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24)',
-          borderRadius: '24px 24px 0 0'
-        }} />
-        
-        <div style={{textAlign: 'center', marginBottom: 32}}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#ef4444',
-            color: '#ffffff',
-            fontWeight: 600,
-            fontSize: 14,
-            borderRadius: 20,
-            padding: '8px 20px',
-            marginBottom: 16,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
-          }}>
-            <span style={{fontSize: '16px'}}>👨‍💻</span>
-            Content Creator
-          </div>
-          <h1 style={{
-            fontWeight: 800,
-            fontSize: 36,
-            color: '#ef4444',
-            margin: 0,
-            letterSpacing: '-0.8px'
-          }}>Set Task</h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: 17,
-            margin: '8px 0 0 0',
-            fontWeight: 500
-          }}>Create and assign tasks with precision</p>
-        </div>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-        {/* Objective */}
-        <div style={{ position: 'relative' }}>
-          <label htmlFor="objective" style={{ 
-            fontWeight: 700, 
-            display: 'block', 
-            marginBottom: 12, 
-            color: '#1f2937', 
-            fontSize: 16,
-            letterSpacing: '0.3px'
-          }}>Objective</label>
-          <textarea
-            id="objective"
-            value={objective}
-            onChange={e => setObjective(e.target.value)}
-            placeholder="Describe the task objectives and requirements..."
-            rows={4}
-            style={{ 
-              width: '100%', 
-              minHeight: 100, 
-              maxHeight: 200, 
-              padding: '16px 20px', 
-              borderRadius: 16, 
-              border: '2px solid #e5e7eb', 
-              fontSize: 15, 
-              background: '#fafbfc', 
-              resize: 'none', 
-              outline: 'none', 
-              boxSizing: 'border-box',
-              fontFamily: 'inherit',
-              lineHeight: 1.6,
-              transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-            onFocus={e => {
-              e.target.style.borderColor = '#fbbf24';
-              e.target.style.boxShadow = '0 0 0 3px rgba(251, 191, 36, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            onBlur={e => {
-              e.target.style.borderColor = '#e5e7eb';
-              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            required
-          />
-        </div>
+    <div style={{ padding: '0', maxWidth: '100%' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '32px' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
+          Set Task - Content Creator
+        </h1>
+        <p style={{ color: '#6b7280', margin: 0 }}>
+          Create and assign tasks to content creators with detailed specifications
+        </p>
+      </div>
 
-        {/* Gender */}
-        <div>
-          <label style={{ 
-            fontWeight: 700, 
-            display: 'block', 
-            marginBottom: 12, 
-            color: '#1f2937', 
-            fontSize: 16,
-            letterSpacing: '0.3px'
-          }}>Target Gender</label>
-          <div style={{ 
-            display: 'flex', 
-            gap: 16, 
-            padding: '8px 0',
-            flexWrap: 'wrap'
-          }}>
-            {['Male', 'Female'].map(option => (
-              <label key={option} style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '12px 20px',
-                borderRadius: 12,
-                border: `2px solid ${gender === option ? '#ef4444' : '#e5e7eb'}`,
-                background: gender === option ? '#fef2f2' : '#fafbfc',
-                cursor: 'pointer',
+      {/* Form Container */}
+      <div style={{
+        background: '#fff',
+        borderRadius: '16px',
+        padding: '40px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        border: '1px solid #e5e7eb',
+        width: '100%'
+      }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Objective */}
+          <div>
+            <label htmlFor="objective" style={{ 
+              fontWeight: '700', 
+              display: 'block', 
+              marginBottom: '12px', 
+              color: '#1f2937', 
+              fontSize: '16px',
+              letterSpacing: '-0.025em'
+            }}>
+              Task Objective
+            </label>
+            <textarea
+              id="objective"
+              value={objective}
+              onChange={e => setObjective(e.target.value)}
+              placeholder="Describe the task objectives and requirements in detail..."
+              rows={4}
+              style={{ 
+                width: '100%', 
+                height: '120px',
+                padding: '16px 20px', 
+                borderRadius: '12px', 
+                border: '2px solid #e5e7eb', 
+                fontSize: '15px', 
+                background: '#fafbfc', 
+                resize: 'none', 
+                outline: 'none', 
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+                lineHeight: 1.6,
                 transition: 'all 0.2s ease',
-                fontWeight: 600,
-                fontSize: 15,
-                color: gender === option ? '#ef4444' : '#6b7280',
-                minWidth: '80px',
-                justifyContent: 'center',
-                boxShadow: gender === option ? '0 0 0 3px rgba(239, 68, 68, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
-              }}>
-                <input 
-                  type="radio" 
-                  name="gender" 
-                  value={option} 
-                  checked={gender === option} 
-                  onChange={e => setGender(e.target.value)} 
-                  required 
-                  style={{ display: 'none' }}
-                />
-                <span style={{fontSize: '16px', marginRight: '4px'}}>
-                  {option === 'Male' ? '👨' : option === 'Female' ? '👩' : '👤'}
-                </span>
-                {option}
-              </label>
-            ))}
-          </div>
-        </div>
-        {/* Age Range Slider */}
-        <div>
-          <label style={{ 
-            fontWeight: 700, 
-            display: 'block', 
-            marginBottom: 12, 
-            color: '#1f2937', 
-            fontSize: 16,
-            letterSpacing: '0.3px'
-          }}>Target Age Range</label>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: 16, 
-            padding: '0 4px'
-          }}>
-            <div style={{
-              background: '#ef4444',
-              color: '#ffffff',
-              padding: '8px 16px',
-              borderRadius: 20,
-              fontSize: 14,
-              fontWeight: 600,
-              minWidth: '50px',
-              textAlign: 'center'
-            }}>{ageRange[0]}</div>
-            <span style={{ color: '#9ca3af', fontSize: 14, fontWeight: 500 }}>to</span>
-            <div style={{
-              background: '#ef4444',
-              color: '#ffffff',
-              padding: '8px 16px',
-              borderRadius: 20,
-              fontSize: 14,
-              fontWeight: 600,
-              minWidth: '50px',
-              textAlign: 'center'
-            }}>{ageRange[1]}</div>
-          </div>
-          <div style={{ 
-            padding: '24px 20px 20px 20px', 
-            background: '#fefce8', 
-            borderRadius: 20, 
-            border: '2px solid #fde047', 
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
-          }}>
-            <Slider
-              range
-              min={3}
-              max={60}
-              value={ageRange}
-              onChange={setAgeRange}
-              allowCross={false}
-              trackStyle={[{ 
-                backgroundColor: '#fbbf24', 
-                height: 8,
-                borderRadius: 4
-              }]}
-              handleStyle={[
-                { 
-                  backgroundColor: '#ffffff', 
-                  borderColor: '#ef4444', 
-                  borderWidth: 3,
-                  height: 24, 
-                  width: 24, 
-                  marginTop: -8, 
-                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
-                  borderRadius: '50%'
-                },
-                { 
-                  backgroundColor: '#ffffff', 
-                  borderColor: '#ef4444', 
-                  borderWidth: 3,
-                  height: 24, 
-                  width: 24, 
-                  marginTop: -8, 
-                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
-                  borderRadius: '50%'
-                }
-              ]}
-              railStyle={{ 
-                backgroundColor: '#fde047', 
-                height: 8,
-                borderRadius: 4,
-                opacity: 0.6
+                overflowY: 'auto'
               }}
-              step={1}
+              onFocus={e => {
+                e.target.style.borderColor = '#3b82f6';
+                e.target.style.background = '#fff';
+                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.background = '#fafbfc';
+                e.target.style.boxShadow = 'none';
+              }}
+              required
             />
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              marginTop: 16, 
-              fontSize: 12, 
-              color: '#a16207', 
-              fontWeight: 500 
+          </div>
+
+          {/* Gender */}
+          <div>
+            <label style={{ 
+              fontWeight: '700', 
+              display: 'block', 
+              marginBottom: '12px', 
+              color: '#1f2937', 
+              fontSize: '16px',
+              letterSpacing: '-0.025em'
             }}>
-              <span>3</span>
-              <span>10</span>
-              <span>20</span>
-              <span>30</span>
-              <span>40</span>
-              <span>50</span>
-              <span>60+</span>
-            </div>
-            <div style={{ 
-              marginTop: 16, 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: 8, 
-              justifyContent: 'center' 
-            }}>
-              {getAgeLabels(ageRange).map(label => (
-                <span key={label} style={{ 
-                  background: '#ef4444', 
-                  color: '#ffffff',
-                  borderRadius: 16, 
-                  padding: '6px 14px', 
-                  fontSize: 13, 
-                  fontWeight: 600, 
-                  letterSpacing: '0.3px',
-                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
-                }}>{label}</span>
+              Target Gender
+            </label>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              {['Male', 'Female'].map(option => (
+                <label key={option} style={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '16px 24px',
+                  borderRadius: '12px',
+                  border: `2px solid ${gender === option ? '#3b82f6' : '#e5e7eb'}`,
+                  background: gender === option ? '#eff6ff' : '#fafbfc',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  fontWeight: '600',
+                  fontSize: '15px',
+                  color: gender === option ? '#3b82f6' : '#6b7280',
+                  minWidth: '120px',
+                  justifyContent: 'center',
+                  boxShadow: gender === option ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none'
+                }}>
+                  <input 
+                    type="radio" 
+                    name="gender" 
+                    value={option} 
+                    checked={gender === option} 
+                    onChange={e => setGender(e.target.value)} 
+                    required 
+                    style={{ display: 'none' }}
+                  />
+                  {option}
+                </label>
               ))}
             </div>
           </div>
-        </div>
-        {/* Deadline Date */}
-        <div>
-          <label htmlFor="deadline" style={{ 
-            fontWeight: 700, 
-            display: 'block', 
-            marginBottom: 12, 
-            color: '#1f2937', 
-            fontSize: 16,
-            letterSpacing: '0.3px'
-          }}>Posting Date</label>
-          <input
-            type="date"
-            id="deadline"
-            value={deadline}
-            min={minDate}
-            max={maxDate}
-            onChange={e => setDeadline(e.target.value)}
-            onFocus={e => {
-              e.target.style.borderColor = '#fbbf24';
-              e.target.style.boxShadow = '0 0 0 3px rgba(251, 191, 36, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-            onBlur={e => {
-              e.target.style.borderColor = '#e5e7eb';
-              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
+
+          {/* Age Range Slider */}
+          <div>
+            <label style={{ 
+              fontWeight: '700', 
+              display: 'block', 
+              marginBottom: '12px', 
+              color: '#1f2937', 
+              fontSize: '16px',
+              letterSpacing: '-0.025em'
+            }}>
+              Target Age Range
+            </label>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: '#ffffff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '600',
+                minWidth: '50px',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+              }}>{ageRange[0]}</div>
+              <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: '500', margin: '0 16px' }}>to</span>
+              <div style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: '#ffffff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '600',
+                minWidth: '50px',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+              }}>{ageRange[1]}</div>
+            </div>
+            <div style={{ 
+              padding: '24px', 
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+              borderRadius: '16px', 
+              border: '2px solid #e5e7eb',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <Slider
+                range
+                min={3}
+                max={60}
+                value={ageRange}
+                onChange={setAgeRange}
+                allowCross={false}
+                trackStyle={[{ 
+                  backgroundColor: '#3b82f6', 
+                  height: 8,
+                  borderRadius: 4
+                }]}
+                handleStyle={[
+                  { 
+                    backgroundColor: '#ffffff', 
+                    borderColor: '#3b82f6', 
+                    borderWidth: 3,
+                    height: 24, 
+                    width: 24, 
+                    marginTop: -8,
+                    borderRadius: '50%',
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                  },
+                  { 
+                    backgroundColor: '#ffffff', 
+                    borderColor: '#3b82f6', 
+                    borderWidth: 3,
+                    height: 24, 
+                    width: 24, 
+                    marginTop: -8,
+                    borderRadius: '50%',
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                  }
+                ]}
+                railStyle={{ 
+                  backgroundColor: '#e5e7eb', 
+                  height: 8,
+                  borderRadius: 4
+                }}
+                step={1}
+              />
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                marginTop: '16px', 
+                fontSize: '12px', 
+                color: '#6b7280', 
+                fontWeight: '500' 
+              }}>
+                <span>3</span>
+                <span>15</span>
+                <span>30</span>
+                <span>45</span>
+                <span>60+</span>
+              </div>
+              <div style={{ 
+                marginTop: '16px', 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '8px', 
+                justifyContent: 'center' 
+              }}>
+                {getAgeLabels(ageRange).map(label => (
+                  <span key={label} style={{ 
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
+                    color: '#ffffff',
+                    borderRadius: '16px', 
+                    padding: '6px 16px', 
+                    fontSize: '13px', 
+                    fontWeight: '600',
+                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                  }}>{label}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Deadline Date */}
+          <div>
+            <label htmlFor="deadline" style={{ 
+              fontWeight: '700', 
+              display: 'block', 
+              marginBottom: '12px', 
+              color: '#1f2937', 
+              fontSize: '16px',
+              letterSpacing: '-0.025em'
+            }}>
+              Posting Date
+            </label>
+            <input
+              type="date"
+              id="deadline"
+              value={deadline}
+              min={minDate}
+              max={maxDate}
+              onChange={e => setDeadline(e.target.value)}
+              onFocus={e => {
+                e.target.style.borderColor = '#3b82f6';
+                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+              }}
+              style={{ 
+                padding: '16px 20px', 
+                borderRadius: '12px', 
+                border: '2px solid #e5e7eb', 
+                fontSize: '15px', 
+                background: '#fafbfc', 
+                outline: 'none', 
+                width: '240px',
+                fontFamily: 'inherit',
+                transition: 'all 0.2s ease'
+              }}
+              required
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            disabled={loading} 
             style={{ 
-              padding: '16px 20px', 
-              borderRadius: 16, 
-              border: '2px solid #e5e7eb', 
-              fontSize: 15, 
-              background: '#fafbfc', 
-              outline: 'none', 
-              width: '100%',
-              fontFamily: 'inherit',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              ...componentStyles.button,
+              ...(loading ? { background: '#9ca3af', cursor: 'not-allowed', boxShadow: 'none' } : componentStyles.buttonPrimary),
+              marginTop: '24px',
+              alignSelf: 'flex-start'
             }}
-            required
-          />
-        </div>
-        
-        <button 
-          type="submit" 
-          disabled={loading} 
-          style={{ 
-            marginTop: 24, 
-            background: loading ? '#9ca3af' : '#ef4444', 
-            color: '#ffffff', 
-            border: 'none', 
-            borderRadius: 16, 
-            padding: '18px 32px', 
-            fontWeight: 600, 
-            fontSize: 17, 
-            cursor: loading ? 'not-allowed' : 'pointer', 
-            letterSpacing: '0.8px', 
-            boxShadow: loading 
-              ? '0 4px 12px rgba(156, 163, 175, 0.4)' 
-              : '0 8px 25px rgba(239, 68, 68, 0.4)', 
-            transition: 'all 0.3s ease',
-            position: 'relative',
-            overflow: 'hidden',
-            textTransform: 'uppercase',
-            fontFamily: 'inherit'
-          }}
-          onMouseEnter={e => {
-            if (!loading) {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 12px 35px rgba(239, 68, 68, 0.5)';
-            }
-          }}
-          onMouseLeave={e => {
-            if (!loading) {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.4)';
-            }
-          }}
-        >
-          {loading ? (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{ 
-                width: '16px', 
-                height: '16px', 
-                border: '2px solid #ffffff', 
-                borderTop: '2px solid transparent', 
-                borderRadius: '50%', 
-                animation: 'spin 1s linear infinite' 
-              }} />
-              Submitting...
-            </span>
-          ) : (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{fontSize: '18px'}}>🚀</span>
-              Submit Task
-            </span>
+            onMouseEnter={e => {
+              if (!loading) {
+                e.target.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.4)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!loading) {
+                e.target.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+              }
+            }}
+          >
+            {loading ? 'Submitting Task...' : 'Submit Task'}
+          </button>
+          
+          {error && (
+            <div style={{ 
+              color: '#ef4444', 
+              padding: '16px 20px',
+              background: '#fef2f2',
+              border: '2px solid #fecaca',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600'
+            }}>
+              {error}
+            </div>
           )}
-        </button>
-        
-        {error && (
-          <div style={{ 
-            color: '#ef4444', 
-            marginTop: 16, 
-            fontWeight: 500, 
-            textAlign: 'center',
-            padding: '12px 20px',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: 12,
-            fontSize: 14
-          }}>
-            ❌ {error}
-          </div>
-        )}
-        
-        {submitted && (
-          <div style={{ 
-            color: '#059669', 
-            marginTop: 16, 
-            fontWeight: 500, 
-            textAlign: 'center',
-            padding: '12px 20px',
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: 12,
-            fontSize: 14
-          }}>
-            ✅ Task submitted successfully!
-          </div>
-        )}
-      </form>
+          
+          {submitted && (
+            <div style={{ 
+              color: '#059669', 
+              padding: '16px 20px',
+              background: '#f0fdf4',
+              border: '2px solid #bbf7d0',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600'
+            }}>
+              Task submitted successfully!
+            </div>
+          )}
+        </form>
       </div>
     </div>
   );
-} 
+}

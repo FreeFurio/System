@@ -1,0 +1,255 @@
+/* Marketing Module Styles - Based on Admin Design Structure */
+
+/* Global Styles */
+.marketing-dashboard * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.marketing-dashboard body {
+  background-color: #fafbfc;
+  color: #1a202c;
+}
+
+/* Dashboard Container */
+.marketing-dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.marketing-dashboard .dashboard-container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Header */
+.marketing-dashboard .header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 0;
+  margin-bottom: 0;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+/* Sidebar */
+.marketing-dashboard .sidebar {
+  width: 240px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-right: 1px solid #e2e8f0;
+  padding: 32px 0 24px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+  margin: 0;
+  min-width: 240px;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.marketing-dashboard .user-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  margin: 0 24px 32px 24px;
+}
+
+.marketing-dashboard .user-name {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 1.1rem;
+  letter-spacing: -0.025em;
+}
+
+.marketing-dashboard .user-role {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.marketing-dashboard .navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0 24px;
+}
+
+.marketing-dashboard .nav-item {
+  padding: 14px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #4a5568;
+  background: none;
+  font-weight: 500;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+  border: none;
+  box-shadow: none;
+  text-decoration: none !important;
+  border-left: none;
+  transition: all 0.2s ease;
+}
+
+.marketing-dashboard .nav-item:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.marketing-dashboard .nav-item.active {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+  text-decoration: none !important;
+}
+
+/* Main Content */
+.marketing-dashboard .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  background: #fafbfc;
+  border-radius: 0;
+  margin: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.marketing-dashboard .content-area {
+  padding: 32px;
+  background: #fafbfc;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Profile Avatar */
+.marketing-dashboard .header-profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%) !important;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  color: #fbbf24 !important;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+}
+
+/* Footer */
+.marketing-dashboard-footer {
+  width: 100vw;
+  background: #e74c3c;
+  height: 60px;
+  min-height: 60px;
+  max-height: 60px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+}
+
+.marketing-dashboard-footer-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+.marketing-dashboard-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.marketing-dashboard-footer-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: 8px;
+}
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Buttons */
+.marketing-dashboard .header-profile-btn, 
+.marketing-dashboard .notification-bell {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.marketing-dashboard .header-profile-btn:hover, 
+.marketing-dashboard .notification-bell:hover {
+  background: #f0f0f0;
+}
+
+/* Sidebar Icons */
+.sidebar .nav-item svg {
+  stroke: #F6C544 !important;
+  color: #F6C544 !important;
+}
+
+.sidebar-icon-wrapper svg {
+  stroke: #F6C544 !important;
+  color: #F6C544 !important;
+}

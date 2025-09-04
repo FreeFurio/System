@@ -1,39 +1,68 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../../components/common/Toast';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
   const navigate = useNavigate();
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setError('');
+    
+    if (!email) {
+      setToastMessage('Please fill out this field.');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setToastMessage('Please enter a valid email address');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+    
     try {
-      // TODO: Replace with your backend endpoint
       const response = await fetch(`${import.meta.env.VITE_API_URL}/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
       if (response.ok) {
-        setMessage('Password reset instructions sent to your email.');
+        setToastMessage('Password reset instructions sent to your email.');
+        setToastType('success');
+        setShowToast(true);
       } else {
-        setError('Failed to send reset email. Please try again.');
+        setToastMessage('Failed to send reset email. Please try again.');
+        setToastType('error');
+        setShowToast(true);
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setToastMessage('An error occurred. Please try again.');
+      setToastType('error');
+      setShowToast(true);
     }
   };
 
   return (
-    <div className="main">
-      <div className="form-container">
-        <h2 className="title">Forgot Password</h2>
-        <form className="form" onSubmit={handleSubmit}>
-          <div className="form-group">
+    <div className="form-container">
+      <div className="form-header">
+        <h2 className="title">Reset Password</h2>
+        <p className="subtitle">Enter your email to receive reset instructions</p>
+      </div>
+      
+      <form className="form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <div className="password-input-wrapper">
             <input
               id="forgot-email"
               type="email"
@@ -43,14 +72,28 @@ const ForgotPassword = () => {
               onChange={e => setEmail(e.target.value)}
               required
             />
-            <label className="label" htmlFor="forgot-email">Email</label>
+            <label className="label" htmlFor="forgot-email">Email Address</label>
           </div>
-          <button className="signup-button" type="submit">Send Reset Link</button>
-        </form>
-        {message && <div className="success-message">{message}</div>}
-        {error && <div className="error-message">{error}</div>}
-        <button className="back-button" onClick={() => navigate('/login')} style={{marginTop: 8}}>Back to Login</button>
+        </div>
+        
+        <button className="signup-button" type="submit">
+          Send Reset Link
+        </button>
+      </form>
+      
+      <div className="form-footer">
+        <button className="back-button" onClick={() => navigate('/login')}>
+          Back to Login
+        </button>
       </div>
+      
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 };

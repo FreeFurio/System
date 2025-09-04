@@ -20,17 +20,43 @@ class EmailService {
   // 3) EMAIL TEMPLATES
   // ========================
   static generateOTPEmail = (otp) => ({
-    subject: 'Your OTP for Registration',
+    subject: '🔐 Your Verification Code - Salon Management System',
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Email Verification</h2>
-        <p>Your One-Time Password (OTP) for registration is:</p>
-        <div style="background: #f4f4f4; padding: 10px 20px; margin: 20px 0; font-size: 24px; letter-spacing: 2px; text-align: center;">
-          <strong>${otp}</strong>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verification</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.15); border: 1px solid rgba(251, 191, 36, 0.2);">
+          <div style="height: 6px; background: linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24);"></div>
+          <div style="padding: 40px 32px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <h1 style="font-size: 28px; font-weight: 800; color: #ef4444; margin: 0; letter-spacing: -0.5px;">Salon Management</h1>
+              <p style="color: #6b7280; font-size: 16px; margin: 8px 0 0 0;">Email Verification Required</p>
+            </div>
+            <div style="text-align: center; margin-bottom: 32px;">
+              <h2 style="font-size: 20px; font-weight: 600; color: #374151; margin: 0 0 16px 0;">Verify Your Email Address</h2>
+              <p style="color: #6b7280; font-size: 16px; line-height: 1.5; margin: 0;">Enter the verification code below to complete your registration:</p>
+            </div>
+            <div style="text-align: center; margin: 32px 0;">
+              <div style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 20px 32px; border-radius: 16px; box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);">
+                <div style="font-size: 32px; font-weight: 800; color: #ffffff; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</div>
+              </div>
+            </div>
+            <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+              <p style="color: #374151; font-size: 14px; margin: 0; line-height: 1.5;">⏰ <strong>This code expires in 10 minutes</strong><br>🔒 Keep this code secure and don't share it with anyone</p>
+            </div>
+            <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #9ca3af; font-size: 14px; margin: 0;">If you didn't request this verification, please ignore this email.</p>
+              <p style="color: #9ca3af; font-size: 12px; margin: 8px 0 0 0;">© 2024 Salon Management System. All rights reserved.</p>
+            </div>
+          </div>
         </div>
-        <p>This OTP will expire in 10 minutes.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-      </div>
+      </body>
+      </html>
     `
   });
 

@@ -18,9 +18,9 @@ import { io } from '../server.mjs';
 // 2.1) REGISTRATION FLOW
 // ========================
 
-const validateOTPRegistration = (req, res, next) => {
+const validateOTPRegistration = async (req, res, next) => {
   console.log('🔍 validateOTPRegistration called with body:', req.body);
-  const { email, firstName,lastName, username, password, retypePassword, role } = req.body;
+  const { email, firstName, lastName, username, password, retypePassword, role } = req.body;
   
   if (!email || !firstName || !lastName || !username || !password || !retypePassword || !role) {
     console.log('❌ validateOTPRegistration - Missing required fields');
@@ -39,20 +39,56 @@ const validateOTPRegistration = (req, res, next) => {
     return next(new AppError('Please provide a valid email address', 400));
   }
 
-  if (password.length < 8) {
-    console.log('❌ validateOTPRegistration - Password too short:', password.length, 'characters');
-    return next(new AppError('Password must be at least 8 characters long', 400));
-  }
-
   if (password !== retypePassword) {
     console.log('❌ validateOTPRegistration - Passwords do not match');
     return next(new AppError('Passwords do not match', 400));
   }
 
-  const allowedRoles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-  if (!allowedRoles.includes(role)) {
-    console.log('❌ validateOTPRegistration - Role not allowed:', role);
-    return next(new AppError('Invalid role specified', 400));
+  // Get password policies from Firebase
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    const policiesRef = ref(db, 'systemSettings/passwordPolicies');
+    const snapshot = await get(policiesRef);
+    
+    const policies = snapshot.exists() ? snapshot.val() : {
+      minPasswordLength: 8,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumbers: true,
+      requireSpecialChars: false
+    };
+    
+    // Validate password against policies
+    if (password.length < policies.minPasswordLength) {
+      return next(new AppError(`Password must be at least ${policies.minPasswordLength} characters long`, 400));
+    }
+    
+    if (policies.requireUppercase && !/[A-Z]/.test(password)) {
+      return next(new AppError('Password must contain at least one uppercase letter (A-Z)', 400));
+    }
+    
+    if (policies.requireLowercase && !/[a-z]/.test(password)) {
+      return next(new AppError('Password must contain at least one lowercase letter (a-z)', 400));
+    }
+    
+    if (policies.requireNumbers && !/[0-9]/.test(password)) {
+      return next(new AppError('Password must contain at least one number (0-9)', 400));
+    }
+    
+    if (policies.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return next(new AppError('Password must contain at least one special character (!@#$%^&*)', 400));
+    }
+  } catch (error) {
+    console.log('⚠️ Error loading password policies, using defaults:', error.message);
+    if (password.length < 8) {
+      return next(new AppError('Password must be at least 8 characters long', 400));
+    }
   }
 
   console.log('✅ validateOTPRegistration - All validations passed');
@@ -295,21 +331,58 @@ const login = async (req, res, next) => {
       return next(new AppError('Please provide username and password!', 400))
     }
 
+    // Check login security settings
+    const securitySettings = await FirebaseService.getLoginSecuritySettings();
+    
+    // Check if account is locked
+    const lockoutStatus = await FirebaseService.checkAccountLockout(username);
+    if (lockoutStatus.isLocked) {
+      const remainingTime = Math.ceil((lockoutStatus.unlockTime - Date.now()) / (1000 * 60));
+      console.log('🔒 login - Account locked:', username, 'for', remainingTime, 'minutes');
+      return next(new AppError(`Account is locked. Try again in ${remainingTime} minutes.`, 423));
+    }
+
     console.log('🔑 login - Finding user by username');
     const user = await FirebaseService.findUserByUsername(username);
     if (!user) {
       console.log('❌ login - User not found:', username);
+      await FirebaseService.recordFailedAttempt(username, securitySettings);
       return next(new AppError('Incorrect username or password', 401));
     }
-    console.log('✅ login - User found:', user.username, 'with role:', user.role);
+    console.log('✅ login - User found:', user?.username || 'unknown', 'with role:', user.role);
+    
+    if (!user.password) {
+      console.log('❌ login - User has no password field:', username);
+      return next(new AppError('Account configuration error. Please contact administrator.', 500));
+    }
 
     console.log('🔑 login - Comparing password');
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       console.log('❌ login - Password incorrect for user:', username);
+      await FirebaseService.recordFailedAttempt(username, securitySettings);
       return next(new AppError('Incorrect username or password', 401));
     }
     console.log('✅ login - Password correct');
+    
+    // Clear failed attempts on successful login
+    await FirebaseService.clearFailedAttempts(username);
+
+    // Check if password reset is required
+    if (user.forcePasswordReset) {
+      console.log('🔒 login - Password reset required for user:', username);
+      return res.status(200).json({
+        status: 'password_reset_required',
+        message: 'Password reset required. Please change your password.',
+        data: {
+          username: user.username,
+          requiresPasswordReset: true
+        }
+      });
+    }
+
+    // Update last login timestamp
+    await FirebaseService.updateUserLastLogin(user.username, user.role);
 
     console.log('🔑 login - Generating JWT token');
     const token = jwt.sign(
@@ -341,6 +414,52 @@ const login = async (req, res, next) => {
 
 
 // ========================
+// 2.3) PASSWORD RESET
+// ========================
+
+const resetPassword = async (req, res, next) => {
+  console.log('🔒 resetPassword called with body:', { username: req.body.username, newPassword: '[HIDDEN]' });
+  try {
+    const { username, newPassword, confirmPassword } = req.body;
+    
+    if (!username || !newPassword || !confirmPassword) {
+      return next(new AppError('All fields are required', 400));
+    }
+    
+    if (newPassword !== confirmPassword) {
+      return next(new AppError('Passwords do not match', 400));
+    }
+    
+    if (newPassword.length < 8) {
+      return next(new AppError('Password must be at least 8 characters long', 400));
+    }
+    
+    const user = await FirebaseService.findUserByUsername(username);
+    if (!user) {
+      return next(new AppError('User not found', 404));
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    
+    // Update password and clear forcePasswordReset flag
+    const safeUsername = username.toLowerCase();
+    const userRef = `${user.role}/${safeUsername}`;
+    
+    await FirebaseService.updateUserPassword(userRef, hashedPassword);
+    
+    console.log('✅ resetPassword - Password updated successfully for user:', username);
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ resetPassword - Error occurred:', error);
+    next(error);
+  }
+};
+
+// ========================
 // 4) EXPORTS
 
 // ========================
@@ -351,5 +470,6 @@ export {
   completeRegistration,
   login,
   validateOTPRegistration,
+  resetPassword,
 
 };

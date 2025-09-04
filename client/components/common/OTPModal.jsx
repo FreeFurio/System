@@ -13,28 +13,47 @@ export default function OTPModal({ show, onSubmit, onClose, loading, error }) {
   return (
     <div className="otp-modal-backdrop">
       <div className="otp-modal">
-        <h2>Enter OTP</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            maxLength={6}
-            autoFocus
-            required
-            placeholder="Enter 6-digit OTP"
-            className="input"
-          />
+        <div className="modal-header">
+          <h2 className="modal-title">Verify Your Email</h2>
+          <p className="modal-subtitle">Enter the 6-digit code sent to your email</p>
+        </div>
+        
+        <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+              autoFocus
+              required
+              placeholder=" "
+              className="input otp-input"
+            />
+            <label className="label">Verification Code</label>
+          </div>
+          
           {error && <div className="error-message">{error}</div>}
+          
           <div className="otp-button-row">
-            <button className="otp-verify-btn" type="submit">
-              Verify
+            <button 
+              className="otp-verify-btn" 
+              type="submit"
+              disabled={loading || otp.length !== 6}
+            >
+              {loading ? (
+                <>
+                  <span className="loading"></span>
+                  Verifying...
+                </>
+              ) : (
+                "Verify Code"
+              )}
             </button>
             <button
               className="otp-cancel-btn"
               type="button"
               onClick={onClose}
-              style={{ marginLeft: "1rem" }}
               disabled={loading}
             >
               Cancel

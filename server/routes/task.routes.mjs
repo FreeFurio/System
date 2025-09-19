@@ -5,6 +5,7 @@ import express from 'express';
 import {
     createWorkflow,
     getWorkflowsByStage,
+    getWorkflowsByMultipleStatuses,
     submitContent,
     approveContent,
     submitDesign,
@@ -176,6 +177,15 @@ router.delete(
 router.post(
     '/workflow/:workflowId/assign-to-graphic-designer',
     assignToGraphicDesigner
+)
+
+// Get content creator approval status
+router.get(
+    '/workflows/content-creator/approval-status',
+    (req, res, next) => {
+        req.statuses = ['content_approval', 'ready_for_design_assignment', 'content_rejected'];
+        getWorkflowsByMultipleStatuses(req, res, next);
+    }
 )
 
 export default router;

@@ -5,6 +5,7 @@ export default function SetTaskGraphicDesigner() {
   const [searchParams] = useSearchParams();
   const workflowId = searchParams.get('workflowId');
   const [workflow, setWorkflow] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -12,11 +13,23 @@ export default function SetTaskGraphicDesigner() {
   useEffect(() => {
     if (workflowId) {
       fetchWorkflow();
+    } else {
+      setIsLoading(false);
     }
   }, [workflowId]);
 
+  useEffect(() => {
+    if (!workflow && !isLoading) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'auto';
+      };
+    }
+  }, [workflow, isLoading]);
+
   const fetchWorkflow = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/marketinglead`);
       const data = await response.json();
       if (data.status === 'success') {
@@ -26,6 +39,8 @@ export default function SetTaskGraphicDesigner() {
     } catch (error) {
       console.error('Error fetching workflow:', error);
       setError('Failed to load workflow data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,10 +77,80 @@ export default function SetTaskGraphicDesigner() {
     }
   };
 
-  if (!workflow) {
+  if (isLoading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <h2>Loading workflow data...</h2>
+      </div>
+    );
+  }
+
+  if (!workflow) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '60px 20px',
+        minHeight: 'calc(100vh - 200px)'
+      }}>
+        <div style={{
+          maxWidth: 480,
+          textAlign: 'center',
+          background: '#ffffff',
+          borderRadius: 20,
+          padding: '60px 40px',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid #f1f5f9'
+        }}>
+          <div style={{ 
+            fontSize: '80px', 
+            marginBottom: '24px',
+            filter: 'grayscale(20%)'
+          }}>🎨</div>
+          <h2 style={{ 
+            color: '#1e293b', 
+            marginBottom: '12px',
+            fontSize: '24px',
+            fontWeight: '700',
+            letterSpacing: '-0.025em'
+          }}>No Content Ready</h2>
+          <p style={{ 
+            color: '#64748b', 
+            marginBottom: '32px',
+            fontSize: '16px',
+            lineHeight: '1.6',
+            maxWidth: '320px',
+            margin: '0 auto 32px auto'
+          }}>
+            No approved content is available for design assignment. Create and approve content first.
+          </p>
+          <button 
+            onClick={() => window.history.back()}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 12,
+              padding: '14px 28px',
+              fontWeight: '600',
+              fontSize: '15px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+            }}
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.4)';
+            }}
+            onMouseLeave={e => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+            }}
+          >
+            ← Go Back
+          </button>
+        </div>
       </div>
     );
   }

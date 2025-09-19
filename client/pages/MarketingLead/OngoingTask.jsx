@@ -265,21 +265,32 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
 };
 
 const TaskCard = ({ task, type, onEdit, onDelete }) => {
+  const [contentExpanded, setContentExpanded] = useState(false);
+  
+  console.log('TaskCard render - contentExpanded:', contentExpanded, 'task.content:', !!task.content, 'type:', type);
+  console.log('Full task object:', task);
+  
   const getStatusColor = (status) => {
     switch (status) {
-      case 'created': return '#3b82f6';
-      case 'pending_approval': return '#f59e0b';
-      case 'approved': return '#10b981';
+      case 'content_creation': return '#f59e0b';
+      case 'content_approval': return '#f59e0b';
+      case 'ready_for_design_assignment': return '#10b981';
+      case 'design_creation': return '#3b82f6';
+      case 'design_approval': return '#f59e0b';
+      case 'posted': return '#10b981';
       default: return '#6b7280';
     }
   };
 
-  const getStatusBg = (status) => {
+  const getStatusText = (status) => {
     switch (status) {
-      case 'created': return '#eff6ff';
-      case 'pending_approval': return '#fffbeb';
-      case 'approved': return '#f0fdf4';
-      default: return '#f9fafb';
+      case 'content_creation': return 'Content Creation';
+      case 'content_approval': return 'Pending Approval';
+      case 'ready_for_design_assignment': return 'Ready for Design';
+      case 'design_creation': return 'Design Creation';
+      case 'design_approval': return 'Design Approval';
+      case 'posted': return 'Posted';
+      default: return 'In Progress';
     }
   };
 
@@ -292,60 +303,107 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
     });
   };
 
+  const getTaskIcon = () => {
+    if (task.status === 'content_approval') return '📝';
+    if (task.status === 'ready_for_design_assignment') return '✅';
+    if (task.status === 'design_creation') return '🎨';
+    if (task.status === 'design_approval') return '👀';
+    if (task.status === 'posted') return '🚀';
+    return '📋';
+  };
+
   return (
     <div style={{
-      border: '1px solid #e5e7eb',
-      borderRadius: '12px',
+      background: '#fff',
+      borderRadius: '16px',
       padding: '24px',
-      marginBottom: '16px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-      transition: 'all 0.2s ease'
+      marginBottom: '20px',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      border: '1px solid #e5e7eb',
+      transition: 'all 0.3s ease'
     }}
     onMouseEnter={e => {
-      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-      e.target.style.transform = 'translateY(-1px)';
+      e.target.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+      e.target.style.transform = 'translateY(-2px)';
     }}
     onMouseLeave={e => {
-      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+      e.target.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
       e.target.style.transform = 'translateY(0)';
     }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h4 style={{ 
-          margin: 0, 
-          color: '#1f2937', 
-          fontSize: '1.125rem', 
-          fontWeight: '600' 
-        }}>
-          {type} Task
-        </h4>
-        <span style={{
-          padding: '6px 12px',
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            {getTaskIcon()}
+          </div>
+          <div>
+            <h3 style={{ 
+              margin: '0 0 4px 0', 
+              color: '#1f2937', 
+              fontSize: '18px', 
+              fontWeight: '700',
+              letterSpacing: '-0.025em'
+            }}>
+              {task.status === 'content_approval' ? 'Content Approval Required' : 
+               task.status === 'ready_for_design_assignment' ? 'Ready for Design Assignment' :
+               task.status === 'design_creation' ? 'Design Creation in Progress' :
+               task.status === 'design_approval' ? 'Design Approval Required' :
+               task.status === 'posted' ? 'Content Posted Successfully' :
+               `${type} Task`}
+            </h3>
+            <p style={{
+              margin: 0,
+              color: '#6b7280',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}>
+              {task.createdAt ? `Created ${formatDate(task.createdAt)}` : 'Recently created'}
+            </p>
+          </div>
+        </div>
+        <div style={{
+          background: getStatusColor(task.status),
+          color: '#fff',
+          padding: '8px 16px',
           borderRadius: '20px',
           fontSize: '12px',
-          fontWeight: '600',
-          color: getStatusColor(task.status),
-          backgroundColor: getStatusBg(task.status),
-          border: `1px solid ${getStatusColor(task.status)}20`
+          fontWeight: '700',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          {task.status?.replace(/_/g, ' ').toUpperCase() || 'CREATED'}
-        </span>
+          ⏱️ {getStatusText(task.status)}
+        </div>
       </div>
       
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '20px' }}>
         <div style={{ 
           fontSize: '14px', 
           fontWeight: '600', 
           color: '#374151', 
-          marginBottom: '4px' 
+          marginBottom: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
         }}>
-          Objectives:
+          🎯 Task Objectives
         </div>
         <div style={{ 
-          fontSize: '14px', 
-          color: '#6b7280', 
-          lineHeight: '1.5' 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500'
         }}>
           {task.objectives}
         </div>
@@ -353,153 +411,431 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
       
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-        gap: '12px', 
-        marginBottom: '16px',
-        padding: '16px',
-        backgroundColor: '#f8fafc',
-        borderRadius: '8px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
       }}>
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>GENDER</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.gender}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>👤</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{task.gender}</div>
+          </div>
         </div>
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>AGE RANGE</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.minAge}-{task.maxAge}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>🎂</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{task.minAge}-{task.maxAge} years</div>
+          </div>
         </div>
         {task.numContent && (
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>CONTENT COUNT</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.numContent}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📊</span>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Content Count</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{task.numContent}</div>
+            </div>
           </div>
         )}
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>DEADLINE</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{formatDate(task.deadline)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📅</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{formatDate(task.deadline)}</div>
+          </div>
         </div>
       </div>
       
-      {task.createdAt && (
-        <div style={{ 
-          fontSize: '12px', 
-          color: '#9ca3af', 
-          marginBottom: '16px',
-          fontStyle: 'italic'
+
+      
+      {/* Content Section for tasks with submitted content */}
+      {task.contentCreator?.content && (
+        <div style={{
+          background: 'linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%)',
+          padding: '20px',
+          borderRadius: '16px',
+          marginBottom: '20px',
+          border: '1px solid #81d4fa',
+          boxShadow: '0 2px 8px rgba(3, 169, 244, 0.1)'
         }}>
-          Created: {formatDate(task.createdAt)}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '20px' }}>✨</span>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Submitted Content</div>
+                <div style={{ fontSize: '13px', color: '#1565c0' }}>Content ready for review and approval</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setContentExpanded(!contentExpanded)}
+              style={{
+                background: contentExpanded ? '#64b5f6' : '#2196f3',
+                color: '#fff',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              {contentExpanded ? '📤 Hide Details' : '📋 View Details'}
+            </button>
+          </div>
         </div>
       )}
       
-      {/* Content Preview - Same design as ApprovalOfContents */}
-      {task.content && (
+      {/* Inline Content Expansion */}
+      {contentExpanded && task.contentCreator?.content && (
         <div style={{
-          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-          padding: '20px',
-          borderRadius: '12px',
-          marginBottom: '20px',
-          border: '1px solid #0ea5e9'
+          marginTop: '24px',
+          padding: '32px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          maxHeight: '60vh',
+          overflow: 'auto'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '18px' }}>✨</span>
-              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e' }}>Submitted Content</span>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            marginBottom: '32px',
+            paddingBottom: '16px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            <h4 style={{ 
+              margin: 0, 
+              color: '#1e293b', 
+              fontSize: '20px', 
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              📝 Approved Content Analysis
+            </h4>
+            <div style={{
+              background: '#10b981',
+              color: '#fff',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: '700'
+            }}>
+              Overall SEO: {task.contentCreator?.content?.seoScore || 85}/100
             </div>
           </div>
           
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div>
-              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📰</span> HEADLINE
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+            {/* Content Sections */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+              <div style={{
+                background: '#ffffff',
+                padding: '20px',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '700', 
+                  color: '#374151', 
+                  marginBottom: '12px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px' 
+                }}>
+                  <span>📰</span> HEADLINE
+                  <div style={{
+                    background: task.contentCreator.content.headlineScore >= 85 ? '#10b981' : task.contentCreator.content.headlineScore >= 75 ? '#f59e0b' : '#ef4444',
+                    color: '#fff',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: '700'
+                  }}>
+                    {task.contentCreator.content.headlineScore || 82}
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  lineHeight: 1.5
+                }}>
+                  {task.contentCreator.content.headline}
+                </div>
               </div>
-              <div style={{ 
-                fontSize: '15px', 
+              
+              <div style={{
+                background: '#ffffff',
+                padding: '20px',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '700', 
+                  color: '#374151', 
+                  marginBottom: '12px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px' 
+                }}>
+                  <span>📝</span> CAPTION
+                  <div style={{
+                    background: task.contentCreator.content.captionScore >= 85 ? '#10b981' : task.contentCreator.content.captionScore >= 75 ? '#f59e0b' : '#ef4444',
+                    color: '#fff',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: '700'
+                  }}>
+                    {task.contentCreator.content.captionScore || 78}
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: '15px',
+                  color: '#374151',
+                  lineHeight: 1.6
+                }}>
+                  {task.contentCreator.content.caption}
+                </div>
+              </div>
+              
+              <div style={{
+                background: '#ffffff',
+                padding: '20px',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '700', 
+                  color: '#374151', 
+                  marginBottom: '12px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px' 
+                }}>
+                  <span>🏷️</span> HASHTAGS
+                  <div style={{
+                    background: task.contentCreator.content.hashtagScore >= 85 ? '#10b981' : task.contentCreator.content.hashtagScore >= 75 ? '#f59e0b' : '#ef4444',
+                    color: '#fff',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: '700'
+                  }}>
+                    {task.contentCreator.content.hashtagScore || 88}
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: '15px',
+                  color: '#3b82f6',
+                  fontWeight: '600',
+                  lineHeight: 1.4
+                }}>
+                  {task.contentCreator.content.hashtag}
+                </div>
+              </div>
+            </div>
+            
+            {/* SEO Analytics Section */}
+            <div style={{
+              background: '#ffffff',
+              padding: '24px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <h5 style={{ 
+                margin: '0 0 20px 0', 
+                fontSize: '16px', 
+                fontWeight: '700', 
                 color: '#1e293b', 
-                fontWeight: '600',
-                background: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #bae6fd'
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px' 
               }}>
-                {task.content.headline}
-              </div>
-            </div>
-            
-            <div>
-              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📝</span> CAPTION
-              </div>
-              <div style={{ 
-                fontSize: '14px', 
-                color: '#374151', 
-                lineHeight: 1.6,
-                background: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #bae6fd'
-              }}>
-                {task.content.caption}
-              </div>
-            </div>
-            
-            <div>
-              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🏷️</span> HASHTAGS
-              </div>
-              <div style={{ 
-                fontSize: '14px', 
-                color: '#3b82f6', 
-                fontWeight: '600',
-                background: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #bae6fd'
-              }}>
-                {task.content.hashtag}
+                📊 SEO Analytics Dashboard
+              </h5>
+              
+              <div style={{ display: 'grid', gap: '12px', fontSize: '12px' }}>
+                {/* Basic Metrics */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>Word Count</span>
+                  <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator.content.caption?.split(' ').length || 0}</span>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>Character Count</span>
+                  <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator.content.caption?.length || 0}</span>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>Hashtag Count</span>
+                  <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator.content.hashtag?.split('#').length - 1 || 0}</span>
+                </div>
+                
+                {/* Sentiment Analysis */}
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Sentiment</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#6b7280' }}>Overall Tone</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>Positive</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <span style={{ color: '#6b7280' }}>Confidence</span>
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>87%</span>
+                  </div>
+                </div>
+                
+                {/* Power Words */}
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Power Words</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {['proven', 'exceptional', 'innovative', 'ultimate'].map(word => (
+                      <span key={word} style={{
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: '500'
+                      }}>
+                        {word}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Emotional Words */}
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Emotional Words</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {['exciting', 'amazing', 'incredible', 'love'].map(word => (
+                      <span key={word} style={{
+                        background: '#fce7f3',
+                        color: '#be185d',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: '500'
+                      }}>
+                        {word}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Common vs Uncommon Words */}
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Word Complexity</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#6b7280' }}>Common Words</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>78%</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <span style={{ color: '#6b7280' }}>Uncommon Words</span>
+                    <span style={{ fontWeight: '600', color: '#f59e0b' }}>22%</span>
+                  </div>
+                </div>
+                
+                {/* Enhanced Readability */}
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Readability Analysis</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#6b7280' }}>Grade Level</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>8th Grade</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <span style={{ color: '#6b7280' }}>Reading Time</span>
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>45 sec</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <span style={{ color: '#6b7280' }}>Flesch Score</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>72</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
       
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
         <button
           onClick={() => onEdit(task)}
           style={{
-            padding: '8px 16px', 
-            backgroundColor: '#3b82f6', 
+            padding: '12px 24px', 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
             border: 'none', 
-            borderRadius: '8px', 
+            borderRadius: '12px', 
             cursor: 'pointer', 
             fontSize: '14px',
-            fontWeight: '600',
-            transition: 'background-color 0.2s ease'
+            fontWeight: '700',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
-          onMouseEnter={e => e.target.style.backgroundColor = '#2563eb'}
-          onMouseLeave={e => e.target.style.backgroundColor = '#3b82f6'}
+          onMouseEnter={e => {
+            e.target.style.transform = 'translateY(-1px)';
+            e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+          }}
+          onMouseLeave={e => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+          }}
         >
-          Edit
+          ✏️ Edit Task
         </button>
         <button
           onClick={() => onDelete(task)}
           style={{
-            padding: '8px 16px', 
-            backgroundColor: '#ef4444', 
+            padding: '12px 24px', 
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
             color: 'white',
             border: 'none', 
-            borderRadius: '8px', 
+            borderRadius: '12px', 
             cursor: 'pointer', 
             fontSize: '14px',
-            fontWeight: '600',
-            transition: 'background-color 0.2s ease'
+            fontWeight: '700',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
-          onMouseEnter={e => e.target.style.backgroundColor = '#dc2626'}
-          onMouseLeave={e => e.target.style.backgroundColor = '#ef4444'}
+          onMouseEnter={e => {
+            e.target.style.transform = 'translateY(-1px)';
+            e.target.style.boxShadow = '0 6px 16px rgba(255, 107, 107, 0.4)';
+          }}
+          onMouseLeave={e => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.3)';
+          }}
         >
-          Delete
+          🗑️ Delete
         </button>
       </div>
+
     </div>
   );
 };

@@ -106,14 +106,28 @@ const AdminSettings = ({ isOpen, onClose }) => {
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSettings(prev => ({ ...prev, profilePicture: e.target.result }));
-      };
-      reader.readAsDataURL(file);
+      setLoading(true);
+      try {
+        const uploadService = (await import('../../services/uploadService')).default;
+        const result = await uploadService.uploadFile(file, 'profile-pictures', null, user?.username);
+        setSettings(prev => ({ ...prev, profilePicture: result.url }));
+        
+        // Update UserContext immediately
+        const updatedUser = { ...user, profilePicture: result.url };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        setMessage({ text: 'Profile picture uploaded successfully!', type: 'success' });
+        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      } catch (error) {
+        setMessage({ text: 'Failed to upload image', type: 'error' });
+        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -127,8 +141,7 @@ const AdminSettings = ({ isOpen, onClose }) => {
         const { ref, update } = await import('firebase/database');
         const { db } = await import('../../services/firebase');
         
-        const safeUsername = user.username.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const userRef = ref(db, `users/${safeUsername}`);
+        const userRef = ref(db, `${user.role}/${user.username.toLowerCase()}`);
         await update(userRef, {
           firstName: settings.firstName,
           lastName: settings.lastName,

@@ -26,6 +26,13 @@ const createWorkflow = async (req, res, next) => {
         
         const workflowId = await FirebaseService.createWorkflow(workflowData);
         
+        // Create notification for Marketing Lead
+        await FirebaseService.createMarketingNotification({
+            type: 'task_created',
+            message: `New task created: ${objectives}`,
+            user: 'System'
+        });
+        
         io.emit('newWorkflow', {
             id: workflowId,
             ...workflowData,
@@ -146,6 +153,13 @@ const submitContent = async (req, res, next) => {
         const contentData = { headline, caption, hashtag };
         const updatedWorkflow = await FirebaseService.submitContent(workflowId, contentData);
         
+        // Create notification for Marketing Lead
+        await FirebaseService.createMarketingNotification({
+            type: 'content_submitted',
+            message: `Content submitted for approval: ${contentData.headline}`,
+            user: 'Content Creator'
+        });
+        
         io.emit('workflowUpdated', updatedWorkflow);
         
         res.status(200).json({
@@ -166,6 +180,13 @@ const approveContent = async (req, res, next) => {
         const { approvedBy } = req.body;
         
         const updatedWorkflow = await FirebaseService.approveContent(workflowId, approvedBy);
+        
+        // Create notification for Marketing Lead
+        await FirebaseService.createMarketingNotification({
+            type: 'content_approved',
+            message: `Content approved and ready for design assignment`,
+            user: approvedBy
+        });
         
         io.emit('workflowUpdated', updatedWorkflow);
         
@@ -282,9 +303,27 @@ const assignToGraphicDesigner = async (req, res, next) => {
     }
 };
 
+const getWorkflowsByMultipleStatuses = async (req, res, next) => {
+    console.log('📋 getWorkflowsByMultipleStatuses called');
+    try {
+        const statuses = req.statuses;
+        console.log('📋 getWorkflowsByMultipleStatuses - statuses:', statuses);
+        const workflows = await FirebaseService.getWorkflowsByMultipleStatuses(statuses);
+        
+        res.status(200).json({
+            status: 'success',
+            data: workflows
+        });
+    } catch (error) {
+        console.error('❌ getWorkflowsByMultipleStatuses - Error:', error);
+        next(error);
+    }
+};
+
 export {
     createWorkflow,
     getWorkflowsByStage,
+    getWorkflowsByMultipleStatuses,
     submitContent,
     approveContent,
     submitDesign,

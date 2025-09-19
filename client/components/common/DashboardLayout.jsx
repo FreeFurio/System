@@ -3,11 +3,10 @@ import { FiBell, FiUser, FiSettings, FiLogOut, FiHome, FiUsers, FiCheckCircle, F
 import { useUser } from './UserContext';
 import "../../styles/Admin.css";
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import NotificationBell from "./NotificationBell"; // Adjust path if needed
+import NotificationBell from "./NotificationBell";
 import AdminSettings from "../../pages/Admin/AdminSettings";
 import { DarkModeProvider } from './DarkModeContext';
-import { ref } from "firebase/database";
-import { db } from "../../services/firebase";
+import { responsive } from '../../utils/responsive';
 
 const DashboardLayout = () => {
   const { user, setUser } = useUser();
@@ -39,7 +38,7 @@ const DashboardLayout = () => {
     window.location.replace("/login");
   };
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
 
   return (
     <DarkModeProvider module="admin">
@@ -49,10 +48,10 @@ const DashboardLayout = () => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between', 
-        height: 64, 
+        height: responsive.size(56, 64), 
         background: '#fff', 
         borderBottom: '1px solid #ececec', 
-        padding: '0 32px', 
+        padding: responsive.padding('0 16px', '0 32px'), 
         position: 'relative', 
         flexShrink: 0, 
         borderRadius: 0,
@@ -61,7 +60,7 @@ const DashboardLayout = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Logo */}
-          <img src="/assets/infinitylogo.png" alt="infinitysalon" style={{ height: '40px', width: 'auto' }} />
+          <img src="/assets/infinitylogo.png" alt="infinitysalon" style={{ height: responsive.size('32px', '40px'), width: 'auto' }} />
           {/* Hamburger Menu */}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -84,7 +83,7 @@ const DashboardLayout = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {/* Notification Bell */}
-          <NotificationBell style={{ marginRight: '20px' }} />
+          <NotificationBell role="Admin" style={{ marginRight: '20px' }} />
           {/* Profile Icon and Dropdown */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={profileRef}>
             <button
@@ -104,16 +103,25 @@ const DashboardLayout = () => {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ 
-                width: 40, height: 40, borderRadius: '50%', 
-                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                fontSize: 22, color: '#fff', fontWeight: 700,
-                flexShrink: 0
-              }}>
-                {!user?.profilePicture && <FiUser size={24} color="#F6C544" />}
-              </span>
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  style={{ 
+                    width: 40, height: 40, borderRadius: '50%', 
+                    objectFit: 'cover', flexShrink: 0
+                  }} 
+                />
+              ) : (
+                <span style={{ 
+                  width: 40, height: 40, borderRadius: '50%', 
+                  background: '#e74c3c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  flexShrink: 0
+                }}>
+                  <FiUser size={24} color="#fff" />
+                </span>
+              )}
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #ececec', borderRadius: 10, minWidth: 200, zIndex: 10, boxShadow: 'none', padding: '12px 0' }}>
@@ -142,38 +150,51 @@ const DashboardLayout = () => {
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
         {!sidebarCollapsed && (
           <div className="sidebar" style={{
-            width: '220px',
+            width: window.innerWidth <= 768 ? '100%' : '220px',
             background: '#f8f9fb',
-            borderRight: '1px solid #ececec',
-            padding: '32px 0 24px 0',
+            borderRight: window.innerWidth <= 768 ? 'none' : '1px solid #ececec',
+            padding: responsive.padding('16px 0', '32px 0 24px 0'),
             borderRadius: 0,
-            minWidth: '180px',
+            minWidth: window.innerWidth <= 768 ? 'auto' : '180px',
             fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'stretch',
-            boxShadow: 'none',
+            boxShadow: window.innerWidth <= 768 ? '0 2px 10px rgba(0,0,0,0.1)' : 'none',
             margin: 0,
             minHeight: 0,
             overflowY: 'auto',
-            maxHeight: 'calc(100vh - 124px)'
+            maxHeight: window.innerWidth <= 768 ? 'calc(100vh - 56px)' : 'calc(100vh - 124px)',
+            position: window.innerWidth <= 768 ? 'fixed' : 'static',
+            top: window.innerWidth <= 768 ? '56px' : 'auto',
+            left: window.innerWidth <= 768 ? 0 : 'auto',
+            zIndex: window.innerWidth <= 768 ? 1000 : 'auto'
           }}>
           {/* User Profile */}
-          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 32, padding: '0 12px' }}>
-            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
-              <span className="header-profile-avatar" style={{ 
-                width: 48, height: 48, borderRadius: '50%', 
-                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                fontSize: 28, color: '#fff', fontWeight: 700,
-                flexShrink: 0
-              }}>
-                {!user?.profilePicture && <FiUser size={28} color="#F6C544" />}
-              </span>
+          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: responsive.size(16, 32), padding: '0 12px' }}>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: responsive.gap(12, 16), padding: responsive.padding('12px', '14px 12px'), background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  style={{ 
+                    width: responsive.size(40, 48), height: responsive.size(40, 48), borderRadius: '50%', 
+                    objectFit: 'cover', flexShrink: 0
+                  }} 
+                />
+              ) : (
+                <span style={{ 
+                  width: responsive.size(40, 48), height: responsive.size(40, 48), borderRadius: '50%', 
+                  background: '#e74c3c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  flexShrink: 0
+                }}>
+                  <FiUser size={responsive.size(20, 28)} color="#fff" />
+                </span>
+              )}
               <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
-                <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Admin'}</div>
+                <div className="user-name" style={{ fontWeight: 700, fontSize: responsive.fontSize(15, 17), color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
+                <div className="user-role" style={{ fontSize: responsive.fontSize(12, 13), color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Admin'}</div>
               </div>
             </div>
           </div>
@@ -182,9 +203,9 @@ const DashboardLayout = () => {
             <Link
               to="/admin"
               className={`nav-item${location.pathname === '/admin' ? ' active' : ''}`}
-              style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin' ? '#fff' : '#222', background: location.pathname === '/admin' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+              style={{ padding: responsive.padding('10px 16px', '12px 24px'), fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin' ? '#fff' : '#222', background: location.pathname === '/admin' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
             >
-              <FiHome size={18} style={{ marginRight: 12 }} />
+              <FiHome size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
               Dashboard
             </Link>
             <Link
@@ -192,7 +213,7 @@ const DashboardLayout = () => {
               className={`nav-item${location.pathname === '/admin/approval' ? ' active' : ''}`}
               style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin/approval' ? '#fff' : '#222', background: location.pathname === '/admin/approval' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
             >
-              <FiCheckCircle size={18} style={{ marginRight: 12 }} />
+              <FiCheckCircle size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
               Approval of Accounts
             </Link>
             <Link
@@ -200,7 +221,7 @@ const DashboardLayout = () => {
               className={`nav-item${location.pathname === '/admin/manage' ? ' active' : ''}`}
               style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin/manage' ? '#fff' : '#222', background: location.pathname === '/admin/manage' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
             >
-              <FiUsers size={18} style={{ marginRight: 12 }} />
+              <FiUsers size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
               Manage Accounts
             </Link>
             <Link
@@ -208,14 +229,14 @@ const DashboardLayout = () => {
               className={`nav-item${location.pathname === '/admin/socials' ? ' active' : ''}`}
               style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin/socials' ? '#fff' : '#222', background: location.pathname === '/admin/socials' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
             >
-              <FiBarChart2 size={18} style={{ marginRight: 12 }} />
+              <FiBarChart2 size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
               Socials & Insights
             </Link>
           </nav>
           </div>
         )}
         <div className="main-content" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 0, margin: 0, boxShadow: 'none', padding: '0 0 0 0' }}>
-          <div className="content-area" style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          <div className="content-area" style={{ flex: 1, padding: responsive.padding('16px', '24px'), overflowY: 'auto' }}>
             <Outlet />
           </div>
         </div>

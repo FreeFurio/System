@@ -402,7 +402,8 @@ const login = async (req, res, next) => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role
+          role: user.role,
+          profilePicture: user.profilePicture
         }
       }
     });

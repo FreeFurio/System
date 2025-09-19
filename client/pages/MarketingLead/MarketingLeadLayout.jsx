@@ -119,23 +119,25 @@ export default function MarketingLeadLayout() {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: '50%', 
-                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center',
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: 22, 
-                color: '#fff', 
-                fontWeight: 700,
-                flexShrink: 0
-              }}>
-                <FiUser size={24} color="#F6C544" />
-              </span>
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  style={{ 
+                    width: 40, height: 40, borderRadius: '50%', 
+                    objectFit: 'cover', flexShrink: 0
+                  }} 
+                />
+              ) : (
+                <span style={{ 
+                  width: 40, height: 40, borderRadius: '50%', 
+                  background: '#e74c3c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  flexShrink: 0
+                }}>
+                  <FiUser size={24} color="#fff" />
+                </span>
+              )}
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
@@ -192,23 +194,25 @@ export default function MarketingLeadLayout() {
                 borderRadius: 0, 
                 boxShadow: 'none'
               }}>
-                <span className="header-profile-avatar" style={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: '50%', 
-                  background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                  backgroundSize: 'cover', 
-                  backgroundPosition: 'center',
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  fontSize: 28, 
-                  color: '#fff', 
-                  fontWeight: 700,
-                  flexShrink: 0
-                }}>
-                  <FiUser size={28} color="#F6C544" />
-                </span>
+                {user?.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt="Profile" 
+                    style={{ 
+                      width: 48, height: 48, borderRadius: '50%', 
+                      objectFit: 'cover', flexShrink: 0
+                    }} 
+                  />
+                ) : (
+                  <span style={{ 
+                    width: 48, height: 48, borderRadius: '50%', 
+                    background: '#e74c3c',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    flexShrink: 0
+                  }}>
+                    <FiUser size={28} color="#fff" />
+                  </span>
+                )}
                 <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div className="user-name" style={{ 
                     fontWeight: 700, 

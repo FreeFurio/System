@@ -3,14 +3,19 @@ import { db } from "../../services/firebase"; // Adjust path if needed
 import { ref, onValue, update } from "firebase/database";
 import { TbBellRingingFilled } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "./UserContext";
 
-const NotificationBell = () => {
+const NotificationBell = ({ role }) => {
+  const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const notificationsRef = ref(db, "notification/admin");
+    const userRole = role || user?.role || 'Admin';
+    const roleKey = userRole.toLowerCase().replace(/\s+/g, '');
+    const notificationsRef = ref(db, `notification/${roleKey}`);
+    
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val() || {};
       // Convert object to array and add the id
@@ -22,7 +27,7 @@ const NotificationBell = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [role, user?.role]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -31,16 +36,43 @@ const NotificationBell = () => {
   };
 
   const handleNotificationClick = (notif) => {
+    const userRole = role || user?.role || 'Admin';
+    const roleKey = userRole.toLowerCase().replace(/\s+/g, '');
+    
     // Mark as read in the database
     if (!notif.read) {
-      const notifRef = ref(db, `notification/admin/${notif.id}`);
+      const notifRef = ref(db, `notification/${roleKey}/${notif.id}`);
       update(notifRef, { read: true });
     }
-    // Navigate if type is approval_needed
-    if (notif.type === "approval_needed") {
-      navigate("/admin/approval");
+    
+    // Role-specific navigation
+    const roleRoutes = {
+      admin: {
+        approval_needed: '/admin/approval',
+        user_management: '/admin/manage',
+        system_alert: '/admin'
+      },
+      marketinglead: {
+        content_approval: '/marketing/approval',
+        task_assignment: '/marketing/ongoing-task',
+        content_ready: '/marketing/approved'
+      },
+      contentcreator: {
+        task_assigned: '/content/task',
+        content_feedback: '/content/output',
+        deadline_reminder: '/content/dashboard'
+      },
+      graphicdesigner: {
+        design_task: '/graphic/task',
+        design_feedback: '/graphic/creation',
+        asset_request: '/graphic/dashboard'
+      }
+    };
+    
+    const routes = roleRoutes[roleKey];
+    if (routes && routes[notif.type]) {
+      navigate(routes[notif.type]);
     }
-    // You can add more types and navigation logic here if needed
   };
 
   return (

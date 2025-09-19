@@ -20,29 +20,33 @@ const MarketingDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Get pending content approvals
-      const approvalsRef = ref(db, 'ApprovalofContents');
-      const approvalsSnapshot = await get(approvalsRef);
-      const approvalsData = approvalsSnapshot.val();
-      const pendingContent = approvalsData ? Object.keys(approvalsData).length : 0;
-
-      // Get approved contents
-      const approvedRef = ref(db, 'ApprovedContents');
-      const approvedSnapshot = await get(approvedRef);
-      const approvedData = approvedSnapshot.val();
-      const approvedContent = approvedData ? Object.keys(approvedData).length : 0;
-
-      // Get ongoing tasks
-      const tasksRef = ref(db, 'OngoingTasks');
-      const tasksSnapshot = await get(tasksRef);
-      const tasksData = tasksSnapshot.val();
-      const ongoingTasks = tasksData ? Object.keys(tasksData).length : 0;
-
-      // Get posted content
-      const postedRef = ref(db, 'PostedContent');
-      const postedSnapshot = await get(postedRef);
-      const postedData = postedSnapshot.val();
-      const postedContent = postedData ? Object.keys(postedData).length : 0;
+      // Get workflows data
+      const workflowsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/marketinglead`);
+      const workflowsData = await workflowsResponse.json();
+      
+      let pendingContent = 0;
+      let approvedContent = 0;
+      let postedContent = 0;
+      
+      if (workflowsData.status === 'success') {
+        const workflows = workflowsData.data || [];
+        
+        // Count by status
+        pendingContent = workflows.filter(w => w.status === 'content_approval').length;
+        approvedContent = workflows.filter(w => w.status === 'ready_for_design_assignment').length;
+        postedContent = workflows.filter(w => w.status === 'posted').length;
+      }
+      
+      // Get ongoing tasks from both content creator and graphic designer
+      const [creatorTasksRes, designerTasksRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/content-creator/task`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/graphic-designer/task`)
+      ]);
+      
+      const creatorTasks = await creatorTasksRes.json();
+      const designerTasks = await designerTasksRes.json();
+      
+      const ongoingTasks = (creatorTasks.data?.length || 0) + (designerTasks.data?.length || 0);
 
       // Get marketing notifications for activity
       const notifRef = ref(db, 'notification/marketing');
@@ -216,50 +220,14 @@ const MarketingDashboard = () => {
                 </div>
               </div>
             )) : (
-              <>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '12px', background: '#f8fafc', borderRadius: '8px'
-                }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}>
-                      New content submitted for approval
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                      2 hours ago
-                    </div>
-                  </div>
-                </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '12px', background: '#f8fafc', borderRadius: '8px'
-                }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}>
-                      Content approved and ready for publishing
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                      4 hours ago
-                    </div>
-                  </div>
-                </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '12px', background: '#f8fafc', borderRadius: '8px'
-                }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}>
-                      Task assigned to Content Creator
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                      1 day ago
-                    </div>
-                  </div>
-                </div>
-              </>
+              <div style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                color: '#9ca3af',
+                fontSize: '14px'
+              }}>
+                No recent activity
+              </div>
             )}
           </div>
         </div>

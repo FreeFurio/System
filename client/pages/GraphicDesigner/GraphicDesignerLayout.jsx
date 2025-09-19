@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { FiUser, FiSettings, FiLogOut, FiMenu } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
+import GraphicDesignerSettings from './GraphicDesignerSettings';
 import '../../styles/Admin.css';
 
 import { FiHome, FiImage, FiClipboard } from 'react-icons/fi';
@@ -19,6 +20,7 @@ export default function GraphicDesignerLayout() {
   const designerRole = user?.role || "role";
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const profileRef = useRef(null);
   const location = useLocation();
 
@@ -100,9 +102,25 @@ export default function GraphicDesignerLayout() {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ background: '#e0e7ff', color: '#2563eb', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700 }}>
-                <FiUser size={24} color="#F6C544" />
-              </span>
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  style={{ 
+                    width: 40, height: 40, borderRadius: '50%', 
+                    objectFit: 'cover', flexShrink: 0
+                  }} 
+                />
+              ) : (
+                <span style={{ 
+                  width: 40, height: 40, borderRadius: '50%', 
+                  background: '#e74c3c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  flexShrink: 0
+                }}>
+                  <FiUser size={24} color="#fff" />
+                </span>
+              )}
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
@@ -110,7 +128,13 @@ export default function GraphicDesignerLayout() {
                   <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{designerName}</div>
                   <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
                 </div>
-                <button style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button 
+                  onClick={() => {
+                    setShowSettings(true);
+                    setShowProfile(false);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
                   <FiSettings style={{ marginRight: 8 }} /> Settings
                 </button>
                 <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c' }}>
@@ -127,9 +151,25 @@ export default function GraphicDesignerLayout() {
           <div className="sidebar" style={{ width: '240px', minWidth: '220px', background: '#f8f9fb', borderRight: '1px solid #ececec', padding: '32px 0 24px 0', borderRadius: 0, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxShadow: 'none', margin: 0, overflow: 'hidden' }}>
           {/* User Profile */}
           <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
-            <span className="header-profile-avatar" style={{ width: 48, height: 48, borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#F6C544', fontWeight: 700 }}>
-              <FiUser size={28} color="#F6C544" />
-            </span>
+            {user?.profilePicture ? (
+              <img 
+                src={user.profilePicture} 
+                alt="Profile" 
+                style={{ 
+                  width: 48, height: 48, borderRadius: '50%', 
+                  objectFit: 'cover', flexShrink: 0
+                }} 
+              />
+            ) : (
+              <span style={{ 
+                width: 48, height: 48, borderRadius: '50%', 
+                background: '#e74c3c',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                flexShrink: 0
+              }}>
+                <FiUser size={28} color="#fff" />
+              </span>
+            )}
             <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
               <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{designerName}</div>
               <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
@@ -164,6 +204,11 @@ export default function GraphicDesignerLayout() {
           </div>
         </div>
       </footer>
+      
+      <GraphicDesignerSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </div>
   );
 }

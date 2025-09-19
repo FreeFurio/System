@@ -495,6 +495,26 @@ class FirebaseService {
     }
   }
 
+  static async getWorkflowsByMultipleStatuses(statuses) {
+    console.log('📈 getWorkflowsByMultipleStatuses called with statuses:', statuses);
+    try {
+      const snapshot = await get(ref(db, 'workflows'));
+      const workflows = snapshot.val();
+      
+      if (!workflows) return [];
+      
+      const filteredWorkflows = Object.entries(workflows)
+        .filter(([key, workflow]) => workflow.contentCreator && statuses.includes(workflow.status))
+        .map(([key, workflow]) => ({ id: key, ...workflow }));
+      
+      console.log('📈 getWorkflowsByMultipleStatuses result:', filteredWorkflows.length + ' workflows found');
+      return filteredWorkflows;
+    } catch (error) {
+      console.error('❌ Error getting workflows by multiple statuses:', error);
+      throw new AppError('Failed to get workflows', 500);
+    }
+  }
+
   // ========================
   // 5)  NOTIFICATIONS
   // ========================
@@ -524,6 +544,27 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error saving Admin notification:', error);
       throw new Error('Failed to save Admin notification');
+    }
+  }
+
+  static async createMarketingNotification(notificationData) {
+    console.log('🔔 createMarketingNotification called with data:', notificationData);
+    try {
+      const createNotifRef = push(ref(db, 'notification/marketing'));
+      const notifData = {
+        type: notificationData.type,
+        message: notificationData.message,
+        read: notificationData.read || false,
+        timestamp: notificationData.timestamp || new Date().toISOString(),
+        user: notificationData.user
+      };
+      
+      await set(createNotifRef, notifData);
+      console.log('🔔 createMarketingNotification success - Notification saved');
+      return createNotifRef.key;
+    } catch (error) {
+      console.error('❌ Error saving Marketing notification:', error);
+      throw new Error('Failed to save Marketing notification');
     }
   }
 

@@ -80,14 +80,82 @@ const MarketingDashboard = () => {
     );
   }
 
-  const StatCard = ({ icon: Icon, title, value, color, bgColor }) => (
-    <div style={componentStyles.statCard}>
-      <div style={{ ...componentStyles.statIcon, background: bgColor }}>
-        <Icon size={24} color={color} />
+  const StatCard = ({ icon: Icon, title, value, badge, color = 'blue' }) => (
+    <div style={{
+      background: '#fff',
+      border: '1px solid #e5e7eb',
+      borderRadius: '12px',
+      padding: '20px',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+      transition: 'all 0.2s ease',
+      cursor: 'pointer'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
+            background: color === 'blue' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' :
+                       color === 'green' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' :
+                       color === 'orange' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' :
+                       'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}>
+            <Icon size={28} />
+          </div>
+          <div>
+            <div style={{
+              fontSize: '16px',
+              fontWeight: '500',
+              color: '#6b7280',
+              marginBottom: '4px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              {title}
+            </div>
+          </div>
+        </div>
+        <span style={{
+          background: color === 'blue' ? '#dbeafe' :
+                     color === 'green' ? '#d1fae5' :
+                     color === 'orange' ? '#fed7aa' :
+                     '#e0e7ff',
+          color: color === 'blue' ? '#1e40af' :
+                color === 'green' ? '#065f46' :
+                color === 'orange' ? '#9a3412' :
+                '#5b21b6',
+          padding: '4px 8px',
+          borderRadius: '6px',
+          fontSize: '11px',
+          fontWeight: '600',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          {badge}
+        </span>
       </div>
-      <div>
-        <h3 style={componentStyles.statValue}>{value}</h3>
-        <p style={componentStyles.statLabel}>{title}</p>
+      <div style={{
+        fontSize: '36px',
+        fontWeight: '800',
+        color: '#111827',
+        marginBottom: '8px',
+        lineHeight: '1'
+      }}>
+        {value}
       </div>
     </div>
   );
@@ -95,11 +163,27 @@ const MarketingDashboard = () => {
   return (
     <div style={componentStyles.pageContainer}>
       {/* Header */}
-      <div style={componentStyles.pageHeader}>
-        <h1 style={componentStyles.pageTitle}>Marketing Lead Dashboard</h1>
-        <p style={componentStyles.pageSubtitle}>
-          Overview of your content management and marketing activities
-        </p>
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          margin: 0,
+          color: '#111827',
+          fontSize: '32px',
+          fontWeight: '800',
+          letterSpacing: '-0.025em'
+        }}>Marketing Lead Dashboard</h1>
+        <p style={{
+          margin: '8px 0 0 0',
+          color: '#6b7280',
+          fontSize: '16px',
+          fontWeight: '400'
+        }}>Overview of your content management and marketing activities</p>
       </div>
 
       {/* Stats Grid */}
@@ -108,29 +192,29 @@ const MarketingDashboard = () => {
           icon={FiClock}
           title="Pending Content"
           value={stats.pendingContent}
-          color="#f59e0b"
-          bgColor="#fffbeb"
+          badge="PENDING"
+          color="orange"
         />
         <StatCard
           icon={FiCheckCircle}
           title="Approved Content"
           value={stats.approvedContent}
-          color="#10b981"
-          bgColor="#f0fdf4"
+          badge="APPROVED"
+          color="green"
         />
         <StatCard
           icon={FiActivity}
           title="Ongoing Tasks"
           value={stats.ongoingTasks}
-          color="#3b82f6"
-          bgColor="#eff6ff"
+          badge="ACTIVE"
+          color="blue"
         />
         <StatCard
           icon={FiTrendingUp}
           title="Posted Content"
           value={stats.postedContent}
-          color="#8b5cf6"
-          bgColor="#faf5ff"
+          badge="POSTED"
+          color="purple"
         />
       </div>
 

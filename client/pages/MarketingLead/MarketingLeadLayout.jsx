@@ -167,7 +167,7 @@ export default function MarketingLeadLayout() {
         {!sidebarCollapsed && (
           <div className="sidebar" style={{
             width: '220px',
-            background: '#f8f9fb',
+            background: '#ffffff',
             borderRight: '1px solid #ececec',
             padding: '32px 0 24px 0',
             borderRadius: 0,
@@ -189,10 +189,11 @@ export default function MarketingLeadLayout() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: 16, 
-                padding: '14px 12px', 
-                background: '#f8f9fb', 
-                borderRadius: 0, 
-                boxShadow: 'none'
+                padding: '20px 16px', 
+                background: '#f8fafc', 
+                borderRadius: '12px', 
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e5e7eb'
               }}>
                 {user?.profilePicture ? (
                   <img 
@@ -218,10 +219,10 @@ export default function MarketingLeadLayout() {
                     fontWeight: 700, 
                     fontSize: 17, 
                     color: '#222', 
-                    lineHeight: 1.1, 
-                    whiteSpace: 'nowrap', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis' 
+                    lineHeight: '1.2', 
+                    whiteSpace: 'normal', 
+                    maxHeight: '2.4em', 
+                    overflow: 'hidden' 
                   }}>{user?.firstName || 'Marketing'} {user?.lastName || 'Lead'}</div>
                   <div className="user-role" style={{ 
                     fontSize: 13, 
@@ -237,7 +238,8 @@ export default function MarketingLeadLayout() {
               flexDirection: 'column', 
               gap: 8, 
               marginTop: 10, 
-              minHeight: 0
+              minHeight: 0,
+              padding: '0 12px'
             }}>
               {sidebarItems.map((item, index) => (
                 <div key={item.path || index} style={{ position: 'relative' }}>
@@ -333,16 +335,18 @@ export default function MarketingLeadLayout() {
                       to={item.path}
                       className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
                       style={{
-                        padding: '12px 24px',
+                        padding: '14px 20px',
                         fontWeight: 600,
-                        borderRadius: 8,
-                        color: location.pathname === item.path ? '#fff' : '#222',
-                        background: location.pathname === item.path ? '#e53935' : 'none',
-                        marginBottom: 4,
+                        borderRadius: 12,
+                        color: location.pathname === item.path ? '#fff' : '#374151',
+                        background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                        marginBottom: 6,
                         textDecoration: 'none',
-                        transition: 'background 0.2s, color 0.2s',
+                        transition: 'all 0.2s ease',
                         display: 'flex',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                        fontSize: 15
                       }}
                     >
                       <item.icon size={18} style={{ marginRight: 12 }} />

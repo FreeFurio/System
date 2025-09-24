@@ -1,0 +1,21 @@
+/* Fix for white text in SEO analytics sections */
+h4, h5, .seo-heading {
+  color: #1e293b !important;
+  background: transparent !important;
+}
+
+/* Ensure all text in SEO sections is visible */
+[style*="Content Analysis"] h4,
+[style*="SEO Analytics Dashboard"] h5,
+h4:contains("Content Analysis"),
+h5:contains("SEO Analytics Dashboard") {
+  color: #1e293b !important;
+  background: transparent !important;
+}
+
+/* Force text color for all headings in modal/expanded content */
+div[style*="maxHeight: '60vh'"] h4,
+div[style*="maxHeight: '60vh'"] h5 {
+  color: #1e293b !important;
+  background: transparent !important;
+}

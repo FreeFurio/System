@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../services/firebase"; // Adjust path if needed
 import { ref, onValue, update } from "firebase/database";
-import { TbBellRingingFilled } from "react-icons/tb";
+import { TbBellRinging } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
 
@@ -98,7 +98,7 @@ const NotificationBell = ({ role }) => {
         }}
         aria-label="Notifications"
       >
-        <TbBellRingingFilled className={unreadCount > 0 ? "bell-animate" : ""} color="#F6C544" size={28} />
+        <TbBellRinging className={unreadCount > 0 ? "bell-animate" : ""} color="#F6C544" size={28} />
         {unreadCount > 0 && (
           <span className="notification-badge">{unreadCount}</span>
         )}

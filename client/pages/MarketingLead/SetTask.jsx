@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { componentStyles } from '../../styles/designSystem';
+import PlatformSelector from '../../components/common/PlatformSelector';
 
 export default function SetTask() {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,7 @@ export default function SetTask() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [ageRange, setAgeRange] = useState([20, 40]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -53,16 +55,32 @@ export default function SetTask() {
   const minDate = `${yyyy}-${mm}-${dd}`;
   const maxDate = `${yyyy + 3}-${mm}-${dd}`;
 
+  const handlePlatformChange = (platformId) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platformId)
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    if (selectedPlatforms.length === 0) {
+      setError('Please select at least one social media platform');
+      setLoading(false);
+      return;
+    }
+    
     const payload = {
       objectives: objective,
       gender,
       minAge: ageRange[0],
       maxAge: ageRange[1],
-      deadline
+      deadline,
+      selectedPlatforms
     };
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`, {
       method: 'POST',
@@ -85,6 +103,7 @@ export default function SetTask() {
         setGender('');
         setAgeRange([20, 40]);
         setDeadline('');
+        setSelectedPlatforms([]);
       })
       .catch((err) => {
         setError(err.message || 'Submission failed');
@@ -213,49 +232,54 @@ export default function SetTask() {
             <label style={{ 
               fontWeight: '700', 
               display: 'block', 
-              marginBottom: '12px', 
+              marginBottom: '16px', 
               color: '#1f2937', 
               fontSize: '16px',
               letterSpacing: '-0.025em'
             }}>
               Target Age Range
             </label>
+            
+            {/* Age Display */}
             <div style={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              justifyContent: 'center', 
               alignItems: 'center',
-              marginBottom: '20px'
+              gap: '16px',
+              marginBottom: '24px'
             }}>
               <div style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                background: '#3b82f6',
                 color: '#ffffff',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: '600',
-                minWidth: '50px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '18px',
+                fontWeight: '700',
+                minWidth: '60px',
                 textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
               }}>{ageRange[0]}</div>
-              <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: '500', margin: '0 16px' }}>to</span>
+              <span style={{ color: '#374151', fontSize: '16px', fontWeight: '600' }}>to</span>
               <div style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                background: '#3b82f6',
                 color: '#ffffff',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: '600',
-                minWidth: '50px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '18px',
+                fontWeight: '700',
+                minWidth: '60px',
                 textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
               }}>{ageRange[1]}</div>
             </div>
+            
+            {/* Slider Container */}
             <div style={{ 
-              padding: '24px', 
-              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+              padding: '32px 24px', 
+              background: '#ffffff', 
               borderRadius: '16px', 
-              border: '2px solid #e5e7eb',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
             }}>
               <Slider
                 range
@@ -278,7 +302,8 @@ export default function SetTask() {
                     width: 24, 
                     marginTop: -8,
                     borderRadius: '50%',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                    cursor: 'pointer'
                   },
                   { 
                     backgroundColor: '#ffffff', 
@@ -288,7 +313,8 @@ export default function SetTask() {
                     width: 24, 
                     marginTop: -8,
                     borderRadius: '50%',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                    cursor: 'pointer'
                   }
                 ]}
                 railStyle={{ 
@@ -298,13 +324,15 @@ export default function SetTask() {
                 }}
                 step={1}
               />
+              
+              {/* Age Markers */}
               <div style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
-                marginTop: '16px', 
-                fontSize: '12px', 
+                marginTop: '20px', 
+                fontSize: '14px', 
                 color: '#6b7280', 
-                fontWeight: '500' 
+                fontWeight: '600' 
               }}>
                 <span>3</span>
                 <span>15</span>
@@ -312,25 +340,60 @@ export default function SetTask() {
                 <span>45</span>
                 <span>60+</span>
               </div>
+              
+              {/* Age Group Labels */}
               <div style={{ 
-                marginTop: '16px', 
+                marginTop: '20px', 
                 display: 'flex', 
                 flexWrap: 'wrap', 
                 gap: '8px', 
-                justifyContent: 'center' 
+                justifyContent: 'center'
               }}>
                 {getAgeLabels(ageRange).map(label => (
                   <span key={label} style={{ 
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
+                    background: '#3b82f6', 
                     color: '#ffffff',
-                    borderRadius: '16px', 
-                    padding: '6px 16px', 
-                    fontSize: '13px', 
+                    borderRadius: '20px', 
+                    padding: '8px 16px', 
+                    fontSize: '14px', 
                     fontWeight: '600',
-                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)'
                   }}>{label}</span>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Platform Selection */}
+          <div>
+            <label style={{ 
+              fontWeight: '700', 
+              display: 'block', 
+              marginBottom: '12px', 
+              color: '#1f2937', 
+              fontSize: '16px',
+              letterSpacing: '-0.025em'
+            }}>
+              Target Social Media Platforms
+            </label>
+            <div style={{
+              padding: '24px',
+              background: '#fafbfc',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb'
+            }}>
+              <PlatformSelector 
+                selectedPlatforms={selectedPlatforms}
+                onPlatformChange={handlePlatformChange}
+              />
+              <p style={{
+                fontSize: '14px',
+                color: '#6b7280',
+                margin: '12px 0 0 0',
+                fontWeight: '500'
+              }}>
+                Select platforms where content will be automatically posted
+              </p>
             </div>
           </div>
 

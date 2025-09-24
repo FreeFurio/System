@@ -6,14 +6,13 @@ export default function GraphicCreation() {
   const navigate = useNavigate();
   const taskId = searchParams.get('taskId');
   const [workflow, setWorkflow] = useState(null);
-  const [designDescription, setDesignDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
   const canvasRef = useRef(null);
   const [designData, setDesignData] = useState(null);
   const [fetchError, setFetchError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   
   // Canva-like states
   const [activeTab, setActiveTab] = useState('text');
@@ -62,31 +61,57 @@ export default function GraphicCreation() {
   }, [taskId]);
 
   const fetchWorkflow = async () => {
+    setIsLoading(true);
     try {
+      console.log('🎨 Fetching workflow with taskId:', taskId);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/graphicdesigner`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      if (data.status === 'success') {
+      console.log('🎨 API Response:', data);
+      
+      if (data.status === 'success' && Array.isArray(data.data)) {
         const foundWorkflow = data.data.find(w => w.id === taskId);
-        setWorkflow(foundWorkflow);
-        if (!foundWorkflow) setFetchError(`Task with ID ${taskId} not found`);
+        console.log('🎨 Found workflow:', foundWorkflow);
+        
+        if (foundWorkflow) {
+          setWorkflow(foundWorkflow);
+          setIsLoading(false);
+        } else {
+          // Try fetching from all workflows if not found in graphic designer stage
+          const allResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
+          const allData = await allResponse.json();
+          console.log('🎨 All workflows response:', allData);
+          
+          if (allData.status === 'success' && Array.isArray(allData.data)) {
+            const allFoundWorkflow = allData.data.find(w => w.id === taskId);
+            if (allFoundWorkflow) {
+              setWorkflow(allFoundWorkflow);
+              setIsLoading(false);
+            } else {
+              setFetchError(`Task with ID ${taskId} not found`);
+              setIsLoading(false);
+            }
+          } else {
+            setFetchError(`Task with ID ${taskId} not found`);
+            setIsLoading(false);
+          }
+        }
       } else {
-        setFetchError('API returned error status');
+        setFetchError('API returned invalid data structure');
+        setIsLoading(false);
       }
     } catch (error) {
+      console.error('🎨 Fetch error:', error);
       setFetchError(`Failed to load task data: ${error.message}`);
+      setIsLoading(false);
     }
   };
 
-  const handleCreateDesign = () => {
-    setShowEditor(true);
-    setElements([]);
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!designData || !designDescription.trim()) {
-      setError('Please create a design and add a description');
+
+  const handleSubmitDesign = async (designDataUrl) => {
+    if (!designDataUrl) {
+      setError('No design data to submit');
       return;
     }
 
@@ -94,11 +119,11 @@ export default function GraphicCreation() {
     setError('');
 
     try {
-      const response = await fetch(designData);
+      const response = await fetch(designDataUrl);
       const blob = await response.blob();
       const formData = new FormData();
       formData.append('design', blob, 'design.png');
-      formData.append('description', designDescription);
+      formData.append('description', `Design created for task ${taskId}`);
 
       const submitResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/submit-design`, {
         method: 'POST',
@@ -108,7 +133,7 @@ export default function GraphicCreation() {
       const result = await submitResponse.json();
       if (result.status === 'success') {
         setSuccess(true);
-        setTimeout(() => navigate('/graphic/task'), 2000);
+        setTimeout(() => navigate('/graphic/task'), 1500);
       } else {
         setError('Failed to submit design');
       }
@@ -501,365 +526,126 @@ export default function GraphicCreation() {
     }
   };
 
-  if (fetchError) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>Error Loading Task</h2>
-        <p style={{ color: 'red' }}>{fetchError}</p>
-        <button onClick={() => navigate('/graphic/task')} style={{ padding: '10px 20px', marginTop: '20px' }}>
-          Back to Tasks
-        </button>
-      </div>
-    );
-  }
 
-  if (!workflow) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>Loading task data...</h2>
-        <p>Task ID: {taskId}</p>
-      </div>
-    );
-  }
 
-  if (showEditor) {
-    return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
-        {/* Top Bar */}
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '16px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '12px',
-              padding: '8px 12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <span style={{ fontSize: '20px' }}>🎨</span>
-            </div>
-            <div>
-              <h2 style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: '700' }}>Photopea Studio</h2>
-              <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Task: {taskId}</p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => {
-              const iframe = document.getElementById('photopea-iframe');
-              if (iframe) {
-                iframe.contentWindow.postMessage('app.activeDocument.saveToOE("png")', '*');
-              }
-            }} style={{ 
-              background: 'rgba(16, 185, 129, 0.9)', 
-              color: 'white', 
-              border: 'none', 
-              padding: '12px 20px', 
-              borderRadius: '10px', 
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '14px',
-              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
-            }}>✓ Save Design</button>
-            <button onClick={() => setShowEditor(false)} style={{ 
-              background: 'rgba(255,255,255,0.2)', 
-              color: 'white', 
-              border: '1px solid rgba(255,255,255,0.3)', 
-              padding: '12px 20px', 
-              borderRadius: '10px', 
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '14px',
-              backdropFilter: 'blur(10px)'
-            }}>← Back</button>
-          </div>
-        </div>
-        
-        {/* Photopea Iframe */}
-        <div style={{
-          background: '#f8fafc',
-          padding: '20px',
-          height: 'calc(100vh - 120px)'
-        }}>
-          <div style={{
-            width: '100%',
-            height: '100%',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}>
-            <iframe
-              id="photopea-iframe"
-              src="https://www.photopea.com"
-              style={{
-                width: '100%',
-                height: '100%',
-                border: 'none'
-              }}
-              onLoad={() => {
-                window.addEventListener('message', (e) => {
-                  if (e.data && typeof e.data === 'string' && e.data.startsWith('data:image')) {
-                    setDesignData(e.data);
-                    setShowEditor(false);
-                  }
-                });
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Show media editor directly
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #ffffff 0%, #fef7ed 100%)', 
-      padding: '40px 20px',
-      fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
-    }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
+      {/* Top Bar */}
       <div style={{
-        maxWidth: 580,
-        margin: '0 auto',
-        background: '#ffffff',
-        borderRadius: 24,
-        boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.1)',
-        padding: '48px 40px',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(251, 191, 36, 0.2)'
+        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+        padding: '16px 24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            background: 'rgba(255,255,255,0.2)',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <span style={{ fontSize: '20px' }}>🎨</span>
+          </div>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: '700' }}>Design Studio</h2>
+            <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Task: {workflow?.objectives || taskId || 'New Design'}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {loading && (
+            <div style={{ color: 'white', padding: '12px 20px', fontSize: '14px' }}>
+              Saving design...
+            </div>
+          )}
+          {success && (
+            <div style={{ color: '#10b981', padding: '12px 20px', fontSize: '14px', fontWeight: '600' }}>
+              ✓ Design saved!
+            </div>
+          )}
+          <button onClick={() => {
+            const iframe = document.getElementById('photopea-iframe');
+            if (iframe) {
+              iframe.contentWindow.postMessage('app.activeDocument.saveToOE("png")', '*');
+            }
+          }} style={{ 
+            background: loading ? 'rgba(156, 163, 175, 0.9)' : 'rgba(16, 185, 129, 0.9)', 
+            color: 'white', 
+            border: 'none', 
+            padding: '12px 20px', 
+            borderRadius: '10px', 
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontWeight: '600',
+            fontSize: '14px',
+            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+          }} disabled={loading}>
+            {loading ? 'Saving...' : success ? '✓ Saved' : '💾 Save & Submit Design'}
+          </button>
+          <button onClick={() => navigate('/graphic/task')} style={{ 
+            background: 'rgba(255,255,255,0.2)', 
+            color: 'white', 
+            border: '1px solid rgba(255,255,255,0.3)', 
+            padding: '12px 20px', 
+            borderRadius: '10px', 
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '14px',
+            backdropFilter: 'blur(10px)'
+          }}>← Back to Tasks</button>
+        </div>
+      </div>
+      
+      {/* Error Display */}
+      {error && (
+        <div style={{
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626',
+          padding: '12px 24px',
+          fontSize: '14px',
+          fontWeight: '500'
+        }}>
+          ❌ {error}
+        </div>
+      )}
+      
+      {/* Photopea Iframe */}
+      <div style={{
+        background: '#f8fafc',
+        padding: '20px',
+        height: 'calc(100vh - 120px)',
+        flex: 1
       }}>
         <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '6px',
-          background: 'linear-gradient(90deg, #ef4444, #fbbf24, #ef4444, #fbbf24)',
-          borderRadius: '24px 24px 0 0'
-        }} />
-        
-        <div style={{textAlign: 'center', marginBottom: 32}}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#ef4444',
-            color: '#ffffff',
-            fontWeight: 600,
-            fontSize: 14,
-            borderRadius: 20,
-            padding: '8px 20px',
-            marginBottom: 16,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
-          }}>
-            <span style={{fontSize: '16px'}}>🎨</span>
-            Graphic Designer
-          </div>
-          <h1 style={{
-            fontWeight: 800,
-            fontSize: 36,
-            color: '#ef4444',
-            margin: 0,
-            letterSpacing: '-0.8px'
-          }}>Create Design</h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: 17,
-            margin: '8px 0 0 0',
-            fontWeight: 500
-          }}>Professional design studio with templates and tools</p>
-        </div>
-
-        <div style={{ 
-          padding: '20px', 
-          background: '#d4edda', 
-          borderRadius: 16, 
-          border: '2px solid #c3e6cb',
-          marginBottom: 28
+          width: '100%',
+          height: '100%',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
-          <h3 style={{ 
-            margin: '0 0 16px 0', 
-            color: '#155724', 
-            fontSize: 18,
-            fontWeight: 700
-          }}>📝 Content to Design For</h3>
-          
-          <div style={{ marginBottom: '12px' }}>
-            <strong style={{ color: '#155724' }}>Headline:</strong>
-            <div style={{ 
-              marginTop: '4px', 
-              padding: '12px', 
-              background: '#ffffff', 
-              borderRadius: 8,
-              fontSize: 15
-            }}>
-              {workflow.contentCreator?.content?.headline}
-            </div>
-          </div>
-          
-          <div style={{ marginBottom: '12px' }}>
-            <strong style={{ color: '#155724' }}>Caption:</strong>
-            <div style={{ 
-              marginTop: '4px', 
-              padding: '12px', 
-              background: '#ffffff', 
-              borderRadius: 8,
-              fontSize: 15
-            }}>
-              {workflow.contentCreator?.content?.caption}
-            </div>
-          </div>
-          
-          <div>
-            <strong style={{ color: '#155724' }}>Hashtags:</strong>
-            <div style={{ 
-              marginTop: '4px', 
-              padding: '12px', 
-              background: '#ffffff', 
-              borderRadius: 8,
-              fontSize: 15
-            }}>
-              {workflow.contentCreator?.content?.hashtag}
-            </div>
-          </div>
-        </div>
-
-        <div style={{
-          padding: '24px',
-          background: 'linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%)',
-          borderRadius: 16,
-          border: '2px solid #f59e0b',
-          marginBottom: 28,
-          textAlign: 'center'
-        }}>
-          <h3 style={{ 
-            margin: '0 0 16px 0', 
-            color: '#92400e', 
-            fontSize: 18,
-            fontWeight: 700
-          }}>🎨 Professional Design Studio</h3>
-          <p style={{ 
-            color: '#92400e', 
-            marginBottom: 20,
-            fontSize: 15
-          }}>Templates • Text Tools • Shapes • Layers • Professional Export</p>
-          <button
-            type="button"
-            onClick={handleCreateDesign}
+          <iframe
+            id="photopea-iframe"
+            src="https://www.photopea.com"
             style={{
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: 12,
-              padding: '16px 32px',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+              width: '100%',
+              height: '100%',
+              border: 'none'
             }}
-          >
-            🚀 Open Design Studio
-          </button>
-          {designData && (
-            <div style={{ marginTop: 16 }}>
-              <p style={{ color: '#059669', fontSize: 14, fontWeight: 600 }}>✓ Design created and ready to submit</p>
-            </div>
-          )}
+            onLoad={() => {
+              window.addEventListener('message', (e) => {
+                if (e.data && typeof e.data === 'string' && e.data.startsWith('data:image')) {
+                  console.log('🎨 Design received from Photopea');
+                  handleSubmitDesign(e.data);
+                }
+              });
+            }}
+          />
         </div>
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-          <div>
-            <label style={{ 
-              fontWeight: 700, 
-              display: 'block', 
-              marginBottom: 12, 
-              color: '#1f2937', 
-              fontSize: 16,
-              letterSpacing: '0.3px'
-            }}>Design Description</label>
-            <textarea
-              value={designDescription}
-              onChange={(e) => setDesignDescription(e.target.value)}
-              placeholder="Describe your design approach and key elements..."
-              rows={4}
-              style={{ 
-                width: '100%', 
-                padding: '16px 20px', 
-                borderRadius: 16, 
-                border: '2px solid #e5e7eb', 
-                fontSize: 15, 
-                background: '#fafbfc', 
-                resize: 'none', 
-                outline: 'none', 
-                boxSizing: 'border-box',
-                fontFamily: 'inherit',
-                lineHeight: 1.6
-              }}
-              required
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading || success}
-            style={{ 
-              marginTop: 24, 
-              background: (loading || success) ? '#9ca3af' : '#ef4444', 
-              color: '#ffffff', 
-              border: 'none', 
-              borderRadius: 16, 
-              padding: '18px 32px', 
-              fontWeight: 600, 
-              fontSize: 17, 
-              cursor: (loading || success) ? 'not-allowed' : 'pointer', 
-              letterSpacing: '0.8px', 
-              textTransform: 'uppercase',
-              fontFamily: 'inherit'
-            }}
-          >
-            {loading ? 'Submitting Design...' : success ? 'Design Submitted!' : 'Submit Design'}
-          </button>
-
-          {error && (
-            <div style={{ 
-              color: '#ef4444', 
-              marginTop: 16, 
-              fontWeight: 500, 
-              textAlign: 'center',
-              padding: '12px 20px',
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: 12,
-              fontSize: 14
-            }}>
-              ❌ {error}
-            </div>
-          )}
-
-          {success && (
-            <div style={{ 
-              color: '#059669', 
-              marginTop: 16, 
-              fontWeight: 500, 
-              textAlign: 'center',
-              padding: '12px 20px',
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: 12,
-              fontSize: 14
-            }}>
-              ✅ Design submitted successfully! Redirecting to tasks...
-            </div>
-          )}
-        </form>
       </div>
     </div>
   );
+
+
 }

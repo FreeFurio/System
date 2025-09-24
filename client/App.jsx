@@ -12,6 +12,7 @@ import ForgotPassword from './pages/Login/ForgotPassword';
 import ResetPassword from './pages/Login/ResetPassword';
 import "./styles/Register.css";
 import "./styles/LoginForm.css";
+import "./styles/text-backgrounds.css";
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import SocialsAndInsights from './pages/Admin/SocialsAndInsights';
 import ApprovalOfAccountsPage from './pages/Admin/ApprovalOfAccountsPage';
@@ -20,6 +21,7 @@ import ManageAccountsPage from './pages/Admin/ManageAccountsPage';
 import DashboardLayout from './components/common/DashboardLayout';
 import { UserProvider } from './components/common/UserContext';
 import './styles/darkmode.css';
+import './styles/text-backgrounds.css';
 // Marketing Lead imports
 import MarketingLeadLayout from './pages/MarketingLead/MarketingLeadLayout';
 import Dashboard from './pages/MarketingLead/Dashboard';

@@ -8,6 +8,7 @@ import {
     getWorkflowsByMultipleStatuses,
     submitContent,
     approveContent,
+    rejectContent,
     submitDesign,
     approveDesign,
     updateWorkflow,
@@ -149,6 +150,11 @@ router.post(
 router.post(
     '/workflow/:workflowId/approve-content',
     approveContent
+)
+
+router.post(
+    '/workflow/:workflowId/reject-content',
+    rejectContent
 )
 
 // Design submission and approval

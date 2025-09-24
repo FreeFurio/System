@@ -131,21 +131,19 @@ const ApprovalOfAccountsPage = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h1 style={{
-              fontSize: '2rem',
-              fontWeight: '700',
-              color: 'var(--text-primary, #1f2937)',
+              fontSize: '32px',
+              fontWeight: '800',
+              color: '#111827',
               margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
+              letterSpacing: '-0.025em'
             }}>
-              <FiUserCheck size={28} color="#10b981" />
               Approval of Accounts
             </h1>
             <p style={{
-              color: 'var(--text-secondary, #6b7280)',
-              fontSize: '1rem',
-              margin: '8px 0 0 0'
+              color: '#6b7280',
+              fontSize: '16px',
+              margin: '8px 0 0 0',
+              fontWeight: '400'
             }}>
               {pendingAccounts.length} total pending • {filteredAccounts.length} showing
             </p>

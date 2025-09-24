@@ -28,11 +28,28 @@ const adminNotification = async (req, res, next) => {
     }
 }
 
+const contentCreatorNotification = async (req, res, next) => {
+    console.log('📬 contentCreatorNotification controller called');
+    try {
+        const notification = await FirebaseService.getContentCreatorNotifications();
+        console.log('📬 contentCreatorNotification controller - notifications retrieved:', notification ? Object.keys(notification).length : 0);
+
+        res.status(200).json({
+            status: 'success',
+            data: notification
+        });
+    } catch (error) {
+        console.error('❌ contentCreatorNotification controller error:', error);
+        next(error);
+    }
+}
+
 // ========================
 // 4) EXPORTS
 // ========================
 
 export {
-    adminNotification
+    adminNotification,
+    contentCreatorNotification
 };
 

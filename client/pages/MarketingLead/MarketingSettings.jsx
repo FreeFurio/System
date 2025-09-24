@@ -37,7 +37,7 @@ const MarketingSettings = ({ isOpen, onClose }) => {
       setLoading(true);
       try {
         const uploadService = (await import('../../services/uploadService')).default;
-        const result = await uploadService.uploadFile(file, 'profile-pictures', null, user?.username);
+        const result = await uploadService.uploadProfilePicture(file);
         setSettings(prev => ({ ...prev, profilePicture: result.url }));
         
         // Update UserContext immediately

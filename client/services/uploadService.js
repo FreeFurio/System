@@ -7,6 +7,38 @@ class UploadService {
     this.uploadPreset = 'unsigned_uploads'; // Custom unsigned preset
   }
 
+  // Upload profile picture to Cloudinary only (no database tracking)
+  async uploadProfilePicture(file) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', this.uploadPreset);
+      formData.append('folder', 'profile-pictures');
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${this.cloudName}/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      return {
+        success: true,
+        url: result.secure_url,
+        publicId: result.public_id
+      };
+    } catch (error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+  }
+
   // Upload file to Cloudinary and save URL to database
   async uploadFile(file, folder = 'uploads', userRole = null, username = null) {
     try {

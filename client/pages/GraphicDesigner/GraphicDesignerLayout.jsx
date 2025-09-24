@@ -16,7 +16,7 @@ const sidebarItems = [
 
 export default function GraphicDesignerLayout() {
   const { user, setUser } = useUser();
-  const designerName = user?.name || "Graphic Designer";
+  const designerName = `${user?.firstName || 'Graphic'} ${user?.lastName || 'Designer'}`;
   const designerRole = user?.role || "role";
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -125,7 +125,7 @@ export default function GraphicDesignerLayout() {
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
                 <div style={{ padding: '0 16px 10px 16px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{designerName}</div>
+                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName || 'Graphic'} {user?.lastName || 'Designer'}</div>
                   <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
                 </div>
                 <button 
@@ -148,9 +148,9 @@ export default function GraphicDesignerLayout() {
       
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
         {!sidebarCollapsed && (
-          <div className="sidebar" style={{ width: '240px', minWidth: '220px', background: '#f8f9fb', borderRight: '1px solid #ececec', padding: '32px 0 24px 0', borderRadius: 0, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxShadow: 'none', margin: 0, overflow: 'hidden' }}>
+          <div className="sidebar" style={{ width: '240px', minWidth: '220px', background: '#ffffff', borderRight: '1px solid #ececec', padding: '32px 0 24px 0', borderRadius: 0, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxShadow: 'none', margin: 0, overflow: 'hidden' }}>
           {/* User Profile */}
-          <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
+          <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px 16px', background: '#f8fafc', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb', margin: '0 12px 32px 12px' }}>
             {user?.profilePicture ? (
               <img 
                 src={user.profilePicture} 
@@ -171,18 +171,18 @@ export default function GraphicDesignerLayout() {
               </span>
             )}
             <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-              <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{designerName}</div>
+              <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: '1.2', whiteSpace: 'normal', maxHeight: '2.4em', overflow: 'hidden' }}>{user?.firstName || 'Graphic'} {user?.lastName || 'Designer'}</div>
               <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
             </div>
           </div>
           {/* Navigation */}
-          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, padding: '0 12px' }}>
             {sidebarItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
-                style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === item.path ? '#fff' : '#222', background: location.pathname === item.path ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+                style={{ padding: '14px 20px', fontWeight: 600, borderRadius: 12, color: location.pathname === item.path ? '#fff' : '#374151', background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', marginBottom: 6, textDecoration: 'none', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none', fontSize: 15 }}
               >
                 {item.icon}
                 {item.label}

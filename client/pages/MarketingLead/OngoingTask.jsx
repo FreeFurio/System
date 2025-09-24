@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { io } from "socket.io-client";
 import { cachedFetch } from '../../utils/apiCache';
+import { FiTrash2, FiTarget, FiUser, FiCalendar, FiBarChart, FiSmartphone, FiClock, FiEdit3, FiStar, FiFileText, FiHash, FiTrendingUp, FiEye, FiCheckCircle, FiSend, FiClipboard } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const EditTaskModal = ({ task, type, onClose, onSave }) => {
   const formatDateForInput = (dateString) => {
@@ -20,9 +22,8 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
 
   return (
     <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', zIndex: 1000
+      position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+      background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
     }}>
       <div style={{
         backgroundColor: 'white', 
@@ -264,6 +265,91 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
   );
 };
 
+const DeleteModal = ({ isOpen, onConfirm, onCancel, taskTitle, taskType }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      paddingTop: '100px'
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: '16px', padding: '32px',
+        maxWidth: '400px', width: '90%',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+        transform: isOpen ? 'translateY(0)' : 'translateY(-20px)',
+        transition: 'all 0.3s ease',
+        fontFamily: 'Inter, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ 
+            width: '48px', height: '48px', borderRadius: '50%',
+            background: '#fef2f2', margin: '0 auto 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <FiTrash2 size={20} color="#dc2626" />
+          </div>
+          <h3 style={{
+            fontSize: '18px', fontWeight: '700', color: '#1f2937',
+            margin: '0 0 8px 0'
+          }}>
+            Delete Task
+          </h3>
+          <p style={{
+            fontSize: '14px', color: '#6b7280', margin: '0 0 16px 0',
+            lineHeight: '1.5'
+          }}>
+            Are you sure you want to delete this {taskType} task?
+          </p>
+          <div style={{
+            background: '#f9fafb', padding: '12px', borderRadius: '8px',
+            border: '1px solid #e5e7eb'
+          }}>
+            <p style={{
+              fontSize: '13px', fontWeight: '600', color: '#374151',
+              margin: 0, wordBreak: 'break-word'
+            }}>
+              "{taskTitle}"
+            </p>
+          </div>
+        </div>
+        <div style={{ 
+          display: 'flex', gap: '12px', justifyContent: 'flex-end'
+        }}>
+          <button 
+            onClick={onCancel}
+            style={{
+              padding: '12px 24px', background: '#6b7280', color: '#fff',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              fontSize: '14px', fontWeight: '600',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={e => e.target.style.backgroundColor = '#4b5563'}
+            onMouseLeave={e => e.target.style.backgroundColor = '#6b7280'}
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onConfirm}
+            style={{
+              padding: '12px 24px', background: '#dc2626', color: '#fff',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              fontSize: '14px', fontWeight: '600',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={e => e.target.style.backgroundColor = '#b91c1c'}
+            onMouseLeave={e => e.target.style.backgroundColor = '#dc2626'}
+          >
+            Delete Task
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TaskCard = ({ task, type, onEdit, onDelete }) => {
   const [contentExpanded, setContentExpanded] = useState(false);
   
@@ -304,12 +390,12 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
   };
 
   const getTaskIcon = () => {
-    if (task.status === 'content_approval') return '📝';
-    if (task.status === 'ready_for_design_assignment') return '✅';
-    if (task.status === 'design_creation') return '🎨';
-    if (task.status === 'design_approval') return '👀';
-    if (task.status === 'posted') return '🚀';
-    return '📋';
+    if (task.status === 'content_approval') return <FiFileText size={20} color="#fff" />;
+    if (task.status === 'ready_for_design_assignment') return <FiCheckCircle size={20} color="#fff" />;
+    if (task.status === 'design_creation') return <FiEdit3 size={20} color="#fff" />;
+    if (task.status === 'design_approval') return <FiEye size={20} color="#fff" />;
+    if (task.status === 'posted') return <FiSend size={20} color="#fff" />;
+    return <FiClipboard size={20} color="#fff" />;
   };
 
   return (
@@ -323,15 +409,15 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
       transition: 'all 0.3s ease'
     }}
     onMouseEnter={e => {
-      e.target.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
-      e.target.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+      e.currentTarget.style.transform = 'translateY(-2px)';
     }}
     onMouseLeave={e => {
-      e.target.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
-      e.target.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+      e.currentTarget.style.transform = 'translateY(0)';
     }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', background: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '48px',
@@ -345,13 +431,14 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
           }}>
             {getTaskIcon()}
           </div>
-          <div>
+          <div style={{ background: '#fff' }}>
             <h3 style={{ 
               margin: '0 0 4px 0', 
               color: '#1f2937', 
               fontSize: '18px', 
               fontWeight: '700',
-              letterSpacing: '-0.025em'
+              letterSpacing: '-0.025em',
+              background: '#fff'
             }}>
               {task.status === 'content_approval' ? 'Content Approval Required' : 
                task.status === 'ready_for_design_assignment' ? 'Ready for Design Assignment' :
@@ -364,7 +451,8 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
               margin: 0,
               color: '#6b7280',
               fontSize: '14px',
-              fontWeight: '500'
+              fontWeight: '500',
+              background: '#fff'
             }}>
               {task.createdAt ? `Created ${formatDate(task.createdAt)}` : 'Recently created'}
             </p>
@@ -383,11 +471,11 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
           alignItems: 'center',
           gap: '6px'
         }}>
-          ⏱️ {getStatusText(task.status)}
+          <FiClock size={12} /> {getStatusText(task.status)}
         </div>
       </div>
       
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '20px', background: '#fff' }}>
         <div style={{ 
           fontSize: '14px', 
           fontWeight: '600', 
@@ -395,15 +483,17 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
           marginBottom: '8px',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '8px',
+          background: '#fff'
         }}>
-          🎯 Task Objectives
+          <FiTarget size={16} color="#3b82f6" /> Task Objectives
         </div>
         <div style={{ 
           fontSize: '16px', 
           color: '#1f2937', 
           lineHeight: '1.6',
-          fontWeight: '500'
+          fontWeight: '500',
+          background: '#fff'
         }}>
           {task.objectives}
         </div>
@@ -420,33 +510,40 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
         border: '1px solid #e2e8f0'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>👤</span>
+          <FiUser size={16} color="#3b82f6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Target Gender</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{task.gender}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{task.gender}</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>🎂</span>
+          <FiCalendar size={16} color="#10b981" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Age Range</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{task.minAge}-{task.maxAge} years</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{task.minAge}-{task.maxAge} years</div>
           </div>
         </div>
         {task.numContent && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px' }}>📊</span>
+            <FiBarChart size={16} color="#f59e0b" />
             <div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Content Count</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{task.numContent}</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Content Count</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{task.numContent}</div>
             </div>
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>📅</span>
+          <FiClock size={16} color="#ef4444" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Deadline</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151' }}>{formatDate(task.deadline)}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(task.deadline)}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={16} color="#8b5cf6" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={task.selectedPlatforms || []} size="small" />
           </div>
         </div>
       </div>
@@ -465,7 +562,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '20px' }}>✨</span>
+              <FiStar size={20} color="#0d47a1" />
               <div>
                 <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Submitted Content</div>
                 <div style={{ fontSize: '13px', color: '#1565c0' }}>Content ready for review and approval</div>
@@ -488,7 +585,15 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                 gap: '6px'
               }}
             >
-              {contentExpanded ? '📤 Hide Details' : '📋 View Details'}
+              {contentExpanded ? (
+                <>
+                  <FiEye size={14} /> Hide Details
+                </>
+              ) : (
+                <>
+                  <FiFileText size={14} /> View Details
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -514,26 +619,27 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
             paddingBottom: '16px',
             borderBottom: '2px solid #e5e7eb'
           }}>
-            <h4 style={{ 
+            <h4 className="seo-heading-override" style={{ 
               margin: 0, 
-              color: '#1e293b', 
+              color: '#000000 !important', 
               fontSize: '20px', 
               fontWeight: '700',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
             }}>
-              📝 Approved Content Analysis
+              <FiFileText size={20} color="#3b82f6" /> Approved Content Analysis
             </h4>
             <div style={{
-              background: '#10b981',
-              color: '#fff',
+              background: '#10b981 !important',
+              color: '#ffffff !important',
               padding: '6px 12px',
               borderRadius: '20px',
               fontSize: '12px',
               fontWeight: '700'
             }}>
-              Overall SEO: {task.contentCreator?.content?.seoScore || 85}/100
+              Overall SEO: {task.contentCreator?.content?.seoAnalysis?.overallScore || 'N/A'}/100
             </div>
           </div>
           
@@ -556,7 +662,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                   alignItems: 'center', 
                   gap: '8px' 
                 }}>
-                  <span>📰</span> HEADLINE
+                  <FiFileText size={14} color="#3b82f6" /> HEADLINE
                   <div style={{
                     background: task.contentCreator.content.headlineScore >= 85 ? '#10b981' : task.contentCreator.content.headlineScore >= 75 ? '#f59e0b' : '#ef4444',
                     color: '#fff',
@@ -565,7 +671,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                     fontSize: '11px',
                     fontWeight: '700'
                   }}>
-                    {task.contentCreator.content.headlineScore || 82}
+                    {task.contentCreator.content.seoAnalysis?.headlineScore || 'N/A'}
                   </div>
                 </div>
                 <div style={{
@@ -594,7 +700,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                   alignItems: 'center', 
                   gap: '8px' 
                 }}>
-                  <span>📝</span> CAPTION
+                  <FiEdit3 size={14} color="#10b981" /> CAPTION
                   <div style={{
                     background: task.contentCreator.content.captionScore >= 85 ? '#10b981' : task.contentCreator.content.captionScore >= 75 ? '#f59e0b' : '#ef4444',
                     color: '#fff',
@@ -603,7 +709,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                     fontSize: '11px',
                     fontWeight: '700'
                   }}>
-                    {task.contentCreator.content.captionScore || 78}
+                    {task.contentCreator.content.seoAnalysis?.captionScore || 'N/A'}
                   </div>
                 </div>
                 <div style={{
@@ -631,7 +737,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                   alignItems: 'center', 
                   gap: '8px' 
                 }}>
-                  <span>🏷️</span> HASHTAGS
+                  <FiHash size={14} color="#f59e0b" /> HASHTAGS
                   <div style={{
                     background: task.contentCreator.content.hashtagScore >= 85 ? '#10b981' : task.contentCreator.content.hashtagScore >= 75 ? '#f59e0b' : '#ef4444',
                     color: '#fff',
@@ -640,7 +746,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                     fontSize: '11px',
                     fontWeight: '700'
                   }}>
-                    {task.contentCreator.content.hashtagScore || 88}
+                    {task.contentCreator.content.seoAnalysis?.hashtagScore || 'N/A'}
                   </div>
                 </div>
                 <div style={{
@@ -662,16 +768,17 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
               border: '1px solid #e5e7eb',
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
             }}>
-              <h5 style={{ 
+              <h5 className="seo-heading-override" style={{ 
                 margin: '0 0 20px 0', 
                 fontSize: '16px', 
                 fontWeight: '700', 
-                color: '#1e293b', 
+                color: '#000000 !important', 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '8px' 
+                gap: '8px',
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
               }}>
-                📊 SEO Analytics Dashboard
+                <FiTrendingUp size={16} color="#10b981" /> SEO Analytics Dashboard
               </h5>
               
               <div style={{ display: 'grid', gap: '12px', fontSize: '12px' }}>
@@ -696,11 +803,11 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Sentiment</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: '#6b7280' }}>Overall Tone</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>Positive</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.sentiment?.tone || 'N/A'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                     <span style={{ color: '#6b7280' }}>Confidence</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937' }}>87%</span>
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator?.content?.seoAnalysis?.sentiment?.confidence || 'N/A'}%</span>
                   </div>
                 </div>
                 
@@ -708,7 +815,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Power Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {['proven', 'exceptional', 'innovative', 'ultimate'].map(word => (
+                    {(task.contentCreator?.content?.seoAnalysis?.powerWords?.words || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fef3c7',
                         color: '#92400e',
@@ -727,7 +834,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Emotional Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {['exciting', 'amazing', 'incredible', 'love'].map(word => (
+                    {(task.contentCreator?.content?.seoAnalysis?.emotionalWords?.words || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fce7f3',
                         color: '#be185d',
@@ -747,11 +854,11 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Word Complexity</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: '#6b7280' }}>Common Words</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>78%</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.commonWords?.count || 'N/A'}%</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                     <span style={{ color: '#6b7280' }}>Uncommon Words</span>
-                    <span style={{ fontWeight: '600', color: '#f59e0b' }}>22%</span>
+                    <span style={{ fontWeight: '600', color: '#f59e0b' }}>{task.contentCreator?.content?.seoAnalysis?.uncommonWords?.count || 'N/A'}%</span>
                   </div>
                 </div>
                 
@@ -760,15 +867,15 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Readability Analysis</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: '#6b7280' }}>Grade Level</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>8th Grade</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.readability?.gradeLevel || 'N/A'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                     <span style={{ color: '#6b7280' }}>Reading Time</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937' }}>45 sec</span>
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator?.content?.seoAnalysis?.readability?.readingTime || 'N/A'} sec</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                     <span style={{ color: '#6b7280' }}>Flesch Score</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>72</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.readability?.fleschScore || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -804,7 +911,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
             e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
           }}
         >
-          ✏️ Edit Task
+          <FiEdit3 size={14} /> Edit Task
         </button>
         <button
           onClick={() => onDelete(task)}
@@ -832,7 +939,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
             e.target.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.3)';
           }}
         >
-          🗑️ Delete
+          <FiTrash2 size={14} /> Delete
         </button>
       </div>
 
@@ -846,6 +953,9 @@ export default function OngoingTask() {
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
   const [editingType, setEditingType] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ 
+    isOpen: false, task: null, type: null 
+  });
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -952,43 +1062,70 @@ export default function OngoingTask() {
     }
   };
 
-  const handleDelete = async (task, type) => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      try {
-        const taskType = type === 'Content Creator' ? 'contentcreator' : 'graphicdesigner';
-        const taskId = task.id || task._id;
-        
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/task/${taskType}/${encodeURIComponent(taskId)}`, {
-          method: 'DELETE'
-        });
-        
-        if (response.ok) {
-          if (type === 'Content Creator') {
-            setCreatorTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
-          } else {
-            setDesignerTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
-          }
-          console.log('Task deleted successfully');
+  const handleDeleteClick = (task, type) => {
+    setDeleteModal({ 
+      isOpen: true, 
+      task, 
+      type,
+      taskTitle: task.objectives || 'Untitled Task'
+    });
+  };
+
+  const confirmDelete = async () => {
+    const { task, type } = deleteModal;
+    try {
+      const taskId = task.id || task._id;
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${encodeURIComponent(taskId)}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        if (type === 'Content Creator') {
+          setCreatorTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
         } else {
-          const errorText = await response.text();
-          console.error('Failed to delete task:', errorText);
-          alert('Failed to delete task');
+          setDesignerTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
         }
-      } catch (error) {
-        console.error('Error deleting task:', error);
-        alert('Error deleting task: ' + error.message);
+        console.log('Task deleted successfully');
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to delete task:', errorText);
+        alert('Failed to delete task');
       }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Error deleting task: ' + error.message);
+    } finally {
+      setDeleteModal({ isOpen: false, task: null, type: null });
     }
   };
 
   return (
     <div style={{ padding: '0', maxWidth: '100%' }}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: '800',
+          color: '#111827',
+          margin: 0,
+          letterSpacing: '-0.025em'
+        }}>
           Ongoing Tasks
         </h1>
-        <p style={{ color: '#6b7280', margin: 0 }}>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '16px',
+          margin: '8px 0 0 0',
+          fontWeight: '400'
+        }}>
           Monitor and manage active tasks for content creators and graphic designers
         </p>
       </div>
@@ -1038,7 +1175,7 @@ export default function OngoingTask() {
                   task={task} 
                   type="Content Creator" 
                   onEdit={(task) => handleEdit(task, 'Content Creator')}
-                  onDelete={(task) => handleDelete(task, 'Content Creator')}
+                  onDelete={(task) => handleDeleteClick(task, 'Content Creator')}
                 />
               ))
             ) : (
@@ -1095,7 +1232,7 @@ export default function OngoingTask() {
                   task={task} 
                   type="Graphic Designer" 
                   onEdit={(task) => handleEdit(task, 'Graphic Designer')}
-                  onDelete={(task) => handleDelete(task, 'Graphic Designer')}
+                  onDelete={(task) => handleDeleteClick(task, 'Graphic Designer')}
                 />
               ))
             ) : (
@@ -1113,6 +1250,16 @@ export default function OngoingTask() {
           type={editingType}
           onClose={() => { setEditingTask(null); setEditingType(null); }}
           onSave={handleSaveEdit}
+        />
+      )}
+      
+      {deleteModal.isOpen && (
+        <DeleteModal
+          isOpen={deleteModal.isOpen}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteModal({ isOpen: false, task: null, type: null })}
+          taskTitle={deleteModal.taskTitle}
+          taskType={deleteModal.type}
         />
       )}
     </div>

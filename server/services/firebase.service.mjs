@@ -198,6 +198,7 @@ class FirebaseService {
         minAge: workflowData.minAge,
         maxAge: workflowData.maxAge,
         deadline: workflowData.deadline,
+        selectedPlatforms: workflowData.selectedPlatforms || [],
         status: 'content_creation',
         currentStage: 'contentcreator',
         createdAt: new Date().toISOString(),
@@ -214,6 +215,15 @@ class FirebaseService {
       
       const workflowRef = push(ref(db, 'workflows'));
       await set(workflowRef, workflow);
+      
+      // Create notification for new task
+      await this.createContentCreatorNotification({
+        type: 'new_task',
+        message: `New task assigned: ${workflow.objectives}`,
+        workflowId: workflowRef.key,
+        user: 'Content Creator'
+      });
+      
       console.log('🔄 createWorkflow success - Workflow created with key:', workflowRef.key);
       return workflowRef.key;
     } catch (error) {
@@ -309,18 +319,17 @@ class FirebaseService {
       const workflow = snapshot.val();
       const updatedWorkflow = {
         ...workflow,
-        status: 'posted',
-        currentStage: 'completed',
+        status: 'design_approved',
+        currentStage: 'pending_posting',
         finalApproval: {
           approvedAt: new Date().toISOString(),
-          approvedBy: approvedBy,
-          postedAt: new Date().toISOString()
+          approvedBy: approvedBy
         },
         updatedAt: new Date().toISOString()
       };
       
       await set(workflowRef, updatedWorkflow);
-      console.log('✅ approveDesign success - Design approved and posted');
+      console.log('✅ approveDesign success - Design approved, ready for automated posting');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error approving design:', error);
@@ -392,10 +401,20 @@ class FirebaseService {
           content: contentData,
           submittedAt: new Date().toISOString()
         },
+        marketingRejection: null,
         updatedAt: new Date().toISOString()
       };
       
       await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for content submission
+      await this.createContentCreatorNotification({
+        type: 'content_submitted',
+        message: `Content submitted successfully for: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: 'Content Creator'
+      });
+      
       console.log('📤 submitContent success - Content submitted');
       return updatedWorkflow;
     } catch (error) {
@@ -454,11 +473,61 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for content approval
+      await this.createContentCreatorNotification({
+        type: 'content_approved',
+        message: `Your content has been approved: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: 'Content Creator'
+      });
+      
       console.log('✅ approveContent success - Content approved, ready for design assignment');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error approving content:', error);
       throw new Error('Failed to approve content');
+    }
+  }
+
+  static async rejectContent(workflowId, rejectedBy, feedback) {
+    console.log('❌ rejectContent called with workflowId:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'content_rejected',
+        currentStage: 'marketinglead',
+        marketingRejection: {
+          rejectedAt: new Date().toISOString(),
+          rejectedBy: rejectedBy,
+          feedback: feedback
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for content rejection
+      await this.createContentCreatorNotification({
+        type: 'content_rejected',
+        message: `Your content has been rejected: ${workflow.objectives}. Please review feedback and resubmit.`,
+        workflowId: workflowId,
+        user: 'Content Creator'
+      });
+      
+      console.log('❌ rejectContent success - Content rejected');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error rejecting content:', error);
+      throw new Error('Failed to reject content');
     }
   }
 
@@ -515,6 +584,33 @@ class FirebaseService {
     }
   }
 
+  static async updateWorkflowStatus(workflowId, status, additionalData = {}) {
+    console.log('🔄 updateWorkflowStatus called with:', { workflowId, status, additionalData });
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const currentWorkflow = snapshot.val();
+      const updatedWorkflow = {
+        ...currentWorkflow,
+        status,
+        ...additionalData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('🔄 updateWorkflowStatus success - Status updated to:', status);
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error updating workflow status:', error);
+      throw new Error('Failed to update workflow status');
+    }
+  }
+
   // ========================
   // 5)  NOTIFICATIONS
   // ========================
@@ -568,6 +664,28 @@ class FirebaseService {
     }
   }
 
+  static async createContentCreatorNotification(notificationData) {
+    console.log('🔔 createContentCreatorNotification called with data:', notificationData);
+    try {
+      const createNotifRef = push(ref(db, 'notification/contentcreator'));
+      const notifData = {
+        type: notificationData.type,
+        message: notificationData.message,
+        read: notificationData.read || false,
+        timestamp: notificationData.timestamp || new Date().toISOString(),
+        workflowId: notificationData.workflowId,
+        user: notificationData.user
+      };
+      
+      await set(createNotifRef, notifData);
+      console.log('🔔 createContentCreatorNotification success - Notification saved');
+      return createNotifRef.key;
+    } catch (error) {
+      console.error('❌ Error saving Content Creator notification:', error);
+      throw new Error('Failed to save Content Creator notification');
+    }
+  }
+
   // ========================
   // 5.2) GET NOTIFICATIONS
   // ========================
@@ -581,6 +699,19 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error getting admin notifications:', error);
       throw new Error('Failed to get admin notifications');
+    }
+  }
+
+  static async getContentCreatorNotifications() {
+    console.log('📬 getContentCreatorNotifications called');
+    try {
+      const snapshot = await get(ref(db, 'notification/contentcreator'));
+      const result = snapshot.val();
+      console.log('📬 getContentCreatorNotifications result:', result ? Object.keys(result).length + ' notifications found' : 'No notifications found');
+      return result;
+    } catch (error) {
+      console.error('❌ Error getting content creator notifications:', error);
+      throw new Error('Failed to get content creator notifications');
     }
   }
 

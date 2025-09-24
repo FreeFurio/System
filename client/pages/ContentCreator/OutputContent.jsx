@@ -126,7 +126,7 @@ export default function OutputContent() {
       if (response.ok && data.status === 'success') {
         setShowSuccess(true);
         setTimeout(() => {
-          navigate('/content/ongoing-approval');
+          navigate('/content/approval');
         }, 2000);
       } else {
         throw new Error(data.message || 'Failed to submit content');

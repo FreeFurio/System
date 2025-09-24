@@ -1,6 +1,19 @@
 /* Global Styles */
 /* Sidebar profile avatar backgrounds for all roles should use #e0e7ff for consistency. */
 
+/* Text Background Defaults - Prevent Shadow Bleeding */
+.admin-dashboard h1, .admin-dashboard h2, .admin-dashboard h3, .admin-dashboard h4, .admin-dashboard h5, .admin-dashboard h6 {
+  background: #ffffff;
+}
+
+.admin-dashboard p, .admin-dashboard span, .admin-dashboard div {
+  background: inherit;
+}
+
+.admin-dashboard .card-text, .admin-dashboard .modal-text, .admin-dashboard .content-text {
+  background: #ffffff !important;
+}
+
 .notification-badge {
   position: absolute;
   top: 2px;

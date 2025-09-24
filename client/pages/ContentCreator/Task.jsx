@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const WorkflowCard = ({ workflow, onCreateContent }) => {
   const getStatusColor = (status) => {
@@ -28,119 +29,285 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
-      border: '1px solid #e0e0e0',
-      borderRadius: '12px',
+      background: '#fff',
+      borderRadius: '16px',
       padding: '24px',
       marginBottom: '20px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.3s ease',
-      fontFamily: 'Inter, sans-serif'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3 style={{ margin: 0, color: '#2c3e50', fontSize: '18px', fontWeight: '600' }}>Content Creation Task</h3>
-        <span style={{
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      border: '1px solid #e5e7eb',
+      transition: 'all 0.3s ease'
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+      e.currentTarget.style.transform = 'translateY(-2px)';
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+      e.currentTarget.style.transform = 'translateY(0)';
+    }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', background: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            📝
+          </div>
+          <div style={{ background: '#fff' }}>
+            <h3 style={{ 
+              margin: '0 0 4px 0', 
+              color: '#1f2937', 
+              fontSize: '18px', 
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+              background: '#fff'
+            }}>
+              Content Creation Task
+            </h3>
+            <p style={{
+              margin: 0,
+              color: '#6b7280',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: '#fff'
+            }}>
+              {workflow.createdAt ? `Created ${formatDate(workflow.createdAt)}` : 'Recently created'}
+            </p>
+          </div>
+        </div>
+        <div style={{
+          background: getStatusColor(workflow.status),
+          color: '#fff',
           padding: '8px 16px',
           borderRadius: '20px',
           fontSize: '12px',
-          fontWeight: '600',
-          color: '#fff',
-          background: getStatusColor(workflow.status),
+          fontWeight: '700',
           textTransform: 'uppercase',
-          letterSpacing: '0.5px'
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          {workflow.status?.replace('_', ' ') || 'CREATED'}
-        </span>
+          ⏱️ {workflow.status?.replace('_', ' ') || 'CREATED'}
+        </div>
       </div>
       
-      <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-        <div style={{ color: '#495057', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>Objectives</div>
-        <div style={{ color: '#2c3e50', fontSize: '15px', lineHeight: '1.5' }}>{workflow.objectives}</div>
+      <div style={{ marginBottom: '20px', background: '#fff' }}>
+        <div style={{ 
+          fontSize: '14px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#fff'
+        }}>
+          🎯 Task Objectives
+        </div>
+        <div style={{ 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500',
+          background: '#fff'
+        }}>
+          {workflow.objectives}
+        </div>
       </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div style={{ padding: '12px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-          <div style={{ color: '#6c757d', fontSize: '12px', fontWeight: '500', marginBottom: '4px' }}>TARGET GENDER</div>
-          <div style={{ color: '#2c3e50', fontSize: '14px', fontWeight: '600' }}>{workflow.gender}</div>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>👤</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+          </div>
         </div>
-        <div style={{ padding: '12px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-          <div style={{ color: '#6c757d', fontSize: '12px', fontWeight: '500', marginBottom: '4px' }}>AGE RANGE</div>
-          <div style={{ color: '#2c3e50', fontSize: '14px', fontWeight: '600' }}>{workflow.minAge}-{workflow.maxAge}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>🎂</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+          </div>
         </div>
-        <div style={{ padding: '12px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-          <div style={{ color: '#6c757d', fontSize: '12px', fontWeight: '500', marginBottom: '4px' }}>DEADLINE</div>
-          <div style={{ color: '#2c3e50', fontSize: '14px', fontWeight: '600' }}>{formatDate(workflow.deadline)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📅</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📱</span>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={workflow.selectedPlatforms || []} size="small" />
+          </div>
         </div>
       </div>
       
       {hasSubmittedContent && (
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '20px', 
-          background: 'linear-gradient(135deg, #d4edda, #c3e6cb)', 
-          borderRadius: '12px', 
-          border: '1px solid #b8dabd'
+        <div style={{
+          background: 'linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%)',
+          padding: '20px',
+          borderRadius: '16px',
+          marginBottom: '20px',
+          border: '1px solid #81d4fa',
+          boxShadow: '0 2px 8px rgba(3, 169, 244, 0.1)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ color: '#155724', fontSize: '16px', marginRight: '8px' }}>✓</span>
-            <strong style={{ color: '#155724', fontSize: '16px', fontWeight: '600' }}>Content Submitted</strong>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '20px' }}>✨</span>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Submitted Content</div>
+                <div style={{ fontSize: '13px', color: '#1565c0' }}>Content ready for review and approval</div>
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: '14px' }}>
-            <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: '6px' }}>
-              <strong style={{ color: '#155724' }}>Headline:</strong>
-              <div style={{ color: '#2c3e50', marginTop: '4px' }}>{workflow.contentCreator.content.headline}</div>
+          
+          <div style={{
+            marginTop: '16px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '16px'
+          }}>
+            <div style={{
+              background: '#ffffff',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '700', 
+                color: '#374151', 
+                marginBottom: '12px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px' 
+              }}>
+                <span>📰</span> HEADLINE
+              </div>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#1f2937',
+                lineHeight: 1.5
+              }}>
+                {workflow.contentCreator.content.headline}
+              </div>
             </div>
-            <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: '6px' }}>
-              <strong style={{ color: '#155724' }}>Caption:</strong>
-              <div style={{ color: '#2c3e50', marginTop: '4px' }}>{workflow.contentCreator.content.caption}</div>
+            
+            <div style={{
+              background: '#ffffff',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '700', 
+                color: '#374151', 
+                marginBottom: '12px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px' 
+              }}>
+                <span>📝</span> CAPTION
+              </div>
+              <div style={{
+                fontSize: '15px',
+                color: '#374151',
+                lineHeight: 1.6
+              }}>
+                {workflow.contentCreator.content.caption}
+              </div>
             </div>
-            <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: '6px' }}>
-              <strong style={{ color: '#155724' }}>Hashtags:</strong>
-              <div style={{ color: '#2c3e50', marginTop: '4px' }}>{workflow.contentCreator.content.hashtag}</div>
-            </div>
-            <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '12px', textAlign: 'right' }}>
-              Submitted: {formatDate(workflow.contentCreator.submittedAt)}
+            
+            <div style={{
+              background: '#ffffff',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '700', 
+                color: '#374151', 
+                marginBottom: '12px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px' 
+              }}>
+                <span>🏷️</span> HASHTAGS
+              </div>
+              <div style={{
+                fontSize: '15px',
+                color: '#3b82f6',
+                fontWeight: '600',
+                lineHeight: 1.4
+              }}>
+                {workflow.contentCreator.content.hashtag}
+              </div>
             </div>
           </div>
         </div>
       )}
       
-      {canCreateContent && !hasSubmittedContent && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+        {canCreateContent && !hasSubmittedContent && (
           <button
             onClick={() => onCreateContent(workflow)}
             style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(135deg, #e53935, #c62828)',
+              padding: '12px 24px', 
+              background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
               color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
+              border: 'none', 
+              borderRadius: '12px', 
+              cursor: 'pointer', 
               fontSize: '14px',
-              boxShadow: '0 4px 12px rgba(229, 57, 53, 0.3)',
-              transition: 'all 0.3s ease',
-              fontFamily: 'Inter, sans-serif'
+              fontWeight: '700',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 12px rgba(255, 154, 86, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
-            onMouseOver={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 16px rgba(229, 57, 53, 0.4)';
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(255, 154, 86, 0.4)';
             }}
-            onMouseOut={(e) => {
+            onMouseLeave={e => {
               e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 12px rgba(229, 57, 53, 0.3)';
+              e.target.style.boxShadow = '0 4px 12px rgba(255, 154, 86, 0.3)';
             }}
           >
-            Create Content
+            ✏️ Create Content
           </button>
-        </div>
-      )}
+        )}
+      </div>
       
-      {workflow.createdAt && (
-        <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '16px', textAlign: 'right', fontStyle: 'italic' }}>
-          Created: {formatDate(workflow.createdAt)}
-        </div>
-      )}
+
     </div>
   );
 };
@@ -207,25 +374,23 @@ export default function Task() {
         <div style={{
           marginBottom: '32px',
           padding: '24px',
-          background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
+          background: '#fff',
           borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e0e0e0'
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e5e7eb'
         }}>
           <h1 style={{
             margin: 0,
-            color: '#2c3e50',
-            fontSize: '28px',
-            fontWeight: '700',
-            background: 'linear-gradient(135deg, #e53935, #c62828)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+            color: '#111827',
+            fontSize: '32px',
+            fontWeight: '800',
+            letterSpacing: '-0.025em'
           }}>Content Creation Tasks</h1>
           <p style={{
             margin: '8px 0 0 0',
-            color: '#6c757d',
-            fontSize: '16px'
+            color: '#6b7280',
+            fontSize: '16px',
+            fontWeight: '400'
           }}>Manage and create content for assigned workflows</p>
         </div>
         

@@ -151,7 +151,7 @@ const DashboardLayout = () => {
         {!sidebarCollapsed && (
           <div className="sidebar" style={{
             width: window.innerWidth <= 768 ? '100%' : '220px',
-            background: '#f8f9fb',
+            background: '#ffffff',
             borderRight: window.innerWidth <= 768 ? 'none' : '1px solid #ececec',
             padding: responsive.padding('16px 0', '32px 0 24px 0'),
             borderRadius: 0,
@@ -172,7 +172,7 @@ const DashboardLayout = () => {
           }}>
           {/* User Profile */}
           <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: responsive.size(16, 32), padding: '0 12px' }}>
-            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: responsive.gap(12, 16), padding: responsive.padding('12px', '14px 12px'), background: '#f8f9fb', borderRadius: 0, boxShadow: 'none' }}>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: responsive.gap(12, 16), padding: responsive.padding('16px', '20px 16px'), background: '#f8fafc', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
               {user?.profilePicture ? (
                 <img 
                   src={user.profilePicture} 
@@ -193,43 +193,99 @@ const DashboardLayout = () => {
                 </span>
               )}
               <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                <div className="user-name" style={{ fontWeight: 700, fontSize: responsive.fontSize(15, 17), color: '#222', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
+                <div className="user-name" style={{ fontWeight: 700, fontSize: responsive.fontSize(16, 18), color: '#111827', lineHeight: '1.2', whiteSpace: 'normal', maxHeight: '2.4em', overflow: 'hidden' }}>{user?.firstName} {user?.lastName}</div>
                 <div className="user-role" style={{ fontSize: responsive.fontSize(12, 13), color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Admin'}</div>
               </div>
             </div>
           </div>
           {/* Navigation - flat, modern */}
-          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, minHeight: 0 }}>
+          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, minHeight: 0, padding: '0 12px' }}>
             <Link
               to="/admin"
               className={`nav-item${location.pathname === '/admin' ? ' active' : ''}`}
-              style={{ padding: responsive.padding('10px 16px', '12px 24px'), fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin' ? '#fff' : '#222', background: location.pathname === '/admin' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+              style={{ 
+                padding: responsive.padding('12px 16px', '14px 20px'), 
+                fontWeight: 600, 
+                borderRadius: 12, 
+                color: location.pathname === '/admin' ? '#fff' : '#374151', 
+                background: location.pathname === '/admin' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', 
+                marginBottom: 6, 
+                textDecoration: 'none', 
+                transition: 'all 0.2s ease', 
+                display: 'flex', 
+                alignItems: 'center',
+                boxShadow: location.pathname === '/admin' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                fontSize: responsive.fontSize(14, 15)
+              }}
+
             >
-              <FiHome size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
+              <FiHome size={responsive.size(18, 20)} style={{ marginRight: responsive.gap(10, 14) }} />
               Dashboard
             </Link>
             <Link
               to="/admin/approval"
               className={`nav-item${location.pathname === '/admin/approval' ? ' active' : ''}`}
-              style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin/approval' ? '#fff' : '#222', background: location.pathname === '/admin/approval' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+              style={{ 
+                padding: responsive.padding('12px 16px', '14px 20px'), 
+                fontWeight: 600, 
+                borderRadius: 12, 
+                color: location.pathname === '/admin/approval' ? '#fff' : '#374151', 
+                background: location.pathname === '/admin/approval' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', 
+                marginBottom: 6, 
+                textDecoration: 'none', 
+                transition: 'all 0.2s ease', 
+                display: 'flex', 
+                alignItems: 'center',
+                boxShadow: location.pathname === '/admin/approval' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                fontSize: responsive.fontSize(14, 15)
+              }}
+
             >
-              <FiCheckCircle size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
+              <FiCheckCircle size={responsive.size(18, 20)} style={{ marginRight: responsive.gap(10, 14) }} />
               Approval of Accounts
             </Link>
             <Link
               to="/admin/manage"
               className={`nav-item${location.pathname === '/admin/manage' ? ' active' : ''}`}
-              style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin/manage' ? '#fff' : '#222', background: location.pathname === '/admin/manage' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+              style={{ 
+                padding: responsive.padding('12px 16px', '14px 20px'), 
+                fontWeight: 600, 
+                borderRadius: 12, 
+                color: location.pathname === '/admin/manage' ? '#fff' : '#374151', 
+                background: location.pathname === '/admin/manage' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', 
+                marginBottom: 6, 
+                textDecoration: 'none', 
+                transition: 'all 0.2s ease', 
+                display: 'flex', 
+                alignItems: 'center',
+                boxShadow: location.pathname === '/admin/manage' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                fontSize: responsive.fontSize(14, 15)
+              }}
+
             >
-              <FiUsers size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
+              <FiUsers size={responsive.size(18, 20)} style={{ marginRight: responsive.gap(10, 14) }} />
               Manage Accounts
             </Link>
             <Link
               to="/admin/socials"
               className={`nav-item${location.pathname === '/admin/socials' ? ' active' : ''}`}
-              style={{ padding: '12px 24px', fontWeight: 600, borderRadius: 8, color: location.pathname === '/admin/socials' ? '#fff' : '#222', background: location.pathname === '/admin/socials' ? '#e53935' : 'none', marginBottom: 4, textDecoration: 'none', transition: 'background 0.2s, color 0.2s', display: 'flex', alignItems: 'center' }}
+              style={{ 
+                padding: responsive.padding('12px 16px', '14px 20px'), 
+                fontWeight: 600, 
+                borderRadius: 12, 
+                color: location.pathname === '/admin/socials' ? '#fff' : '#374151', 
+                background: location.pathname === '/admin/socials' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', 
+                marginBottom: 6, 
+                textDecoration: 'none', 
+                transition: 'all 0.2s ease', 
+                display: 'flex', 
+                alignItems: 'center',
+                boxShadow: location.pathname === '/admin/socials' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                fontSize: responsive.fontSize(14, 15)
+              }}
+
             >
-              <FiBarChart2 size={responsive.size(16, 18)} style={{ marginRight: responsive.gap(8, 12) }} />
+              <FiBarChart2 size={responsive.size(18, 20)} style={{ marginRight: responsive.gap(10, 14) }} />
               Socials & Insights
             </Link>
           </nav>

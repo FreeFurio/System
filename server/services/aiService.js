@@ -151,12 +151,50 @@ class AIService {
         this.generateContent(platform, topic, 'hashtag')
       ]);
 
+      // Generate detailed mock SEO analysis
+      const allWords = (headline + ' ' + caption).split(' ');
+      const wordCount = allWords.length;
+      const powerWordsList = ['proven', 'exceptional', 'innovative', 'ultimate', 'exclusive', 'premium'];
+      const emotionalWordsList = ['exciting', 'amazing', 'incredible', 'love', 'fantastic', 'wonderful'];
+      const commonWordsList = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with'];
+      
+      const foundPowerWords = powerWordsList.slice(0, Math.floor(Math.random() * 4) + 2);
+      const foundEmotionalWords = emotionalWordsList.slice(0, Math.floor(Math.random() * 3) + 2);
+      const foundCommonWords = commonWordsList.slice(0, Math.floor(Math.random() * 5) + 3);
+      const foundUncommonWords = ['innovative', 'exceptional', 'revolutionary', 'breakthrough'].slice(0, Math.floor(Math.random() * 3) + 1);
+      
+      const seoAnalysis = {
+        overallScore: Math.floor(Math.random() * 20) + 75,
+        headlineScore: Math.floor(Math.random() * 20) + 70,
+        captionScore: Math.floor(Math.random() * 20) + 70,
+        hashtagScore: Math.floor(Math.random() * 20) + 75,
+        wordCount,
+        powerWords: { count: foundPowerWords.length, words: foundPowerWords },
+        emotionalWords: { count: foundEmotionalWords.length, words: foundEmotionalWords },
+        commonWords: { count: foundCommonWords.length, words: foundCommonWords },
+        uncommonWords: { count: foundUncommonWords.length, words: foundUncommonWords },
+        sentiment: {
+          tone: ['Positive', 'Neutral', 'Negative'][Math.floor(Math.random() * 3)],
+          polarity: (Math.random() * 2 - 1).toFixed(2),
+          confidence: Math.floor(Math.random() * 30) + 70,
+          words: ['great', 'excellent', 'amazing'].slice(0, Math.floor(Math.random() * 2) + 1)
+        },
+        readability: {
+          gradeLevel: ['6th Grade', '7th Grade', '8th Grade', '9th Grade'][Math.floor(Math.random() * 4)],
+          readingTime: Math.floor(Math.random() * 60) + 30,
+          fleschScore: Math.floor(Math.random() * 30) + 60,
+          complexity: ['Simple', 'Moderate', 'Complex'][Math.floor(Math.random() * 3)]
+        },
+        analyzedAt: new Date().toISOString()
+      };
+
       return {
         platform,
         topic,
         headline,
         caption,
         hashtag,
+        seoAnalysis,
         generatedAt: new Date().toISOString()
       };
     } catch (error) {

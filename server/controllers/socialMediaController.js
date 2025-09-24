@@ -17,9 +17,12 @@ class SocialMediaController {
 
       switch (platform) {
         case 'facebook':
+          if (!tokens.pageId) {
+            throw new Error('Facebook page ID is required for posting');
+          }
           result = await socialMediaService.postToFacebook(
             content, 
-            tokens.accessToken, 
+            tokens.accessToken, // This should be user access token
             tokens.pageId
           );
           break;
@@ -120,9 +123,12 @@ class SocialMediaController {
           let postResult;
           switch (platform.name) {
             case 'facebook':
+              if (!tokens.facebook.pageId) {
+                throw new Error('Facebook page ID is required');
+              }
               postResult = await socialMediaService.postToFacebook(
                 content, 
-                tokens.facebook.accessToken, 
+                tokens.facebook.accessToken, // User access token
                 tokens.facebook.pageId
               );
               break;
@@ -222,6 +228,60 @@ class SocialMediaController {
       res.json({
         success: true,
         data: result
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
+      });
+    }
+  }
+
+  // Get user's Facebook pages
+  async getFacebookPages(req, res) {
+    try {
+      const { userAccessToken } = req.body;
+
+      if (!userAccessToken) {
+        return res.status(400).json({
+          error: 'User access token is required'
+        });
+      }
+
+      const pages = await socialMediaService.getFacebookPages(userAccessToken);
+
+      res.json({
+        success: true,
+        data: pages
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
+      });
+    }
+  }
+
+  // Get Facebook page access token
+  async getFacebookPageToken(req, res) {
+    try {
+      const { userAccessToken, pageId } = req.body;
+
+      if (!userAccessToken || !pageId) {
+        return res.status(400).json({
+          error: 'User access token and page ID are required'
+        });
+      }
+
+      const pageAccessToken = await socialMediaService.getFacebookPageAccessToken(userAccessToken, pageId);
+      const pageInfo = await socialMediaService.getFacebookPageInfo(pageAccessToken, pageId);
+
+      res.json({
+        success: true,
+        data: {
+          pageAccessToken,
+          pageInfo
+        }
       });
 
     } catch (error) {

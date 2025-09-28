@@ -19,12 +19,12 @@ const router = express.Router();
 // ========================
 
 router.get(
-    '/notification/admin',
+    '/admin',
     adminNotification
 );
 
 router.get(
-    '/notification/contentcreator',
+    '/contentcreator',
     contentCreatorNotification
 );
 

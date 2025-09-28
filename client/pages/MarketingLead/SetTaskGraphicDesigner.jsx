@@ -359,7 +359,7 @@ export default function SetTaskGraphicDesigner() {
                 <div style={{ borderTop: '1px solid #bae6fd', paddingTop: '16px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#0c4a6e', marginBottom: '8px' }}>Power Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(workflow.contentCreator?.content?.seoAnalysis?.powerWords || ['N/A']).map(word => (
+                    {(workflow.contentCreator?.content?.seoAnalysis?.powerWords?.words || workflow.contentCreator?.content?.seoAnalysis?.powerWords || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fef3c7',
                         color: '#92400e',
@@ -377,7 +377,7 @@ export default function SetTaskGraphicDesigner() {
                 <div style={{ borderTop: '1px solid #bae6fd', paddingTop: '16px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#0c4a6e', marginBottom: '8px' }}>Emotional Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords || ['N/A']).map(word => (
+                    {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords?.words || workflow.contentCreator?.content?.seoAnalysis?.emotionalWords || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fce7f3',
                         color: '#be185d',

@@ -386,7 +386,7 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Power Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(workflow.contentCreator?.content?.seoAnalysis?.powerWords || ['N/A']).map(word => (
+                    {(workflow.contentCreator?.content?.seoAnalysis?.powerWords?.words || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fef3c7',
                         color: '#92400e',
@@ -404,7 +404,7 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Emotional Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords || ['N/A']).map(word => (
+                    {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords?.words || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fce7f3',
                         color: '#be185d',

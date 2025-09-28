@@ -321,7 +321,7 @@ export default function CreateContent() {
                   AI will generate:
                 </div>
                 <div style={{ fontSize: '12px', color: '#0369a1' }}>
-                  Headlines • Captions • Hashtags
+                  Headlines • Content • Hashtags
                 </div>
               </div>
             </div>

@@ -1,59 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import DraftService from '../../services/draftService';
 
 export default function OutputContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { contents = [], taskId: stateTaskId } = location.state || {};
+  const { contents = [], taskId: stateTaskId, fromDraftEdit } = location.state || {};
+  const isDraftEdit = fromDraftEdit === true;
   
   const urlTaskId = searchParams.get('taskId');
   const taskId = stateTaskId || urlTaskId;
   
-  const addMockSEOScores = (contents) => {
+  // Process contents with SEO data from AI service
+  const processContentsWithSEO = (contents) => {
     return contents.map((content, index) => {
-      // Generate consistent scores based on content hash
-      const contentHash = (content.headline + content.caption + content.hashtag).length;
-      const baseScore = 75 + (contentHash % 21);
+      // Use SEO analysis from AI service if available, otherwise generate mock
+      const seoAnalysis = content.seoAnalysis || generateFallbackSEO(content);
       
       return {
         ...content,
         id: content.id || `content-${index}`,
-        seoScore: baseScore,
-        headlineScore: 75 + ((content.headline.length * 3) % 21),
-        captionScore: 75 + ((content.caption.length * 2) % 21),
-        hashtagScore: 75 + ((content.hashtag.length * 5) % 21),
+        seoScore: seoAnalysis.overallScore,
+        headlineScore: seoAnalysis.headlineScore,
+        captionScore: seoAnalysis.captionScore,
+        hashtagScore: seoAnalysis.hashtagScore,
         seoDetails: {
           headline: {
             wordCount: content.headline.split(' ').length,
-            emotionalWords: 1 + (content.headline.length % 3),
-            powerWords: 1 + (content.headline.length % 2),
-            readability: ['Easy', 'Medium', 'Hard'][content.headline.length % 3],
-            sentiment: ['Positive', 'Neutral', 'Negative'][content.headline.length % 3],
+            emotionalWords: seoAnalysis.emotionalWords.count,
+            powerWords: seoAnalysis.powerWords.count,
+            readability: seoAnalysis.readability.complexity,
+            sentiment: seoAnalysis.sentiment.tone,
             keywordDensity: 2 + (content.headline.length % 5)
           },
           caption: {
-            wordCount: content.caption.split(' ').length,
-            emotionalWords: 2 + (content.caption.length % 5),
-            powerWords: 1 + (content.caption.length % 3),
-            readability: ['Easy', 'Medium', 'Hard'][content.caption.length % 3],
-            sentiment: ['Positive', 'Neutral', 'Negative'][content.caption.length % 3],
-            keywordDensity: 1 + (content.caption.length % 4),
-            engagementWords: 1 + (content.caption.length % 3)
+            wordCount: seoAnalysis.wordCount,
+            emotionalWords: seoAnalysis.emotionalWords.count,
+            powerWords: seoAnalysis.powerWords.count,
+            readability: seoAnalysis.readability.complexity,
+            sentiment: seoAnalysis.sentiment.tone,
+            keywordDensity: Math.abs(parseFloat(seoAnalysis.sentiment.polarity) * 5).toFixed(1),
+            engagementWords: seoAnalysis.powerWords.count
           },
           hashtag: {
             count: content.hashtag.split('#').length - 1,
             trending: 1 + (content.hashtag.length % 3),
-            relevance: 75 + (content.hashtag.length % 21),
+            relevance: seoAnalysis.hashtagScore,
             competition: ['Low', 'Medium', 'High'][content.hashtag.length % 3],
             reach: (50 + (content.hashtag.length % 50)) + 'K'
           }
-        }
+        },
+        fullSEOAnalysis: seoAnalysis
       };
     });
   };
+  
+  // Fallback SEO generation if AI service data is missing
+  const generateFallbackSEO = (content) => {
+    const contentHash = (content.headline + content.caption + content.hashtag).length;
+    return {
+      overallScore: 75 + (contentHash % 21),
+      headlineScore: 75 + ((content.headline.length * 3) % 21),
+      captionScore: 75 + ((content.caption.length * 2) % 21),
+      hashtagScore: 75 + ((content.hashtag.length * 5) % 21),
+      wordCount: (content.headline + ' ' + content.caption).split(' ').length,
+      powerWords: { count: 2, words: ['amazing', 'great'] },
+      emotionalWords: { count: 1, words: ['exciting'] },
+      sentiment: { tone: 'Positive', polarity: '0.5', confidence: 85 },
+      readability: { complexity: 'Simple', gradeLevel: '7th Grade' }
+    };
+  };
 
-  const contentsWithSEO = addMockSEOScores(contents);
+  const contentsWithSEO = processContentsWithSEO(contents);
   const [selectedContent, setSelectedContent] = useState({
     headline: '',
     caption: '',
@@ -73,6 +92,8 @@ export default function OutputContent() {
   const [modalContent, setModalContent] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingField, setEditingField] = useState(null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [autoSaved, setAutoSaved] = useState(false);
 
   const toggleSEODetails = (contentId, type) => {
     const key = `${contentId}-${type}`;
@@ -103,7 +124,12 @@ export default function OutputContent() {
       return;
     }
     
-    if (!taskId && !selectedTaskId) {
+    // If editing a draft with existing task, use that task directly
+    if (isDraftEdit && taskId) {
+      // Proceed with submission using existing task
+    }
+    // If no task and not from draft edit, show task selection
+    else if (!taskId && !selectedTaskId) {
       await fetchAvailableTasks();
       setShowTaskSelection(true);
       return;
@@ -112,18 +138,40 @@ export default function OutputContent() {
     setSubmitting(true);
     try {
       const finalTaskId = taskId || selectedTaskId;
+      
+      // Find the selected content's full SEO analysis
+      const selectedContentWithSEO = contentsWithSEO.find(content => 
+        content.headline === selectedContent.headline ||
+        content.caption === selectedContent.caption ||
+        content.hashtag === selectedContent.hashtag
+      );
+      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${finalTaskId}/submit-content`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           headline: selectedContent.headline,
           caption: selectedContent.caption,
-          hashtag: selectedContent.hashtag
+          hashtag: selectedContent.hashtag,
+          seoAnalysis: selectedContentWithSEO?.fullSEOAnalysis || null
         })
       });
       
       const data = await response.json();
       if (response.ok && data.status === 'success') {
+        // Mark draft as submitted if editing from draft
+        if (isDraftEdit && taskId) {
+          try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/drafts/${Date.now()}/submit`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ workflowId: taskId })
+            });
+          } catch (err) {
+            console.warn('Could not mark draft as submitted:', err);
+          }
+        }
+        
         setShowSuccess(true);
         setTimeout(() => {
           navigate('/content/approval');
@@ -159,7 +207,68 @@ export default function OutputContent() {
     handleSubmitForApproval();
   };
 
+  const autoSaveAllContent = async () => {
+    if (autoSaved || !contentsWithSEO.length) return;
+    
+    try {
+      const finalId = taskId || urlTaskId;
+      const contentHash = contentsWithSEO.map(c => c.headline + c.caption).join('').slice(0, 50);
+      
+      // Fetch task info if we have a task ID
+      let taskInfo = null;
+      if (finalId) {
+        try {
+          const taskResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${finalId}`);
+          const taskData = await taskResponse.json();
+          if (taskData.status === 'success') {
+            taskInfo = {
+              id: finalId,
+              objective: taskData.data.objectives
+            };
+          }
+        } catch (err) {
+          console.warn('Could not fetch task info:', err);
+        }
+      }
+      
+      const allContentDraft = {
+        contentHash,
+        taskInfo,
+        allGeneratedContent: contentsWithSEO.map(content => ({
+          id: content.id,
+          headline: content.headline,
+          caption: content.caption,
+          hashtag: content.hashtag,
+          seoAnalysis: content.fullSEOAnalysis,
+          seoScore: content.seoScore,
+          headlineScore: content.headlineScore,
+          captionScore: content.captionScore,
+          hashtagScore: content.hashtagScore,
+          seoDetails: content.seoDetails
+        })),
+        totalVariations: contentsWithSEO.length,
+        platform: finalId ? 'workflow' : 'standalone',
+        generatedAt: new Date().toISOString()
+      };
+      
+      await DraftService.saveDraft(allContentDraft, finalId);
+      setAutoSaved(true);
+      
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    }
+  };
+
   const isSelected = (type, contentId) => selectedIds[type] === contentId;
+
+  useEffect(() => {
+    if (contentsWithSEO.length > 0 && !autoSaved && !isDraftEdit) {
+      const timer = setTimeout(() => {
+        autoSaveAllContent();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [contentsWithSEO.length, autoSaved, isDraftEdit]);
 
   if (!contentsWithSEO.length) {
     return (
@@ -556,6 +665,22 @@ export default function OutputContent() {
             </div>
             
             <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {(autoSaved || isDraftEdit) && (
+                <div style={{
+                  padding: '8px 12px',
+                  background: isDraftEdit ? '#f0fdf4' : '#f0f9ff',
+                  border: isDraftEdit ? '1px solid #bbf7d0' : '1px solid #bae6fd',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: isDraftEdit ? '#166534' : '#0369a1',
+                  textAlign: 'center'
+                }}>
+                  {isDraftEdit ? 
+                    (taskId ? '📝 Editing draft for existing task' : '📝 Editing standalone draft') : 
+                    '✅ All content automatically saved to drafts'}
+                </div>
+              )}
+              
               <button
                 onClick={() => navigate('/content/create' + (taskId ? `?taskId=${taskId}` : ''))}
                 style={{
@@ -570,6 +695,7 @@ export default function OutputContent() {
               >
                 Regenerate All
               </button>
+              
               <button
                 onClick={handleSubmitForApproval}
                 disabled={!selectedContent.headline || !selectedContent.caption || !selectedContent.hashtag || submitting}
@@ -586,7 +712,9 @@ export default function OutputContent() {
                   fontSize: '16px'
                 }}
               >
-                {submitting ? 'Submitting...' : taskId ? 'Submit for Approval' : 'Select Task & Submit'}
+                {submitting ? 'Submitting...' : 
+                 isDraftEdit && taskId ? 'Update Task Submission' :
+                 taskId ? 'Submit for Approval' : 'Select Task & Submit'}
               </button>
             </div>
           </div>
@@ -707,14 +835,14 @@ export default function OutputContent() {
                   borderRadius: '8px',
                   fontSize: '14px'
                 }}>
-                  <div style={{ fontWeight: 600, marginBottom: '12px', color: '#1f2937' }}>📊 Complete SEO Analysis</div>
+                  <div style={{ fontWeight: 600, marginBottom: '12px', color: '#1f2937' }}>📊 AI-Generated SEO Analysis</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                     <div><strong>Word Count:</strong> {modalContent.seoDetails.headline.wordCount}</div>
-                    <div><strong>Emotional Words:</strong> {modalContent.seoDetails.headline.emotionalWords}</div>
-                    <div><strong>Power Words:</strong> {modalContent.seoDetails.headline.powerWords}</div>
-                    <div><strong>Readability:</strong> {modalContent.seoDetails.headline.readability}</div>
-                    <div><strong>Sentiment:</strong> {modalContent.seoDetails.headline.sentiment}</div>
-                    <div><strong>Keyword Density:</strong> {modalContent.seoDetails.headline.keywordDensity}%</div>
+                    <div><strong>Emotional Words:</strong> {modalContent.fullSEOAnalysis?.emotionalWords?.words?.join(', ') || modalContent.seoDetails.headline.emotionalWords}</div>
+                    <div><strong>Power Words:</strong> {modalContent.fullSEOAnalysis?.powerWords?.words?.join(', ') || modalContent.seoDetails.headline.powerWords}</div>
+                    <div><strong>Readability:</strong> {modalContent.fullSEOAnalysis?.readability?.gradeLevel || modalContent.seoDetails.headline.readability}</div>
+                    <div><strong>Sentiment:</strong> {modalContent.fullSEOAnalysis?.sentiment?.tone || modalContent.seoDetails.headline.sentiment}</div>
+                    <div><strong>Confidence:</strong> {modalContent.fullSEOAnalysis?.sentiment?.confidence || 'N/A'}%</div>
                   </div>
                   <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px' }}>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Performance Indicators</div>
@@ -784,16 +912,16 @@ export default function OutputContent() {
                   borderRadius: '8px',
                   fontSize: '14px'
                 }}>
-                  <div style={{ fontWeight: 600, marginBottom: '12px', color: '#1f2937' }}>📊 Complete SEO Analysis</div>
+                  <div style={{ fontWeight: 600, marginBottom: '12px', color: '#1f2937' }}>📊 AI-Generated SEO Analysis</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                    <div><strong>Word Count:</strong> {modalContent.seoDetails.caption.wordCount}</div>
-                    <div><strong>Emotional Words:</strong> {modalContent.seoDetails.caption.emotionalWords}</div>
-                    <div><strong>Power Words:</strong> {modalContent.seoDetails.caption.powerWords}</div>
-                    <div><strong>Readability:</strong> {modalContent.seoDetails.caption.readability}</div>
-                    <div><strong>Sentiment:</strong> {modalContent.seoDetails.caption.sentiment}</div>
-                    <div><strong>Keyword Density:</strong> {modalContent.seoDetails.caption.keywordDensity}%</div>
-                    <div><strong>Engagement Words:</strong> {modalContent.seoDetails.caption.engagementWords}</div>
-                    <div><strong>Reading Time:</strong> {Math.ceil(modalContent.seoDetails.caption.wordCount / 200)} min</div>
+                    <div><strong>Total Words:</strong> {modalContent.fullSEOAnalysis?.wordCount || modalContent.seoDetails.caption.wordCount}</div>
+                    <div><strong>Emotional Words:</strong> {modalContent.fullSEOAnalysis?.emotionalWords?.words?.join(', ') || modalContent.seoDetails.caption.emotionalWords}</div>
+                    <div><strong>Power Words:</strong> {modalContent.fullSEOAnalysis?.powerWords?.words?.join(', ') || modalContent.seoDetails.caption.powerWords}</div>
+                    <div><strong>Readability:</strong> {modalContent.fullSEOAnalysis?.readability?.gradeLevel || modalContent.seoDetails.caption.readability}</div>
+                    <div><strong>Sentiment:</strong> {modalContent.fullSEOAnalysis?.sentiment?.tone || modalContent.seoDetails.caption.sentiment}</div>
+                    <div><strong>Polarity:</strong> {modalContent.fullSEOAnalysis?.sentiment?.polarity || 'N/A'}</div>
+                    <div><strong>Flesch Score:</strong> {modalContent.fullSEOAnalysis?.readability?.fleschScore || 'N/A'}</div>
+                    <div><strong>Reading Time:</strong> {modalContent.fullSEOAnalysis?.readability?.readingTime || Math.ceil((modalContent.fullSEOAnalysis?.wordCount || 100) / 200)} min</div>
                   </div>
                   <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px' }}>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Content Quality</div>

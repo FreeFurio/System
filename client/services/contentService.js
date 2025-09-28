@@ -1,6 +1,7 @@
 // Mocked Content Service for Content Creator
+// Structured to match real AI service responses
 
-// Mock AI Content Generator
+// Mock AI Content Generator - matches real AI service structure
 const generateMockContent = (input, index) => {
   const headlines = [
     `🚀 Discover the Power of ${input.split(' ')[0] || 'Innovation'}`,
@@ -26,24 +27,79 @@ const generateMockContent = (input, index) => {
     `#${input.split(' ')[0]?.toLowerCase() || 'revolutionary'} #gamechanging #cutting edge #modern #advanced`
   ];
   
-  return {
-    id: Date.now() + index,
+  const content = {
     headline: headlines[index % headlines.length],
     caption: captions[index % captions.length],
     hashtag: hashtags[index % hashtags.length]
   };
+  
+  // Generate SEO analysis for the content (simulates AI SEO service)
+  const seoAnalysis = generateMockSEOAnalysis(content);
+  
+  return {
+    id: Date.now() + index,
+    ...content,
+    seoAnalysis
+  };
 };
 
-// Create Content
+// Mock SEO Analysis Generator - matches real AI SEO service structure
+const generateMockSEOAnalysis = (content) => {
+  const combinedText = `${content.headline} ${content.caption}`;
+  const wordCount = combinedText.split(' ').length;
+  const contentHash = combinedText.length;
+  
+  return {
+    overallScore: 75 + (contentHash % 21),
+    headlineScore: 75 + ((content.headline.length * 3) % 21),
+    captionScore: 75 + ((content.caption.length * 2) % 21),
+    hashtagScore: 75 + ((content.hashtag.length * 5) % 21),
+    wordCount,
+    powerWords: {
+      count: 2 + (contentHash % 4),
+      words: ['innovative', 'amazing', 'revolutionary', 'exceptional'].slice(0, 2 + (contentHash % 3))
+    },
+    emotionalWords: {
+      count: 1 + (contentHash % 3),
+      words: ['exciting', 'incredible', 'wonderful'].slice(0, 1 + (contentHash % 2))
+    },
+    commonWords: {
+      count: 3 + (contentHash % 5),
+      words: ['the', 'and', 'with', 'for', 'your'].slice(0, 3 + (contentHash % 3))
+    },
+    uncommonWords: {
+      count: 1 + (contentHash % 3),
+      words: ['revolutionary', 'cutting-edge', 'breakthrough'].slice(0, 1 + (contentHash % 2))
+    },
+    sentiment: {
+      tone: ['Positive', 'Neutral', 'Negative'][contentHash % 3],
+      polarity: ((contentHash % 200) / 100 - 1).toFixed(2),
+      confidence: 70 + (contentHash % 30),
+      words: ['amazing', 'excellent', 'great'].slice(0, 1 + (contentHash % 2))
+    },
+    readability: {
+      gradeLevel: ['6th Grade', '7th Grade', '8th Grade', '9th Grade'][contentHash % 4],
+      readingTime: Math.ceil(wordCount / 200),
+      fleschScore: 60 + (contentHash % 30),
+      complexity: ['Simple', 'Moderate', 'Complex'][contentHash % 3]
+    },
+    analyzedAt: new Date().toISOString()
+  };
+};
+
+// Create Content with AI Integration Flow
 export async function createContent(data) {
   const { input, numContents = 1, taskId } = data;
   
   console.log('🔍 ContentService Debug - Received data:', { input, numContents, taskId });
   
-  // Generate mock content
+  // Step 1: Generate content using AI (mock)
+  console.log('🤖 Step 1: Generating content with AI...');
   const contents = [];
   for (let i = 0; i < numContents; i++) {
-    contents.push(generateMockContent(input, i));
+    const generatedContent = generateMockContent(input, i);
+    console.log(`✅ Generated content ${i + 1} with SEO analysis`);
+    contents.push(generatedContent);
   }
   
   // If taskId exists, submit to backend workflow
@@ -68,9 +124,11 @@ export async function createContent(data) {
     }
   }
   
+  console.log('🎯 Content generation and SEO analysis completed');
+  
   return {
     success: true,
-    message: `${numContents} content(s) created!`,
+    message: `${numContents} content(s) created with SEO analysis!`,
     contents,
     taskId
   };

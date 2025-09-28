@@ -17,6 +17,7 @@ export default function SetTask() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+  const [deadlineTime, setDeadlineTime] = useState('12:00');
   const [submitted, setSubmitted] = useState(false);
   const [ageRange, setAgeRange] = useState([20, 40]);
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
@@ -79,7 +80,7 @@ export default function SetTask() {
       gender,
       minAge: ageRange[0],
       maxAge: ageRange[1],
-      deadline,
+      deadline: `${deadline}T${deadlineTime}:00`,
       selectedPlatforms
     };
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`, {
@@ -103,6 +104,7 @@ export default function SetTask() {
         setGender('');
         setAgeRange([20, 40]);
         setDeadline('');
+        setDeadlineTime('12:00');
         setSelectedPlatforms([]);
       })
       .catch((err) => {
@@ -397,9 +399,9 @@ export default function SetTask() {
             </div>
           </div>
 
-          {/* Deadline Date */}
+          {/* Posting Date & Time */}
           <div>
-            <label htmlFor="deadline" style={{ 
+            <label style={{ 
               fontWeight: '700', 
               display: 'block', 
               marginBottom: '12px', 
@@ -407,36 +409,94 @@ export default function SetTask() {
               fontSize: '16px',
               letterSpacing: '-0.025em'
             }}>
-              Posting Date
+              Posting Date & Time
             </label>
-            <input
-              type="date"
-              id="deadline"
-              value={deadline}
-              min={minDate}
-              max={maxDate}
-              onChange={e => setDeadline(e.target.value)}
-              onFocus={e => {
-                e.target.style.borderColor = '#3b82f6';
-                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-              }}
-              onBlur={e => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.boxShadow = 'none';
-              }}
-              style={{ 
-                padding: '16px 20px', 
-                borderRadius: '12px', 
-                border: '2px solid #e5e7eb', 
-                fontSize: '15px', 
-                background: '#fafbfc', 
-                outline: 'none', 
-                width: '240px',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease'
-              }}
-              required
-            />
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div>
+                <label htmlFor="deadline" style={{ 
+                  fontSize: '14px', 
+                  color: '#6b7280', 
+                  fontWeight: '600',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Date
+                </label>
+                <input
+                  type="date"
+                  id="deadline"
+                  value={deadline}
+                  min={minDate}
+                  max={maxDate}
+                  onChange={e => setDeadline(e.target.value)}
+                  onFocus={e => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  style={{ 
+                    padding: '16px 20px', 
+                    borderRadius: '12px', 
+                    border: '2px solid #e5e7eb', 
+                    fontSize: '15px', 
+                    background: '#fafbfc', 
+                    outline: 'none', 
+                    width: '200px',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="deadlineTime" style={{ 
+                  fontSize: '14px', 
+                  color: '#6b7280', 
+                  fontWeight: '600',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Time
+                </label>
+                <input
+                  type="time"
+                  id="deadlineTime"
+                  value={deadlineTime}
+                  onChange={e => setDeadlineTime(e.target.value)}
+                  onFocus={e => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  style={{ 
+                    padding: '16px 20px', 
+                    borderRadius: '12px', 
+                    border: '2px solid #e5e7eb', 
+                    fontSize: '15px', 
+                    background: '#fafbfc', 
+                    outline: 'none', 
+                    width: '160px',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  required
+                />
+              </div>
+            </div>
+            <p style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              margin: '8px 0 0 0',
+              fontWeight: '500'
+            }}>
+              Content will be automatically posted at the specified date and time
+            </p>
           </div>
           
           <button 

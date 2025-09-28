@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut, FiHome, FiEdit, FiClipboard, FiClock, FiMenu } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiEdit, FiClipboard, FiClock, FiMenu, FiFileText } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import ContentCreatorSettings from './ContentCreatorSettings';
@@ -10,6 +10,7 @@ const sidebarItems = [
   { label: 'Dashboard', path: '/content/dashboard', icon: FiHome },
   { label: 'Create Content', path: '/content/create', icon: FiEdit },
   { label: 'Task', path: '/content/task', icon: FiClipboard },
+  { label: 'Drafts', path: '/content/drafts', icon: FiFileText },
   { label: 'Ongoing Approval', path: '/content/approval', icon: FiClock },
 ];
 

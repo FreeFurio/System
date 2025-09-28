@@ -6,6 +6,7 @@ import {
     createWorkflow,
     getWorkflowsByStage,
     getWorkflowsByMultipleStatuses,
+    getWorkflowById,
     submitContent,
     approveContent,
     rejectContent,
@@ -57,6 +58,23 @@ router.post(
 router.get(
     '/workflows/stage/:stage',
     getWorkflowsByStage
+)
+
+// Get individual workflow by ID
+router.get(
+    '/workflow/:workflowId',
+    async (req, res) => {
+        try {
+            const { workflowId } = req.params;
+            const workflow = await getWorkflowById(workflowId);
+            if (!workflow) {
+                return res.status(404).json({ status: 'error', message: 'Workflow not found' });
+            }
+            res.json({ status: 'success', data: workflow });
+        } catch (error) {
+            res.status(500).json({ status: 'error', message: error.message });
+        }
+    }
 )
 
 // Legacy routes for compatibility

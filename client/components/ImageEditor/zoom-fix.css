@@ -1,0 +1,58 @@
+.floating-zoom-level-container {
+  position: fixed !important;
+  bottom: 60px !important;
+  right: 20px !important;
+  z-index: 1000 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.floating-zoom-level-container label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  margin: 0 !important;
+}
+
+.floating-zoom-level-container select {
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  background: white !important;
+}
+
+/* Fix gray background and center canvas */
+body {
+  background: white !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.default-container {
+  background: white !important;
+  height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.main-panel {
+  flex: 1 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: white !important;
+  padding: 20px !important;
+}
+
+.canvas-container {
+  background: white !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}

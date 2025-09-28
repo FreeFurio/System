@@ -412,7 +412,7 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Power Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(workflow.contentCreator?.content?.seoAnalysis?.powerWords || ['N/A']).map(word => (
+                    {(workflow.contentCreator?.content?.seoAnalysis?.powerWords?.words || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fef3c7',
                         color: '#92400e',
@@ -430,7 +430,7 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
                 <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Emotional Words</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords || ['N/A']).map(word => (
+                    {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords?.words || ['N/A']).map(word => (
                       <span key={word} style={{
                         background: '#fce7f3',
                         color: '#be185d',
@@ -449,11 +449,11 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Word Complexity</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: '#6b7280' }}>Common Words</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>{workflow.contentCreator?.content?.seoAnalysis?.wordComplexity?.common || 'N/A'}%</span>
+                    <span style={{ fontWeight: '600', color: '#10b981' }}>{workflow.contentCreator?.content?.seoAnalysis?.commonWords?.count || 'N/A'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                     <span style={{ color: '#6b7280' }}>Uncommon Words</span>
-                    <span style={{ fontWeight: '600', color: '#f59e0b' }}>{workflow.contentCreator?.content?.seoAnalysis?.wordComplexity?.uncommon || 'N/A'}%</span>
+                    <span style={{ fontWeight: '600', color: '#f59e0b' }}>{workflow.contentCreator?.content?.seoAnalysis?.uncommonWords?.count || 'N/A'}</span>
                   </div>
                 </div>
                 

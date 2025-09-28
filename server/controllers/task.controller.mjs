@@ -5,7 +5,7 @@
 import FirebaseService from '../services/firebase.service.mjs';
 import { AppError } from '../utils/errorHandler.mjs';
 import { io } from '../server.mjs';
-import AIService from '../services/aiService.js';
+import AIService from '../services/aiService.mjs';
 
 // ========================
 // 2) CONTROLLER FUNCTIONS
@@ -145,21 +145,23 @@ const submitContent = async (req, res, next) => {
     console.log('📤 submitContent called with body:', req.body);
     try {
         const { workflowId } = req.params;
-        const { headline, caption, hashtag } = req.body;
+        const { headline, caption, hashtag, seoAnalysis } = req.body;
         
         if (!headline || !caption || !hashtag) {
             return next(new AppError('Headline, caption, and hashtag are required', 400));
         }
         
-        console.log('🔍 Generating SEO analysis for submitted content...');
+        console.log('📊 SEO analysis data received:', seoAnalysis ? 'Present' : 'Missing');
         
-        // Get SEO analysis from generated content (already includes mock SEO data)
-        const workflow = await FirebaseService.getWorkflowById(workflowId);
-        const seoAnalysis = workflow?.contentCreator?.generatedContent?.seoAnalysis || null;
+        const contentData = { 
+            headline, 
+            caption, 
+            hashtag, 
+            seoAnalysis: seoAnalysis || null,
+            submittedAt: new Date().toISOString()
+        };
         
-        console.log('✅ SEO analysis retrieved from generated content');
-        
-        const contentData = { headline, caption, hashtag, seoAnalysis };
+        console.log('💾 Saving content with full SEO analysis to database...');
         const updatedWorkflow = await FirebaseService.submitContent(workflowId, contentData);
         
         // Create notification for Marketing Lead
@@ -409,10 +411,19 @@ const getWorkflowsByMultipleStatuses = async (req, res, next) => {
     }
 };
 
+const getWorkflowById = async (workflowId) => {
+    try {
+        return await FirebaseService.getWorkflowById(workflowId);
+    } catch (error) {
+        throw error;
+    }
+};
+
 export {
     createWorkflow,
     getWorkflowsByStage,
     getWorkflowsByMultipleStatuses,
+    getWorkflowById,
     submitContent,
     approveContent,
     rejectContent,

@@ -415,7 +415,8 @@ class FirebaseService {
         user: 'Content Creator'
       });
       
-      console.log('📤 submitContent success - Content submitted');
+      console.log('📤 submitContent success - Content with SEO analysis saved to database');
+      console.log('📊 SEO data saved:', contentData.seoAnalysis ? 'Yes' : 'No');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error submitting content:', error);

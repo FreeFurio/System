@@ -45,7 +45,9 @@ import GraphicDesignerTask from './pages/GraphicDesigner/Task';
 import GraphicCreation from './pages/GraphicDesigner/GraphicCreation';
 import OutputContent from './pages/ContentCreator/OutputContent';
 import OngoingApproval from './pages/ContentCreator/OngoingApproval';
+import Drafts from './pages/ContentCreator/Drafts';
 import UploadTest from './components/UploadTest';
+
 
 // Add global font import
 const fontLink = document.createElement('link');
@@ -75,6 +77,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/upload-test" element={<UploadTest />} />
+
         </Route>
         <Route path="/admin" element={<DashboardLayout />}>
           <Route index element={<AdminDashboard />} />
@@ -116,6 +119,7 @@ function App() {
           <Route path="create" element={<CreateContent />} />
           <Route path="output" element={<OutputContent />} />
           <Route path="task" element={<ContentCreatorTask />} />
+          <Route path="drafts" element={<Drafts />} />
           <Route path="approval" element={<OngoingApproval />} />
         </Route>
         {/* Graphic Designer Routes */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContent } from '../../services/contentService';
-import { FiEdit3, FiZap, FiTarget, FiRefreshCw, FiUser, FiCalendar, FiClock, FiSmartphone } from 'react-icons/fi';
+import { FiEdit3, FiZap, FiTarget, FiRefreshCw, FiUser, FiCalendar, FiClock, FiSmartphone, FiClipboard } from 'react-icons/fi';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const TaskDetailsSidebar = ({ task }) => {
@@ -154,6 +154,8 @@ export default function CreateContent() {
   const workflowId = searchParams.get('workflowId');
   const navigate = useNavigate();
 
+
+
   useEffect(() => {
     const id = workflowId || taskId;
     if (id) {
@@ -202,6 +204,63 @@ export default function CreateContent() {
   };
 
 
+
+  // Show task selection prompt if no task is selected
+  if (!taskId && !workflowId) {
+    return (
+      <div style={{
+        minHeight: 'calc(100vh - 200px)',
+        padding: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: '16px',
+          padding: '48px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb',
+          textAlign: 'center',
+          maxWidth: '500px'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '24px' }}>📝</div>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1f2937',
+            margin: '0 0 16px 0'
+          }}>Pick a Task First</h2>
+          <p style={{
+            color: '#6b7280',
+            fontSize: '16px',
+            margin: '0 0 32px 0',
+            lineHeight: '1.5'
+          }}>You need to select a task before you can create content. Go to the Task page to choose an assigned task.</p>
+          <button
+            onClick={() => navigate('/content/task')}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto'
+            }}
+          >
+            <FiClipboard size={16} />
+            Go to Tasks
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 

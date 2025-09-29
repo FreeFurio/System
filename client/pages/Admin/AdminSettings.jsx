@@ -267,11 +267,13 @@ const AdminSettings = ({ isOpen, onClose }) => {
                 onClick={() => setActiveTab(tab.id)}
                 style={{
                   width: '100%', padding: '12px 16px', border: 'none',
-                  background: activeTab === tab.id ? '#2563eb' : 'transparent',
+                  background: activeTab === tab.id ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
                   color: activeTab === tab.id ? '#ffffff' : '#6b7280',
                   borderRadius: '8px', cursor: 'pointer', marginBottom: '4px',
                   display: 'flex', alignItems: 'center', gap: '12px',
-                  fontSize: '0.875rem', fontWeight: '500', textAlign: 'left'
+                  fontSize: '0.875rem', fontWeight: '500', textAlign: 'left',
+                  boxShadow: activeTab === tab.id ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <Icon size={16} />
@@ -518,10 +520,12 @@ const AdminSettings = ({ isOpen, onClose }) => {
               disabled={loading}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '12px 24px', background: '#3b82f6', color: '#fff',
+                padding: '12px 24px', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: '#fff',
                 border: 'none', borderRadius: '8px', fontSize: '0.875rem',
                 fontWeight: '500', cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                transition: 'all 0.2s ease'
               }}
             >
               <FiSave size={16} />

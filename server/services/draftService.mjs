@@ -10,12 +10,26 @@ class DraftService {
   static async saveDraft(userId, content, workflowId = null) {
     console.log('💾 saveDraft called with:', { userId, workflowId, content: !!content });
     try {
-      // Check for duplicate content if hash exists
-      if (content.contentHash) {
-        const existingDrafts = await this.getUserDrafts(userId);
-        const allDrafts = [...Object.values(existingDrafts.workflow).flat(), ...Object.values(existingDrafts.standalone)];
+      // For workflow drafts, check if existing draft exists and replace it
+      if (workflowId) {
+        const existingDrafts = await this.getDraftsByWorkflow(userId, workflowId);
+        const existingDraftIds = Object.keys(existingDrafts);
         
-        const duplicate = allDrafts.find(draft => 
+        // If existing draft found, delete it first
+        if (existingDraftIds.length > 0) {
+          console.log('💾 Existing draft found for workflow, replacing...');
+          for (const existingDraftId of existingDraftIds) {
+            await this.deleteDraft(userId, existingDraftId, workflowId);
+          }
+        }
+      }
+      
+      // Check for duplicate content if hash exists (for standalone drafts only)
+      if (!workflowId && content.contentHash) {
+        const existingDrafts = await this.getUserDrafts(userId);
+        const allStandaloneDrafts = Object.values(existingDrafts.standalone);
+        
+        const duplicate = allStandaloneDrafts.find(draft => 
           draft.content?.contentHash === content.contentHash
         );
         
@@ -44,7 +58,7 @@ class DraftService {
       const draftRef = ref(db, path);
       await set(draftRef, draftData);
       
-      console.log('💾 saveDraft success - All content variations saved at path:', path);
+      console.log('💾 saveDraft success - Content saved at path:', path);
       return draftId;
     } catch (error) {
       console.error('❌ Error saving draft:', error);

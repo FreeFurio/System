@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './AccountCard.css';
 import UserDetailsModal from './UserDetailsModal';
-import { FiMail, FiUser, FiCalendar } from 'react-icons/fi';
+import { FiMail, FiUser, FiCalendar, FiCheck, FiX, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { hoverEffects } from '../../styles/designSystem';
 
 const formatRole = (role) => role.replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -117,12 +117,9 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
             fontWeight: '600', 
             color: '#374151', 
             marginBottom: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
             background: '#fff'
           }}>
-            <FiUser size={14} color="#3b82f6" /> Account Details
+            Account Details:
           </div>
           <div style={{ 
             fontSize: '16px', 
@@ -145,33 +142,24 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
           borderRadius: '12px',
           border: '1px solid #e2e8f0'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FiCalendar size={16} color="#10b981" />
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
-                {isApproved ? 'Member since' : 'Created'}
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-                {new Date().toLocaleDateString()}
-              </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
+              {isApproved ? 'Member since:' : 'Created:'}
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+              {new Date().toLocaleDateString()}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FiUser size={16} color="#8b5cf6" />
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Role</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-                {formatRole(account.role)}
-              </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Role:</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+              {formatRole(account.role)}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FiUser size={16} color="#10b981" />
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Status</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-                {isApproved ? 'Active' : 'Pending'}
-              </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Status:</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+              {isApproved ? 'Active' : 'Pending'}
             </div>
           </div>
         </div>
@@ -212,7 +200,7 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                     e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                   }}
                 >
-                  <FiUser size={14} />
+                  <FiEdit size={14} />
                   Modify
                 </button>
               )}
@@ -229,7 +217,10 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                   cursor: 'pointer',
                   height: '36px',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.transform = 'translateY(-1px)';
@@ -240,6 +231,7 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                   e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                 }}
               >
+                <FiTrash2 size={14} />
                 Delete
               </button>
             </>
@@ -259,7 +251,10 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                   cursor: 'pointer',
                   height: '36px',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.transform = 'translateY(-1px)';
@@ -270,6 +265,7 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                   e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                 }}
               >
+                <FiCheck size={14} />
                 Accept
               </button>
               <button
@@ -285,7 +281,10 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                   cursor: 'pointer',
                   height: '36px',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.transform = 'translateY(-1px)';
@@ -296,6 +295,7 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                   e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                 }}
               >
+                <FiX size={14} />
                 Reject
               </button>
             </>

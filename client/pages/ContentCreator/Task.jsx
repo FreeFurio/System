@@ -24,8 +24,8 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
     });
   };
 
-  const canCreateContent = workflow.status === 'content_creation' && workflow.currentStage === 'contentcreator';
-  const hasSubmittedContent = workflow.contentCreator && workflow.contentCreator.content;
+  const canCreateContent = (workflow.status === 'content_creation' || workflow.status === 'content_rejected') && workflow.currentStage === 'contentcreator';
+  const hasSubmittedContent = workflow.contentCreator && workflow.contentCreator.content && workflow.status !== 'content_creation' && workflow.status !== 'content_rejected';
 
   return (
     <div style={{
@@ -362,13 +362,12 @@ export default function Task() {
 
   return (
     <div style={{
-      padding: '24px',
       backgroundColor: '#f8f9fa',
       minHeight: '100vh',
       fontFamily: 'Inter, sans-serif'
     }}>
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '100%',
         margin: '0 auto'
       }}>
         <div style={{

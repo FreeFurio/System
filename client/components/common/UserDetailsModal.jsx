@@ -1,5 +1,5 @@
 import React from "react";
-import { FiX, FiUser, FiMail, FiPhone, FiMapPin, FiCalendar, FiBriefcase, FiKey } from "react-icons/fi";
+import { FiX, FiUser, FiMail, FiPhone, FiMapPin, FiCalendar, FiBriefcase, FiKey, FiCheck, FiEdit, FiTrash2, FiCheckCircle, FiClock } from "react-icons/fi";
 
 const EXCLUDE_KEYS = [
   'key', 'password', 'otp', 'registrationCompleted', 'verified', 'registrationCompleted', 'expiresAt', 'createdAt', 'registrationDate', 'profilePicture'
@@ -112,9 +112,21 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                 fontWeight: '600',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
-                display: 'inline-block'
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
               }}>
-                {isApproved ? '✅ APPROVED' : '⏳ PENDING'}
+                {isApproved ? (
+                  <>
+                    <FiCheckCircle size={12} />
+                    APPROVED
+                  </>
+                ) : (
+                  <>
+                    <FiClock size={12} />
+                    PENDING
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -147,12 +159,9 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
               fontWeight: '700', 
               color: '#374151', 
               marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
               background: '#fff'
             }}>
-              <FiUser size={18} color="#3b82f6" /> Account Information
+              Account Information:
             </div>
           </div>
           
@@ -164,15 +173,12 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
               borderRadius: '12px',
               border: '1px solid #e2e8f0'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <FiCalendar size={16} color="#10b981" />
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
-                    {isApproved ? 'Member since' : 'Account Created'}
-                  </div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-                    {formatDate(user.createdAt)}
-                  </div>
+              <div style={{ marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
+                  {isApproved ? 'Member since:' : 'Account Created:'}
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+                  {formatDate(user.createdAt)}
                 </div>
               </div>
             </div>
@@ -213,17 +219,14 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                 const iconColor = getIconColor(key);
                 
                 return (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconComponent size={16} color={iconColor} />
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
-                        {LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^\w/, c => c.toUpperCase())}
-                      </div>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-                        {key === 'role' ? (value?.replace(/([a-z])([A-Z])/g, '$1 $2') || value) : 
-                         key === 'lastLogin' ? formatDate(value) : 
-                         String(value)}
-                      </div>
+                  <div key={key}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
+                      {(LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^\w/, c => c.toUpperCase())) + ':'}
+                    </div>
+                    <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+                      {key === 'role' ? (value?.replace(/([a-z])([A-Z])/g, '$1 $2') || value) : 
+                       key === 'lastLogin' ? formatDate(value) : 
+                       String(value)}
                     </div>
                   </div>
                 );
@@ -271,7 +274,8 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                   e.target.style.boxShadow = '0 4px 12px rgba(16,185,129,0.3)';
                 }}
               >
-                ✅ Accept
+                <FiCheck size={16} />
+                Accept
               </button>
             )}
             {onReject && (
@@ -304,14 +308,15 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                   e.target.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)';
                 }}
               >
-                ❌ Reject
+                <FiX size={16} />
+                Reject
               </button>
             )}
             {onModify && (
               <button
                 onClick={() => { onModify(); onClose(); }}
                 style={{
-                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
                   border: 'none',
                   color: '#fff',
                   borderRadius: 12,
@@ -326,18 +331,19 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                   gap: '8px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 12px rgba(139,92,246,0.3)'
+                  boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
                 }}
                 onMouseEnter={e => {
                   e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 6px 16px rgba(139,92,246,0.4)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(16,185,129,0.4)';
                 }}
                 onMouseLeave={e => {
                   e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 12px rgba(139,92,246,0.3)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(16,185,129,0.3)';
                 }}
               >
-                ✏️ Modify
+                <FiEdit size={16} />
+                Modify
               </button>
             )}
             {onDelete && (
@@ -370,7 +376,8 @@ const UserDetailsModal = ({ user, isOpen, onClose, onAccept, onReject, onModify,
                   e.target.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)';
                 }}
               >
-                🗑️ Delete
+                <FiTrash2 size={16} />
+                Delete
               </button>
             )}
           </div>

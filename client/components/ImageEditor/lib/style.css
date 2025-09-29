@@ -371,3 +371,75 @@ body {
   cursor: default;
   color: #888;
 }
+
+/* Social Media Templates Styles */
+.social-templates-setting {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.social-templates-setting p {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  color: #333;
+  text-transform: uppercase;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.template-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.template-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  background: #fff;
+  border: 2px solid #e4e4e4;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  outline: none;
+}
+
+.template-btn:hover {
+  border-color: #4368a9;
+  background: #f8f9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(67, 104, 169, 0.15);
+}
+
+.template-btn.active {
+  border-color: #4368a9;
+  background: #4368a9;
+  color: white;
+}
+
+
+
+.template-name {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+}
+
+.template-btn.active .template-name {
+  color: white;
+}
+
+.template-size {
+  font-size: 11px;
+  color: #777;
+  font-weight: 500;
+}
+
+.template-btn.active .template-size {
+  color: rgba(255, 255, 255, 0.8);
+}

@@ -149,21 +149,32 @@ export default function ContentCalendar() {
   const renderIndicators = (day) => {
     const dateKey = formatDate(day);
     const items = calendarData[dateKey] || [];
-    return items.map(item => (
-      <span 
+    return items.slice(0, 3).map(item => (
+      <div 
         key={item.id} 
         style={{
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
+          fontSize: '10px',
+          fontWeight: '600',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          marginBottom: '2px',
+          textAlign: 'center',
           background: 
-            item.type === 'ongoing' ? '#ffc107' :
-            item.type === 'approval' ? '#007bff' :
-            item.type === 'approved' ? '#28a745' :
-            item.type === 'rejected' ? '#dc3545' :
-            item.type === 'scheduled' ? '#6f42c1' : '#6b7280'
+            item.type === 'ongoing' ? '#fef3c7' :
+            item.type === 'approval' ? '#dbeafe' :
+            item.type === 'approved' ? '#d1fae5' :
+            item.type === 'rejected' ? '#fee2e2' :
+            item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6'
         }}
-      ></span>
+      >
+        {
+          item.type === 'ongoing' ? 'IN PROGRESS' :
+          item.type === 'approval' ? 'PENDING' :
+          item.type === 'approved' ? 'APPROVED' :
+          item.type === 'rejected' ? 'REJECTED' :
+          item.type === 'scheduled' ? 'POSTED' : item.type.toUpperCase()
+        }
+      </div>
     ));
   };
 
@@ -260,9 +271,11 @@ export default function ContentCalendar() {
           }}>{day}</span>
           <div style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: '4px',
-            marginTop: '4px'
+            flexDirection: 'column',
+            gap: '2px',
+            marginTop: '4px',
+            maxHeight: '80px',
+            overflow: 'hidden'
           }}>
             {renderIndicators(day)}
           </div>

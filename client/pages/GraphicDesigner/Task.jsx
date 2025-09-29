@@ -112,48 +112,36 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
           gap: '8px',
           background: '#fff'
         }}>
-          🎯 Task Objectives
+          🎯 Task Information
         </div>
-        <div style={{ 
-          fontSize: '16px', 
-          color: '#1f2937', 
-          lineHeight: '1.6',
-          fontWeight: '500',
-          background: '#fff'
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px',
+          padding: '16px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0'
         }}>
-          {workflow.objectives}
-        </div>
-      </div>
-      
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
-        gap: '16px', 
-        marginBottom: '20px',
-        padding: '20px',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>👤</span>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📋 Objectives</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.objectives}</div>
           </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>🎂</span>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>👤 Target Gender</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
           </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>📅</span>
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🎂 Age Range</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📅 Deadline</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🏢 Current Stage</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>Graphic Designer</div>
           </div>
         </div>
       </div>
@@ -281,7 +269,7 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
                 fontSize: '12px',
                 fontWeight: '700'
               }}>
-                Overall SEO: {workflow.contentCreator?.content?.seoAnalysis?.overallScore || 'N/A'}/100
+                Overall SEO: {workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100
               </div>
             </div>
             
@@ -305,25 +293,35 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
                     background: 'transparent !important'
                   }}>
                     <span>📰</span> HEADLINE
-                    <div style={{
-                      background: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                      color: '#fff',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '700'
-                    }}>
-                      {workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 'N/A'}
-                    </div>
                   </div>
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
                     color: '#1f2937 !important',
                     lineHeight: 1.5,
-                    background: 'transparent !important'
+                    background: 'transparent !important',
+                    marginBottom: '12px'
                   }}>
                     {workflow.contentCreator?.content?.headline || workflow.content?.headline || 'No headline found'}
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
+                      height: '100%',
+                      backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                      borderRadius: '4px',
+                      transition: 'width 0.5s ease-in-out'
+                    }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline Score</span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
                   </div>
                 </div>
                 
@@ -345,24 +343,34 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
                     background: 'transparent !important'
                   }}>
                     <span>📝</span> CAPTION
-                    <div style={{
-                      background: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                      color: '#fff',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '700'
-                    }}>
-                      {workflow.contentCreator?.content?.seoAnalysis?.captionScore || 'N/A'}
-                    </div>
                   </div>
                   <div style={{
                     fontSize: '15px',
                     color: '#374151 !important',
                     lineHeight: 1.6,
-                    background: 'transparent !important'
+                    background: 'transparent !important',
+                    marginBottom: '12px'
                   }}>
                     {workflow.contentCreator?.content?.caption || workflow.content?.caption || 'No caption found'}
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
+                      height: '100%',
+                      backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                      borderRadius: '4px',
+                      transition: 'width 0.5s ease-in-out'
+                    }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption Score</span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
                   </div>
                 </div>
                 
@@ -384,16 +392,6 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
                     background: 'transparent !important'
                   }}>
                     <span>🏷️</span> HASHTAGS
-                    <div style={{
-                      background: (workflow.contentCreator?.content?.seoAnalysis?.hashtagScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.hashtagScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                      color: '#fff',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '700'
-                    }}>
-                      {workflow.contentCreator?.content?.seoAnalysis?.hashtagScore || 'N/A'}
-                    </div>
                   </div>
                   <div style={{
                     fontSize: '15px',
@@ -424,132 +422,28 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
                   gap: '8px',
                   background: 'transparent !important'
                 }}>
-                  📊 SEO Analytics Dashboard
+                  📊 Overall SEO Score
                 </h5>
                 
-                <div style={{ display: 'grid', gap: '12px', fontSize: '12px', background: 'transparent !important' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent !important' }}>
-                    <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Word Count</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.wordCount || (workflow.contentCreator?.content?.caption || workflow.content?.caption || '').split(' ').length || 0}</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent !important' }}>
-                    <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Character Count</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{(workflow.contentCreator?.content?.caption || workflow.content?.caption || '').length || 0}</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent !important' }}>
-                    <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Hashtag Count</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{(workflow.contentCreator?.content?.hashtag || workflow.content?.hashtag || '').split('#').length - 1 || 0}</span>
-                  </div>
-                  
-                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151 !important', marginBottom: '8px', background: 'transparent !important' }}>Sentiment Analysis</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Overall Tone</span>
-                      <span style={{ fontWeight: '600', color: '#10b981 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.sentiment?.tone || 'Positive'}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Confidence</span>
-                      <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.sentiment?.confidence || '85'}%</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Polarity</span>
-                      <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.sentiment?.polarity || '0.8'}</span>
-                    </div>
-                  </div>
-                  
-                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151 !important', marginBottom: '8px', background: 'transparent !important' }}>Power Words</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {(workflow.contentCreator?.content?.seoAnalysis?.powerWords?.words || ['proven', 'exceptional', 'innovative']).map((word, index) => (
-                        <span key={index} style={{
-                          background: '#fef3c7 !important',
-                          color: '#92400e !important',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '500'
-                        }}>
-                          {word}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151 !important', marginBottom: '8px', background: 'transparent !important' }}>Emotional Words</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {(workflow.contentCreator?.content?.seoAnalysis?.emotionalWords?.words || ['amazing', 'incredible', 'fantastic']).map((word, index) => (
-                        <span key={index} style={{
-                          background: '#fce7f3 !important',
-                          color: '#be185d !important',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '500'
-                        }}>
-                          {word}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151 !important', marginBottom: '8px', background: 'transparent !important' }}>Common Words</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {(workflow.contentCreator?.content?.seoAnalysis?.commonWords?.words || ['the', 'and', 'for']).map((word, index) => (
-                        <span key={index} style={{
-                          background: '#e5e7eb !important',
-                          color: '#374151 !important',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '500'
-                        }}>
-                          {word}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151 !important', marginBottom: '8px', background: 'transparent !important' }}>Uncommon Words</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {(workflow.contentCreator?.content?.seoAnalysis?.uncommonWords?.words || ['innovative', 'exceptional']).map((word, index) => (
-                        <span key={index} style={{
-                          background: '#ddd6fe !important',
-                          color: '#7c3aed !important',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '500'
-                        }}>
-                          {word}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151 !important', marginBottom: '8px', background: 'transparent !important' }}>Readability Analysis</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Grade Level</span>
-                      <span style={{ fontWeight: '600', color: '#10b981 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.readability?.gradeLevel || '7th Grade'}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Reading Time</span>
-                      <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.readability?.readingTime || '45'} sec</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Flesch Score</span>
-                      <span style={{ fontWeight: '600', color: '#10b981 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.readability?.fleschScore || '85'}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ color: '#6b7280 !important', background: 'transparent !important' }}>Complexity</span>
-                      <span style={{ fontWeight: '600', color: '#1f2937 !important', background: 'transparent !important' }}>{workflow.contentCreator?.content?.seoAnalysis?.readability?.complexity || 'Simple'}</span>
-                    </div>
-                  </div>
+                <div style={{
+                  width: '100%',
+                  height: '12px',
+                  backgroundColor: '#e5e7eb',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{
+                    width: `${workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
+                    height: '100%',
+                    backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                    borderRadius: '6px',
+                    transition: 'width 0.5s ease-in-out'
+                  }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>Content Quality</span>
+                  <span style={{ fontSize: '18px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
                 </div>
               </div>
             </div>

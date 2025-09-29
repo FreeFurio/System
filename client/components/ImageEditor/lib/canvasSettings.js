@@ -49,6 +49,55 @@
     })();
     // end set dimension section
 
+    // social media templates section
+    (() => {
+      $(`${this.containerSelector} .toolpanel#background-panel .content`).append(`
+        <div class="social-templates-setting">
+          <p>Social Media Templates</p>
+          <div class="template-buttons">
+            <button class="template-btn" data-width="1200" data-height="630" data-name="Facebook Post">
+              <span class="template-name">Facebook</span>
+              <span class="template-size">1200×630</span>
+            </button>
+            <button class="template-btn" data-width="1080" data-height="1080" data-name="Instagram Post">
+              <span class="template-name">Instagram</span>
+              <span class="template-size">1080×1080</span>
+            </button>
+            <button class="template-btn" data-width="1024" data-height="512" data-name="Twitter Post">
+              <span class="template-name">Twitter</span>
+              <span class="template-size">1024×512</span>
+            </button>
+          </div>
+        </div>
+      `);
+
+      // Template button click handlers
+      $(`${this.containerSelector} .toolpanel#background-panel .content .template-btn`).click(function() {
+        const width = $(this).data('width');
+        const height = $(this).data('height');
+        const name = $(this).data('name');
+        
+        // Update canvas dimensions
+        _self.canvas.setWidth(width);
+        _self.canvas.originalW = width;
+        _self.canvas.setHeight(height);
+        _self.canvas.originalH = height;
+        _self.canvas.renderAll();
+        _self.canvas.trigger('object:modified');
+        
+        // Update input fields
+        $(`${_self.containerSelector} .toolpanel#background-panel .content #input-width`).val(width);
+        $(`${_self.containerSelector} .toolpanel#background-panel .content #input-height`).val(height);
+        
+        // Visual feedback
+        $(this).addClass('active');
+        setTimeout(() => $(this).removeClass('active'), 200);
+        
+        console.log(`Canvas resized to ${name}: ${width}×${height}`);
+      });
+    })();
+    // end social media templates section
+
     // background color
     (() => {
       $(`${this.containerSelector} .toolpanel#background-panel .content`).append(`

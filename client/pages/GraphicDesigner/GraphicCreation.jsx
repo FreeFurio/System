@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ImageEditorWrapper from '../../components/ImageEditor/ImageEditorWrapper';
+import TemplatedEditor from '../../components/PhotopeaEditor/PhotopeaEditor';
 
 export default function GraphicCreation() {
   const [searchParams] = useSearchParams();
@@ -13,6 +14,9 @@ export default function GraphicCreation() {
   const [designData, setDesignData] = useState(null);
   const [fetchError, setFetchError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedEditor, setSelectedEditor] = useState('original');
+  
+  console.log('🔄 Current selectedEditor:', selectedEditor);
 
 
 
@@ -181,7 +185,47 @@ export default function GraphicCreation() {
             <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Task: {workflow?.objectives || taskId || 'New Design'}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={() => {
+                console.log('🔄 Switching to original editor');
+                setSelectedEditor('original');
+              }}
+              style={{ 
+                background: selectedEditor === 'original' ? '#ffffff' : '#6366f1', 
+                color: selectedEditor === 'original' ? '#6366f1' : 'white', 
+                border: '2px solid #ffffff', 
+                padding: '10px 20px', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                minWidth: '120px'
+              }}
+            >
+              Original Editor
+            </button>
+            <button 
+              onClick={() => {
+                console.log('🔄 Switching to templated editor');
+                setSelectedEditor('templated');
+              }}
+              style={{ 
+                background: selectedEditor === 'templated' ? '#ffffff' : '#6366f1', 
+                color: selectedEditor === 'templated' ? '#6366f1' : 'white', 
+                border: '2px solid #ffffff', 
+                padding: '10px 20px', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                minWidth: '120px'
+              }}
+            >
+              Templated.io
+            </button>
+          </div>
           {loading && (
             <div style={{ color: 'white', padding: '12px 20px', fontSize: '14px' }}>
               Submitting design...
@@ -220,12 +264,19 @@ export default function GraphicCreation() {
         </div>
       )}
       
-      {/* Image Editor */}
+      {/* Editor Selection */}
       <div style={{ flex: 1 }}>
-        <ImageEditorWrapper 
-          onSave={handleDesignSave}
-          onExport={handleDesignExport}
-        />
+        {selectedEditor === 'original' ? (
+          <ImageEditorWrapper 
+            onSave={handleDesignSave}
+            onExport={handleDesignExport}
+          />
+        ) : (
+          <TemplatedEditor 
+            onSave={handleDesignSave}
+            onExport={handleDesignExport}
+          />
+        )}
       </div>
     </div>
   );

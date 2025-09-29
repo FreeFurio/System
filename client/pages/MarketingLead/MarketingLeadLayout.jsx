@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend, FiChevronDown, FiMenu } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend, FiChevronDown, FiMenu, FiEdit2, FiPenTool } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import { DarkModeProvider } from '../../components/common/DarkModeContext';
@@ -15,8 +15,8 @@ const sidebarItems = [
     hasDropdown: true,
     icon: FiEdit,
     subItems: [
-      { label: 'Content Creator', path: '/marketing/set-task', icon: '💻' },
-      { label: 'Graphic Designer', path: '/marketing/set-task-graphic-designer', icon: '🎨' }
+      { label: 'Content Creator', path: '/marketing/set-task', icon: FiEdit2 },
+      { label: 'Graphic Designer', path: '/marketing/set-task-graphic-designer', icon: FiPenTool }
     ]
   },
   { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: FiClipboard },
@@ -254,7 +254,7 @@ export default function MarketingLeadLayout() {
                           fontWeight: 600,
                           borderRadius: 8,
                           color: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#fff' : '#222',
-                          background: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#e53935' : 'none',
+                          background: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
                           marginBottom: 4,
                           textDecoration: 'none',
                           transition: 'background 0.2s, color 0.2s',
@@ -262,7 +262,8 @@ export default function MarketingLeadLayout() {
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           border: 'none',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          boxShadow: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none'
                         }}
                       >
                         <item.icon size={18} style={{ marginRight: 12 }} />
@@ -278,30 +279,23 @@ export default function MarketingLeadLayout() {
                       </button>
                       {showSetTaskDropdown && (
                         <div style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          background: '#fff',
+                          background: '#f8fafc',
                           borderRadius: 8,
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                          border: '1px solid #e5e7eb',
-                          zIndex: 10,
-                          marginTop: 4
+                          marginTop: 8,
+                          marginBottom: 8
                         }}>
                           {item.subItems.map(subItem => (
                             <button
                               key={subItem.path}
                               onClick={() => {
                                 navigate(subItem.path);
-                                setShowSetTaskDropdown(false);
                               }}
                               style={{
                                 width: '100%',
-                                padding: '12px 16px',
+                                padding: '10px 20px',
                                 border: 'none',
-                                background: location.pathname === subItem.path ? '#fef2f2' : 'transparent',
-                                color: location.pathname === subItem.path ? '#ef4444' : '#1f2937',
+                                background: location.pathname === subItem.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                                color: location.pathname === subItem.path ? '#fff' : '#6b7280',
                                 textAlign: 'left',
                                 cursor: 'pointer',
                                 fontSize: 14,
@@ -310,20 +304,13 @@ export default function MarketingLeadLayout() {
                                 alignItems: 'center',
                                 gap: 8,
                                 transition: 'all 0.2s ease',
-                                borderRadius: location.pathname === subItem.path ? 6 : 0
+                                borderRadius: 6,
+                                margin: '4px 8px',
+                                boxShadow: location.pathname === subItem.path ? '0 2px 6px rgba(245, 158, 11, 0.2)' : 'none'
                               }}
-                              onMouseEnter={e => {
-                                if (location.pathname !== subItem.path) {
-                                  e.target.style.background = '#f9fafb';
-                                }
-                              }}
-                              onMouseLeave={e => {
-                                if (location.pathname !== subItem.path) {
-                                  e.target.style.background = 'transparent';
-                                }
-                              }}
+
                             >
-                              <span style={{ fontSize: 16 }}>{subItem.icon}</span>
+                              <subItem.icon size={16} />
                               {subItem.label}
                             </button>
                           ))}
@@ -333,6 +320,7 @@ export default function MarketingLeadLayout() {
                   ) : (
                     <Link
                       to={item.path}
+                      onClick={() => setShowSetTaskDropdown(false)}
                       className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
                       style={{
                         padding: '14px 20px',

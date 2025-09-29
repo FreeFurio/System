@@ -4,6 +4,8 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { componentStyles } from '../../styles/designSystem';
 import PlatformSelector from '../../components/common/PlatformSelector';
+import { FiSend } from 'react-icons/fi';
+import Toast from '../../components/common/Toast';
 
 export default function SetTask() {
   const [searchParams] = useSearchParams();
@@ -24,6 +26,7 @@ export default function SetTask() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const dateFromUrl = searchParams.get('date');
@@ -70,7 +73,7 @@ export default function SetTask() {
     setError(null);
     
     if (selectedPlatforms.length === 0) {
-      setError('Please select at least one social media platform');
+      setToast({ message: 'Please select at least one social media platform', type: 'error' });
       setLoading(false);
       return;
     }
@@ -99,7 +102,7 @@ export default function SetTask() {
         return data;
       })
       .then(() => {
-        setSubmitted(true);
+        setToast({ message: 'Task submitted successfully!', type: 'success' });
         setObjective('');
         setGender('');
         setAgeRange([20, 40]);
@@ -108,7 +111,7 @@ export default function SetTask() {
         setSelectedPlatforms([]);
       })
       .catch((err) => {
-        setError(err.message || 'Submission failed');
+        setToast({ message: err.message || 'Submission failed', type: 'error' });
       })
       .finally(() => setLoading(false));
   };
@@ -116,13 +119,27 @@ export default function SetTask() {
   return (
     <div style={{ padding: '0', maxWidth: '100%' }}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
-          Set Task - Content Creator
-        </h1>
-        <p style={{ color: '#6b7280', margin: 0 }}>
-          Create and assign tasks to content creators with detailed specifications
-        </p>
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          margin: 0,
+          color: '#111827',
+          fontSize: '32px',
+          fontWeight: '800',
+          letterSpacing: '-0.025em'
+        }}>Set Task - Content Creator</h1>
+        <p style={{
+          margin: '8px 0 0 0',
+          color: '#6b7280',
+          fontSize: '16px',
+          fontWeight: '400'
+        }}>Create and assign tasks to content creators with detailed specifications</p>
       </div>
 
       {/* Form Container */}
@@ -170,9 +187,9 @@ export default function SetTask() {
                 overflowY: 'auto'
               }}
               onFocus={e => {
-                e.target.style.borderColor = '#3b82f6';
+                e.target.style.borderColor = '#f59e0b';
                 e.target.style.background = '#fff';
-                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)';
               }}
               onBlur={e => {
                 e.target.style.borderColor = '#e5e7eb';
@@ -203,16 +220,16 @@ export default function SetTask() {
                   gap: '8px',
                   padding: '16px 24px',
                   borderRadius: '12px',
-                  border: `2px solid ${gender === option ? '#3b82f6' : '#e5e7eb'}`,
-                  background: gender === option ? '#eff6ff' : '#fafbfc',
+                  border: `2px solid ${gender === option ? '#f59e0b' : '#e5e7eb'}`,
+                  background: gender === option ? '#fef3c7' : '#fafbfc',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   fontWeight: '600',
                   fontSize: '15px',
-                  color: gender === option ? '#3b82f6' : '#6b7280',
+                  color: gender === option ? '#d97706' : '#6b7280',
                   minWidth: '120px',
                   justifyContent: 'center',
-                  boxShadow: gender === option ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none'
+                  boxShadow: gender === option ? '0 0 0 3px rgba(245, 158, 11, 0.1)' : 'none'
                 }}>
                   <input 
                     type="radio" 
@@ -251,7 +268,7 @@ export default function SetTask() {
               marginBottom: '24px'
             }}>
               <div style={{
-                background: '#3b82f6',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 color: '#ffffff',
                 padding: '12px 20px',
                 borderRadius: '12px',
@@ -259,11 +276,11 @@ export default function SetTask() {
                 fontWeight: '700',
                 minWidth: '60px',
                 textAlign: 'center',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
               }}>{ageRange[0]}</div>
               <span style={{ color: '#374151', fontSize: '16px', fontWeight: '600' }}>to</span>
               <div style={{
-                background: '#3b82f6',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 color: '#ffffff',
                 padding: '12px 20px',
                 borderRadius: '12px',
@@ -271,7 +288,7 @@ export default function SetTask() {
                 fontWeight: '700',
                 minWidth: '60px',
                 textAlign: 'center',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
               }}>{ageRange[1]}</div>
             </div>
             
@@ -291,31 +308,31 @@ export default function SetTask() {
                 onChange={setAgeRange}
                 allowCross={false}
                 trackStyle={[{ 
-                  backgroundColor: '#3b82f6', 
+                  backgroundColor: '#f59e0b', 
                   height: 8,
                   borderRadius: 4
                 }]}
                 handleStyle={[
                   { 
                     backgroundColor: '#ffffff', 
-                    borderColor: '#3b82f6', 
+                    borderColor: '#f59e0b', 
                     borderWidth: 3,
                     height: 24, 
                     width: 24, 
                     marginTop: -8,
                     borderRadius: '50%',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
                     cursor: 'pointer'
                   },
                   { 
                     backgroundColor: '#ffffff', 
-                    borderColor: '#3b82f6', 
+                    borderColor: '#f59e0b', 
                     borderWidth: 3,
                     height: 24, 
                     width: 24, 
                     marginTop: -8,
                     borderRadius: '50%',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
                     cursor: 'pointer'
                   }
                 ]}
@@ -353,13 +370,13 @@ export default function SetTask() {
               }}>
                 {getAgeLabels(ageRange).map(label => (
                   <span key={label} style={{ 
-                    background: '#3b82f6', 
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
                     color: '#ffffff',
                     borderRadius: '20px', 
                     padding: '8px 16px', 
                     fontSize: '14px', 
                     fontWeight: '600',
-                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)'
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)'
                   }}>{label}</span>
                 ))}
               </div>
@@ -430,8 +447,8 @@ export default function SetTask() {
                   max={maxDate}
                   onChange={e => setDeadline(e.target.value)}
                   onFocus={e => {
-                    e.target.style.borderColor = '#3b82f6';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    e.target.style.borderColor = '#f59e0b';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)';
                   }}
                   onBlur={e => {
                     e.target.style.borderColor = '#e5e7eb';
@@ -467,8 +484,8 @@ export default function SetTask() {
                   value={deadlineTime}
                   onChange={e => setDeadlineTime(e.target.value)}
                   onFocus={e => {
-                    e.target.style.borderColor = '#3b82f6';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    e.target.style.borderColor = '#f59e0b';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)';
                   }}
                   onBlur={e => {
                     e.target.style.borderColor = '#e5e7eb';
@@ -503,58 +520,48 @@ export default function SetTask() {
             type="submit" 
             disabled={loading} 
             style={{ 
-              ...componentStyles.button,
-              ...(loading ? { background: '#9ca3af', cursor: 'not-allowed', boxShadow: 'none' } : componentStyles.buttonPrimary),
+              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '16px 32px',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: loading ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.3)',
               marginTop: '24px',
               alignSelf: 'flex-start'
             }}
             onMouseEnter={e => {
               if (!loading) {
-                e.target.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
+                e.target.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.4)';
+                e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
               }
             }}
             onMouseLeave={e => {
               if (!loading) {
-                e.target.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
               }
             }}
           >
+            <FiSend size={16} />
             {loading ? 'Submitting Task...' : 'Submit Task'}
           </button>
-          
-          {error && (
-            <div style={{ 
-              color: '#ef4444', 
-              padding: '16px 20px',
-              background: '#fef2f2',
-              border: '2px solid #fecaca',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600'
-            }}>
-              {error}
-            </div>
-          )}
-          
-          {submitted && (
-            <div style={{ 
-              color: '#059669', 
-              padding: '16px 20px',
-              background: '#f0fdf4',
-              border: '2px solid #bbf7d0',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600'
-            }}>
-              Task submitted successfully!
-            </div>
-          )}
+
         </form>
       </div>
+      
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

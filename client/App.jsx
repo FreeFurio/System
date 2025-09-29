@@ -49,6 +49,7 @@ import Drafts from './pages/ContentCreator/Drafts';
 import UploadTest from './components/UploadTest';
 
 
+
 // Add global font import
 const fontLink = document.createElement('link');
 fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap';
@@ -77,6 +78,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/upload-test" element={<UploadTest />} />
+
 
         </Route>
         <Route path="/admin" element={<DashboardLayout />}>

@@ -244,7 +244,14 @@ class FirebaseService {
       }
       
       const result = Object.entries(workflows)
-        .filter(([key, workflow]) => workflow.currentStage === stage)
+        .filter(([key, workflow]) => {
+          if (stage === 'contentcreator') {
+            // Show tasks that are in content creation stage OR have been rejected and need rework
+            return workflow.currentStage === stage && 
+                   (workflow.status === 'content_creation' || workflow.status === 'content_rejected');
+          }
+          return workflow.currentStage === stage;
+        })
         .map(([key, workflow]) => ({ id: key, ...workflow }));
       
       console.log('📋 getWorkflowsByStage result:', result.length + ' workflows found for stage:', stage);
@@ -505,7 +512,7 @@ class FirebaseService {
       const updatedWorkflow = {
         ...workflow,
         status: 'content_rejected',
-        currentStage: 'marketinglead',
+        currentStage: 'contentcreator',
         marketingRejection: {
           rejectedAt: new Date().toISOString(),
           rejectedBy: rejectedBy,
@@ -524,7 +531,7 @@ class FirebaseService {
         user: 'Content Creator'
       });
       
-      console.log('❌ rejectContent success - Content rejected');
+      console.log('❌ rejectContent success - Content rejected and returned to content creator');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error rejecting content:', error);

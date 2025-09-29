@@ -142,27 +142,7 @@ const AIContentGenerator = () => {
         <div style={{ border: '1px solid #28a745', padding: '20px', backgroundColor: '#f8fff9' }}>
           <h3>SEO Analysis</h3>
           <div style={{ marginBottom: '10px' }}>
-            <strong>Score: {seoAnalysis.analysis.score}/100</strong>
-          </div>
-          
-          <div style={{ marginBottom: '15px' }}>
-            <h4>Analysis:</h4>
-            <ul>
-              <li><strong>Keywords:</strong> {seoAnalysis.analysis.analysis.keywords}</li>
-              <li><strong>Length:</strong> {seoAnalysis.analysis.analysis.length}</li>
-              <li><strong>Readability:</strong> {seoAnalysis.analysis.analysis.readability}</li>
-              <li><strong>Engagement:</strong> {seoAnalysis.analysis.analysis.engagement}</li>
-              <li><strong>Visibility:</strong> {seoAnalysis.analysis.analysis.visibility}</li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4>Suggestions:</h4>
-            <ul>
-              {seoAnalysis.analysis.suggestions.map((suggestion, index) => (
-                <li key={index}>{suggestion}</li>
-              ))}
-            </ul>
+            <strong>Score: {seoAnalysis.score}/100</strong>
           </div>
         </div>
       )}

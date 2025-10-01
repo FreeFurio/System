@@ -52,7 +52,9 @@ app.use(
           "https://*.firebasedatabase.app",
           "https://system-production-9942.up.railway.app"
         ],
-        scriptSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"]
       },
     },
   })
@@ -178,50 +180,12 @@ app.all('/api/*', (req, res) => {
 });
 
 // ========================
-// STATIC FILES - AFTER API ROUTES
+// STATIC FILES - SIMPLE WORKING VERSION
 // ========================
-if (process.env.NODE_ENV === 'production') {
-  // Debug middleware for assets
-  app.use('/assets/*', (req, res, next) => {
-    console.log(`🎯 Asset request: ${req.url}`);
-    next();
-  });
-  
-  // Serve static files with proper MIME types
-  app.use(express.static(path.join(__dirname, '../client/dist'), {
-    setHeaders: (res, filePath) => {
-      console.log(`📁 Serving static file: ${filePath}`);
-      if (filePath.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (filePath.endsWith('.mjs')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (filePath.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-      }
-    }
-  }));
-  
-  // React app catch-all - ONLY for non-asset routes
-  app.get('*', (req, res) => {
-    // Skip catch-all for asset files
-    if (req.url.startsWith('/assets/')) {
-      return res.status(404).send('Asset not found');
-    }
-    res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
-  });
-} else {
-  // Development mode - no static file serving
-  app.get('/', (req, res) => {
-    res.json({ message: 'API Server running in development mode', port: port });
-  });
-  
-  app.get('*', (req, res) => {
-    res.status(404).json({
-      status: 'fail',
-      message: `Route ${req.originalUrl} not found - this is the API server`
-    });
-  });
-}
+app.use(express.static(path.join(__dirname, '../client/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
+});
 
 // ========================
 // 5) ERROR HANDLING

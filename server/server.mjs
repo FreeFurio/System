@@ -181,9 +181,25 @@ app.all('/api/*', (req, res) => {
 // STATIC FILES - AFTER API ROUTES
 // ========================
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
+  // Serve static files with proper MIME types
+  app.use(express.static(path.join(__dirname, '../client/dist'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (filePath.endsWith('.mjs')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (filePath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      }
+    }
+  }));
   
-  // React app catch-all - ONLY for non-API routes
+  // Explicit asset handling
+  app.get('/assets/*', (req, res) => {
+    res.status(404).send('Asset not found');
+  });
+  
+  // React app catch-all - ONLY for HTML routes
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
   });

@@ -217,6 +217,7 @@ server.listen(port, () => {
   
   // Initialize scheduler service
   console.log('📅 Initializing automated posting scheduler...');
+  schedulerService.init();
   
   // INSTAGRAM DEBUG ON STARTUP
   console.log('\n=== INSTAGRAM ENVIRONMENT CHECK ===');

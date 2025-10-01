@@ -51,6 +51,8 @@ const SEOBar = ({ score, label, width = '100%' }) => {
 
 const ApprovedContentCard = ({ workflow, onSetTask }) => {
   const [expanded, setExpanded] = useState(false);
+  const [showDesignModal, setShowDesignModal] = useState(false);
+  const isDesignApproval = workflow.status === 'design_approved';
   
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -106,7 +108,10 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
               fontWeight: '500',
               background: '#fff'
             }}>
-              Approved {formatDate(workflow.marketingApproval?.approvedAt)}
+              {isDesignApproval ? 
+                `Design approved ${formatDate(workflow.finalApproval?.approvedAt)}` :
+                `Content approved ${formatDate(workflow.marketingApproval?.approvedAt)}`
+              }
             </p>
           </div>
         </div>
@@ -121,7 +126,7 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
           letterSpacing: '0.5px',
           border: '1px solid transparent'
         }}>
-          APPROVED
+          {isDesignApproval ? 'DESIGN APPROVED' : 'CONTENT APPROVED'}
         </span>
       </div>
       {/* Task Information */}
@@ -175,6 +180,41 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
         </div>
       </div>
       
+      {/* View Design Button for Design Approvals */}
+      {isDesignApproval && (
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+          <button
+            onClick={() => setShowDesignModal(true)}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto',
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+            }}
+            onMouseLeave={e => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+            }}
+          >
+            🖼️ View Approved Design
+          </button>
+        </div>
+      )}
+
       {/* Content Preview */}
       {workflow.contentCreator?.content && (
         <div style={{
@@ -187,7 +227,9 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>✨</span>
-              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Approved Content</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>
+                {isDesignApproval ? 'Content Used for Design' : 'Approved Content'}
+              </span>
             </div>
             <button
               onClick={() => setExpanded(!expanded)}
@@ -304,37 +346,111 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
 
       
       {/* Action Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-        <button
-          onClick={() => onSetTask(workflow.id)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 20px',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
-          }}
-          onMouseEnter={e => {
-            e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
-          }}
-          onMouseLeave={e => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
-          }}
-        >
-          <span style={{ fontSize: '16px' }}>⚙️</span>
-          Set Task for Graphics Designer
-        </button>
-      </div>
+      {!isDesignApproval && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+          <button
+            onClick={() => onSetTask(workflow.id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 20px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+            }}
+            onMouseLeave={e => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>⚙️</span>
+            Set Task for Graphics Designer
+          </button>
+        </div>
+      )}
+
+      {/* Design Modal */}
+      {showDesignModal && isDesignApproval && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '24px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Approved Design</h3>
+              <button
+                onClick={() => setShowDesignModal(false)}
+                style={{
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                ✕ Close
+              </button>
+            </div>
+            {(workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl) ? (
+              <img 
+                src={workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl} 
+                alt="Approved Design" 
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                  border: '1px solid #e5e7eb'
+                }}
+              />
+            ) : (
+              <div style={{
+                padding: '40px',
+                textAlign: 'center',
+                color: '#6b7280',
+                fontSize: '16px'
+              }}>
+                No design image available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -352,7 +468,7 @@ export default function ApprovedContents() {
     
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
     socket.on("workflowUpdated", (data) => {
-      if (data.status === 'ready_for_design_assignment') {
+      if (data.status === 'ready_for_design_assignment' || data.status === 'design_approved') {
         setWorkflows(prev => {
           const existing = prev.find(w => w.id === data.id);
           if (existing) {
@@ -361,7 +477,8 @@ export default function ApprovedContents() {
             return [data, ...prev];
           }
         });
-      } else {
+      } else if (data.status === 'design_creation' || data.status === 'posted') {
+        // Only remove when actually assigned to designer or posted
         setWorkflows(prev => prev.filter(w => w.id !== data.id));
       }
     });
@@ -371,15 +488,15 @@ export default function ApprovedContents() {
 
   const fetchApprovedContents = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/marketinglead`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/approved`);
       if (response.status === 429) {
         console.log('Rate limited, skipping fetch');
         return;
       }
       const data = await response.json();
+      console.log('🔍 ApprovedContents - Approved workflows:', data);
       if (data.status === 'success') {
-        const approvedContents = data.data.filter(w => w.status === 'ready_for_design_assignment');
-        setWorkflows(approvedContents);
+        setWorkflows(data.data || []);
       }
     } catch (error) {
       console.error('Error fetching approved contents:', error);
@@ -427,7 +544,7 @@ export default function ApprovedContents() {
           margin: '8px 0 0 0',
           fontWeight: '400'
         }}>
-          Content approved and ready for graphic design assignment
+          Content approved but not yet posted ({workflows.length} items)
         </p>
       </div>
 

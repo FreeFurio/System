@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FiBell, FiUser, FiSettings, FiLogOut, FiHome, FiUsers, FiCheckCircle, FiBarChart2, FiMenu } from "react-icons/fi";
+import { FiBell, FiUser, FiSettings, FiLogOut, FiHome, FiUsers, FiCheckCircle, FiBarChart2, FiMenu, FiSend } from "react-icons/fi";
 import { useUser } from './UserContext';
 import "../../styles/Admin.css";
 import { Link, useLocation, Outlet } from 'react-router-dom';
@@ -287,6 +287,28 @@ const DashboardLayout = () => {
             >
               <FiBarChart2 size={responsive.size(18, 20)} style={{ marginRight: responsive.gap(10, 14) }} />
               Socials & Insights
+            </Link>
+            <Link
+              to="/admin/posted-contents"
+              className={`nav-item${location.pathname === '/admin/posted-contents' ? ' active' : ''}`}
+              style={{ 
+                padding: responsive.padding('12px 16px', '14px 20px'), 
+                fontWeight: 600, 
+                borderRadius: 12, 
+                color: location.pathname === '/admin/posted-contents' ? '#fff' : '#374151', 
+                background: location.pathname === '/admin/posted-contents' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', 
+                marginBottom: 6, 
+                textDecoration: 'none', 
+                transition: 'all 0.2s ease', 
+                display: 'flex', 
+                alignItems: 'center',
+                boxShadow: location.pathname === '/admin/posted-contents' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                fontSize: responsive.fontSize(14, 15)
+              }}
+
+            >
+              <FiSend size={responsive.size(18, 20)} style={{ marginRight: responsive.gap(10, 14) }} />
+              Posted Contents
             </Link>
           </nav>
           </div>

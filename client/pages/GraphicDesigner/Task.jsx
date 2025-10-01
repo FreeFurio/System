@@ -28,6 +28,7 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
 
   const canCreateDesign = workflow.status === 'design_creation' && workflow.currentStage === 'graphicdesigner';
   const hasSubmittedDesign = workflow.graphicDesigner && workflow.graphicDesigner.designs;
+  const hasDraftDesign = workflow.graphicDesigner && workflow.graphicDesigner.canvasData;
 
   return (
     <div style={{
@@ -197,253 +198,180 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
       
       {/* Approved Content */}
       <div style={{
-        background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important',
-        padding: '24px', borderRadius: '16px', marginBottom: '20px',
-        border: '2px solid #10b981', position: 'relative'
+        background: 'transparent',
+        padding: '20px',
+        borderRadius: '12px',
+        marginBottom: '20px',
+        border: '1px solid #e5e7eb'
       }}>
-        {/* Success Badge */}
-        <div style={{
-          position: 'absolute', top: '-12px', left: '20px',
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%) !important',
-          color: '#ffffff !important', padding: '6px 16px', borderRadius: '20px',
-          fontSize: '12px', fontWeight: '700', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-        }}>
-          ✅ APPROVED CONTENT
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px', background: 'transparent !important' }}>✨</span>
-            <span style={{ fontSize: '18px', fontWeight: '700', color: '#065f46 !important', background: 'transparent !important' }}>Content Ready for Design</span>
+            <span style={{ fontSize: '18px' }}>✨</span>
+            <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Content Ready for Design</span>
           </div>
           <button
             onClick={() => setContentExpanded(!contentExpanded)}
             style={{
-              background: 'none', border: 'none', color: '#059669',
-              cursor: 'pointer', display: 'flex', alignItems: 'center',
-              gap: '4px', fontSize: '14px', fontWeight: '600'
+              background: 'none',
+              border: 'none',
+              color: '#0ea5e9',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '14px',
+              fontWeight: '600'
             }}
           >
             <FiEye size={14} />
-            {contentExpanded ? 'Hide' : 'View'} Content
+            {contentExpanded ? 'Hide' : 'View'} Details
           </button>
         </div>
         
         {contentExpanded && (
           <div style={{
-            marginTop: '24px',
-            padding: '32px',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            maxHeight: '60vh',
-            overflow: 'auto'
+            marginTop: '0px',
+            padding: '0px',
+            background: 'transparent',
+            borderRadius: '0px',
+            border: 'none'
           }}>
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              justifyContent: 'space-between',
-              marginBottom: '32px',
-              paddingBottom: '16px',
-              borderBottom: '2px solid #e5e7eb',
-              background: 'transparent !important'
+              justifyContent: 'flex-start',
+              marginBottom: '24px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid #e5e7eb'
             }}>
               <h4 style={{ 
                 margin: 0, 
-                color: '#1e293b !important', 
-                fontSize: '20px', 
-                fontWeight: '700',
+                color: '#374151', 
+                fontSize: '16px', 
+                fontWeight: '600',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                background: 'transparent !important'
+                gap: '8px'
               }}>
                 📝 Content Analysis
               </h4>
-              <div style={{
-                background: '#10b981 !important',
-                color: '#ffffff !important',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '700'
-              }}>
-                Overall SEO: {workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100
-              </div>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', background: 'transparent !important' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', background: 'transparent !important' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Headline Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
                 <div style={{
-                  background: '#ffffff !important',
-                  padding: '20px',
-                  borderRadius: '12px',
+                  padding: '16px',
+                  borderRadius: '8px',
                   border: '1px solid #e5e7eb',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                  background: '#f8fafc'
                 }}>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '700', 
-                    color: '#374151 !important', 
-                    marginBottom: '12px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    background: 'transparent !important'
-                  }}>
-                    <span>📰</span> HEADLINE
-                  </div>
-                  <div style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: '#1f2937 !important',
-                    lineHeight: 1.5,
-                    background: 'transparent !important',
-                    marginBottom: '12px'
-                  }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
                     {workflow.contentCreator?.content?.headline || workflow.content?.headline || 'No headline found'}
                   </div>
-                  <div style={{
-                    width: '100%',
-                    height: '8px',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      width: `${workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
-                      height: '100%',
-                      backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                      borderRadius: '4px',
-                      transition: 'width 0.5s ease-in-out'
-                    }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline Score</span>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
-                  </div>
                 </div>
                 
-                <div style={{
-                  background: '#ffffff',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                }}>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '700', 
-                    color: '#374151 !important', 
-                    marginBottom: '12px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    background: 'transparent !important'
-                  }}>
-                    <span>📝</span> CAPTION
-                  </div>
-                  <div style={{
-                    fontSize: '15px',
-                    color: '#374151 !important',
-                    lineHeight: 1.6,
-                    background: 'transparent !important',
-                    marginBottom: '12px'
-                  }}>
-                    {workflow.contentCreator?.content?.caption || workflow.content?.caption || 'No caption found'}
-                  </div>
-                  <div style={{
-                    width: '100%',
-                    height: '8px',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}>
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline SEO</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
+                    </div>
                     <div style={{
-                      width: `${workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
-                      height: '100%',
-                      backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                      width: '100%',
+                      height: '8px',
+                      backgroundColor: '#e5e7eb',
                       borderRadius: '4px',
-                      transition: 'width 0.5s ease-in-out'
-                    }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption Score</span>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
-                  </div>
-                </div>
-                
-                <div style={{
-                  background: '#ffffff',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                }}>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '700', 
-                    color: '#374151 !important', 
-                    marginBottom: '12px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    background: 'transparent !important'
-                  }}>
-                    <span>🏷️</span> HASHTAGS
-                  </div>
-                  <div style={{
-                    fontSize: '15px',
-                    color: '#3b82f6 !important',
-                    fontWeight: '600',
-                    lineHeight: 1.4,
-                    background: 'transparent !important'
-                  }}>
-                    {workflow.contentCreator?.content?.hashtag || workflow.content?.hashtag || 'No hashtags found'}
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
+                        height: '100%',
+                        backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease-in-out'
+                      }} />
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div style={{
-                background: '#ffffff !important',
-                padding: '24px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-              }}>
-                <h5 style={{ 
-                  margin: '0 0 20px 0', 
-                  fontSize: '16px', 
-                  fontWeight: '700', 
-                  color: '#1e293b !important', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  background: 'transparent !important'
-                }}>
-                  📊 Overall SEO Score
-                </h5>
-                
+              {/* Caption Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
                 <div style={{
-                  width: '100%',
-                  height: '12px',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                  marginBottom: '12px'
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  background: '#f8fafc'
                 }}>
-                  <div style={{
-                    width: `${workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
-                    height: '100%',
-                    backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                    borderRadius: '6px',
-                    transition: 'width 0.5s ease-in-out'
-                  }} />
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                    {workflow.contentCreator?.content?.caption || workflow.content?.caption || 'No caption found'}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>Content Quality</span>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
+                
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption SEO</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '8px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
+                        height: '100%',
+                        backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease-in-out'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Hashtags Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  background: '#f8fafc'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+                  <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                    {workflow.contentCreator?.content?.hashtag || workflow.content?.hashtag || 'No hashtags found'}
+                  </div>
+                </div>
+                
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Overall SEO Score</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '8px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
+                        height: '100%',
+                        backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease-in-out'
+                      }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -453,34 +381,66 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
       
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
         {canCreateDesign && !hasSubmittedDesign && (
-          <button
-            onClick={() => onCreateDesign(workflow)}
-            style={{
-              padding: '12px 24px', 
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-              color: 'white',
-              border: 'none', 
-              borderRadius: '12px', 
-              cursor: 'pointer', 
-              fontSize: '14px',
-              fontWeight: '700',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={e => {
-              e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
-            }}
-            onMouseLeave={e => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
-            }}
-          >
-            🎨 Create Design
-          </button>
+          <>
+            {hasDraftDesign && (
+              <button
+                onClick={() => onCreateDesign(workflow, true)}
+                style={{
+                  padding: '12px 24px', 
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: 'white',
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  cursor: 'pointer', 
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+                }}
+                onMouseLeave={e => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                }}
+              >
+                ✏️ Edit Draft
+              </button>
+            )}
+            <button
+              onClick={() => onCreateDesign(workflow)}
+              style={{
+                padding: '12px 24px', 
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                color: 'white',
+                border: 'none', 
+                borderRadius: '12px', 
+                cursor: 'pointer', 
+                fontSize: '14px',
+                fontWeight: '700',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={e => {
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+              }}
+              onMouseLeave={e => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+              }}
+            >
+              🎨 {hasDraftDesign ? 'Start New Design' : 'Create Design'}
+            </button>
+          </>
         )}
       </div>
     </div>
@@ -530,9 +490,12 @@ export default function Task() {
     return () => socket.disconnect();
   }, []);
 
-  const handleCreateDesign = (workflow) => {
+  const handleCreateDesign = (workflow, editDraft = false) => {
     console.log('🎨 Task Debug - Navigating with workflow.id:', workflow.id);
-    navigate(`/graphic/creation?taskId=${workflow.id}`);
+    const url = editDraft ? 
+      `/graphic/creation?taskId=${workflow.id}&editDraft=true` : 
+      `/graphic/creation?taskId=${workflow.id}`;
+    navigate(url);
   };
 
   return (
@@ -542,10 +505,6 @@ export default function Task() {
       minHeight: '100vh',
       fontFamily: 'Inter, sans-serif'
     }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
         <div style={{
           marginBottom: '32px',
           padding: '24px',
@@ -620,7 +579,6 @@ export default function Task() {
                   border: '1px solid #feb2b2'
                 }}>Error: Workflows data is not an array.</div>
         )}
-      </div>
       
       <style>{`
         @keyframes spin {

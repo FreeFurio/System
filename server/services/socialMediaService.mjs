@@ -1,5 +1,9 @@
 import axios from 'axios';
 import crypto from 'crypto';
+import FormData from 'form-data';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 class SocialMediaService {
   constructor() {
@@ -54,21 +58,27 @@ class SocialMediaService {
     }
   }
 
-  // Facebook posting with proper page authentication
+  // Facebook posting with fixed implementation
   async postToFacebook(content, userAccessToken, pageId) {
     try {
-      if (!pageId) {
-        throw new Error('Page ID is required for Facebook posting');
-      }
-
-      // Get page access token for native posting
-      const pageAccessToken = await this.getFacebookPageAccessToken(userAccessToken, pageId);
+      console.log('📘 Facebook posting with fixed implementation...');
       
-      const endpoint = `https://graph.facebook.com/${this.facebook.apiVersion}/${pageId}/feed`;
+      // Use environment variables directly
+      const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+      const fbPageId = process.env.FACEBOOK_PAGE_ID;
+      const apiVersion = process.env.FB_API_VERSION || 'v18.0';
+
+      // Get page info with page-specific token
+      const pageInfoResponse = await axios.get(
+        `https://graph.facebook.com/${apiVersion}/${fbPageId}?fields=access_token&access_token=${token}`
+      );
+      
+      const pageAccessToken = pageInfoResponse.data.access_token;
+      const endpoint = `https://graph.facebook.com/${apiVersion}/${fbPageId}/feed`;
 
       const postData = {
         message: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
-        access_token: pageAccessToken // Use page token, not user token
+        access_token: pageAccessToken
       };
 
       // Add image if provided
@@ -92,36 +102,81 @@ class SocialMediaService {
     }
   }
 
-  // Instagram posting (Business Account)
+  // Facebook personal profile posting
+  async postToFacebookProfile(content, userAccessToken) {
+    try {
+      const endpoint = `https://graph.facebook.com/${this.facebook.apiVersion}/me/feed`;
+
+      const postData = {
+        message: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
+        access_token: userAccessToken
+      };
+
+      // Add image if provided
+      if (content.imageUrl) {
+        postData.link = content.imageUrl;
+      }
+
+      const response = await axios.post(endpoint, postData);
+
+      return {
+        success: true,
+        platform: 'facebook_profile',
+        postId: response.data.id,
+        message: 'Posted successfully to Facebook profile',
+        data: response.data,
+        postedAsProfile: true
+      };
+
+    } catch (error) {
+      throw new Error(`Facebook profile posting failed: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  // Instagram posting with enhanced error handling
   async postToInstagram(content, accessToken, instagramAccountId) {
     try {
-      if (!this.instagram.enabled) {
-        throw new Error('Instagram posting is disabled');
-      }
+      console.log('📷 Instagram posting with enhanced debugging...');
+      console.log('📷 Image URL:', content.imageUrl);
+
+      const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+      const accountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID;
+      const apiVersion = process.env.FB_API_VERSION || 'v18.0';
+
+      console.log('📷 Using account ID:', accountId);
+      console.log('📷 Using API version:', apiVersion);
 
       // Step 1: Create media container
       const mediaData = {
         image_url: content.imageUrl,
         caption: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
-        access_token: accessToken
+        access_token: token
       };
 
+      console.log('📷 Creating media container...');
       const containerResponse = await axios.post(
-        `https://graph.facebook.com/${this.instagram.apiVersion}/${instagramAccountId}/media`,
+        `https://graph.facebook.com/${apiVersion}/${accountId}/media`,
         mediaData
       );
 
       const creationId = containerResponse.data.id;
+      console.log('✅ Media container created:', creationId);
+
+      // Wait a moment before publishing
+      console.log('⏳ Waiting 2 seconds before publishing...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Step 2: Publish the media
+      console.log('📤 Publishing media...');
       const publishResponse = await axios.post(
-        `https://graph.facebook.com/${this.instagram.apiVersion}/${instagramAccountId}/media_publish`,
+        `https://graph.facebook.com/${apiVersion}/${accountId}/media_publish`,
         {
           creation_id: creationId,
-          access_token: accessToken
+          access_token: token
         }
       );
 
+      console.log('✅ Instagram post published successfully!');
       return {
         success: true,
         platform: 'instagram',
@@ -131,6 +186,12 @@ class SocialMediaService {
       };
 
     } catch (error) {
+      console.error('❌ Instagram error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
       throw new Error(`Instagram posting failed: ${error.response?.data?.error?.message || error.message}`);
     }
   }
@@ -172,7 +233,7 @@ class SocialMediaService {
     }
   }
 
-  // Twitter posting with OAuth 1.0a and media support
+  // Twitter posting with media upload support
   async postToTwitter(content) {
     try {
       const tweetText = content.caption.length <= 280 
@@ -186,15 +247,41 @@ class SocialMediaService {
       // Add media if provided
       if (content.imageUrl) {
         console.log('📷 Uploading media to Twitter...');
-        const mediaId = await this.uploadTwitterMedia(content.imageUrl);
-        tweetData.media = { media_ids: [mediaId] };
-        console.log('✅ Media uploaded, ID:', mediaId);
+        try {
+          const mediaId = await this.uploadTwitterMedia(content.imageUrl);
+          tweetData.media = { media_ids: [mediaId] };
+          console.log('✅ Media uploaded, ID:', mediaId);
+        } catch (mediaError) {
+          console.log('⚠️ Media upload failed, posting without image:', mediaError.message);
+        }
       }
 
-      // Generate OAuth 1.0a signature
-      const oauth = this.generateOAuthHeader('POST', 'https://api.twitter.com/2/tweets', {});
+      // Generate OAuth signature
+      const oauthParams = {
+        oauth_consumer_key: process.env.TWITTER_API_KEY,
+        oauth_token: process.env.TWITTER_ACCESS_TOKEN,
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+        oauth_nonce: crypto.randomBytes(16).toString('hex'),
+        oauth_version: '1.0'
+      };
 
-      console.log('📡 Posting tweet with content...');
+      const paramString = Object.keys(oauthParams)
+        .sort()
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(oauthParams[key])}`)
+        .join('&');
+
+      const signatureBaseString = `POST&${encodeURIComponent('https://api.twitter.com/2/tweets')}&${encodeURIComponent(paramString)}`;
+      const signingKey = `${encodeURIComponent(process.env.TWITTER_API_SECRET)}&${encodeURIComponent(process.env.TWITTER_ACCESS_TOKEN_SECRET)}`;
+      const signature = crypto.createHmac('sha1', signingKey).update(signatureBaseString).digest('base64');
+      
+      oauthParams.oauth_signature = signature;
+
+      const oauth = 'OAuth ' + Object.keys(oauthParams)
+        .map(key => `${encodeURIComponent(key)}="${encodeURIComponent(oauthParams[key])}"`)
+        .join(', ');
+
+      console.log('📡 Posting tweet...');
       const response = await axios.post(
         'https://api.twitter.com/2/tweets',
         tweetData,
@@ -212,7 +299,7 @@ class SocialMediaService {
         postId: response.data.data.id,
         message: content.imageUrl ? 'Posted successfully to Twitter with media' : 'Posted successfully to Twitter',
         data: response.data,
-        mediaIncluded: !!content.imageUrl
+        mediaIncluded: !!tweetData.media
       };
 
     } catch (error) {
@@ -221,8 +308,7 @@ class SocialMediaService {
   }
 
   // Generate OAuth 1.0a header
-  generateOAuthHeader(method, url, params) {
-    
+  generateOAuthHeader(method, url, params = {}) {
     const oauthParams = {
       oauth_consumer_key: this.twitter.apiKey,
       oauth_token: this.twitter.accessToken,
@@ -232,59 +318,69 @@ class SocialMediaService {
       oauth_version: '1.0'
     };
 
-    // Create parameter string
     const allParams = { ...params, ...oauthParams };
     const paramString = Object.keys(allParams)
       .sort()
       .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)
       .join('&');
 
-    // Create signature base string
     const signatureBaseString = `${method}&${encodeURIComponent(url)}&${encodeURIComponent(paramString)}`;
-
-    // Create signing key
     const signingKey = `${encodeURIComponent(this.twitter.apiSecret)}&${encodeURIComponent(this.twitter.accessTokenSecret)}`;
-
-    // Generate signature
     const signature = crypto.createHmac('sha1', signingKey).update(signatureBaseString).digest('base64');
+    
     oauthParams.oauth_signature = signature;
 
-    // Create authorization header
-    const authHeader = 'OAuth ' + Object.keys(oauthParams)
+    return 'OAuth ' + Object.keys(oauthParams)
       .map(key => `${encodeURIComponent(key)}="${encodeURIComponent(oauthParams[key])}"`)
       .join(', ');
-
-    return authHeader;
   }
 
-  // Upload media to Twitter with OAuth 1.0a
+  // Upload media to Twitter using working multipart approach
   async uploadTwitterMedia(imageUrl) {
     try {
       console.log('📷 Downloading image from:', imageUrl);
-      // Download image first
       const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
       const imageBuffer = Buffer.from(imageResponse.data);
-      const base64Image = imageBuffer.toString('base64');
       
-      console.log('📎 Image size:', Math.round(base64Image.length / 1024), 'KB');
+      console.log('📎 Image size:', Math.round(imageBuffer.length / 1024), 'KB');
 
-      // Prepare form data for media upload
-      const formData = `media_data=${encodeURIComponent(base64Image)}`;
+      // Generate OAuth for media upload
+      const oauthParams = {
+        oauth_consumer_key: process.env.TWITTER_API_KEY,
+        oauth_token: process.env.TWITTER_ACCESS_TOKEN,
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+        oauth_nonce: crypto.randomBytes(16).toString('hex'),
+        oauth_version: '1.0'
+      };
+
+      const paramString = Object.keys(oauthParams)
+        .sort()
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(oauthParams[key])}`)
+        .join('&');
+
+      const signatureBaseString = `POST&${encodeURIComponent('https://upload.twitter.com/1.1/media/upload.json')}&${encodeURIComponent(paramString)}`;
+      const signingKey = `${encodeURIComponent(process.env.TWITTER_API_SECRET)}&${encodeURIComponent(process.env.TWITTER_ACCESS_TOKEN_SECRET)}`;
+      const signature = crypto.createHmac('sha1', signingKey).update(signatureBaseString).digest('base64');
       
-      // Generate OAuth header for media upload (include media_data in signature)
-      const oauth = this.generateOAuthHeader('POST', 'https://upload.twitter.com/1.1/media/upload.json', {
-        media_data: base64Image
-      });
+      oauthParams.oauth_signature = signature;
 
+      const oauth = 'OAuth ' + Object.keys(oauthParams)
+        .map(key => `${encodeURIComponent(key)}="${encodeURIComponent(oauthParams[key])}"`)
+        .join(', ');
+
+      // Use multipart form data
+      const formData = new FormData();
+      formData.append('media', imageBuffer, { filename: 'image.jpg', contentType: 'image/jpeg' });
+      
       console.log('📡 Uploading to Twitter media endpoint...');
-      // Upload to Twitter
       const uploadResponse = await axios.post(
         'https://upload.twitter.com/1.1/media/upload.json',
         formData,
         {
           headers: {
             'Authorization': oauth,
-            'Content-Type': 'application/x-www-form-urlencoded'
+            ...formData.getHeaders()
           }
         }
       );
@@ -307,18 +403,27 @@ class SocialMediaService {
 
         switch (platform.name) {
           case 'facebook':
+            // Use environment tokens if tokens parameter is empty
             result = await this.postToFacebook(
               content, 
-              tokens.facebook.accessToken, 
-              tokens.facebook.pageId
+              tokens?.facebook?.accessToken || process.env.FACEBOOK_PAGE_ACCESS_TOKEN, 
+              tokens?.facebook?.pageId || process.env.FACEBOOK_PAGE_ID
+            );
+            break;
+
+          case 'facebook_profile':
+            result = await this.postToFacebookProfile(
+              content, 
+              tokens?.facebook?.accessToken || process.env.FACEBOOK_PAGE_ACCESS_TOKEN
             );
             break;
 
           case 'instagram':
+            // Use environment tokens if tokens parameter is empty
             result = await this.postToInstagram(
               content, 
-              tokens.instagram.accessToken, 
-              tokens.instagram.accountId
+              tokens?.instagram?.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN, 
+              tokens?.instagram?.accountId || process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
             );
             break;
 

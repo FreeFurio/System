@@ -553,336 +553,189 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
       {/* Content Section for tasks with submitted content */}
       {task.contentCreator?.content && (
         <div style={{
-          background: 'linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%)',
+          background: 'transparent',
           padding: '20px',
-          borderRadius: '16px',
+          borderRadius: '12px',
           marginBottom: '20px',
-          border: '1px solid #81d4fa',
-          boxShadow: '0 2px 8px rgba(3, 169, 244, 0.1)'
+          border: '1px solid #e5e7eb'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <FiStar size={20} color="#0d47a1" />
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Submitted Content</div>
-                <div style={{ fontSize: '13px', color: '#1565c0' }}>Content ready for review and approval</div>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>✨</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Submitted Content</span>
             </div>
             <button
               onClick={() => setContentExpanded(!contentExpanded)}
               style={{
-                background: contentExpanded ? '#64b5f6' : '#2196f3',
-                color: '#fff',
+                background: 'none',
                 border: 'none',
-                padding: '10px 20px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: '700',
+                color: '#0ea5e9',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '4px',
+                fontSize: '14px',
+                fontWeight: '600'
               }}
             >
-              {contentExpanded ? (
-                <>
-                  <FiEye size={14} /> Hide Details
-                </>
-              ) : (
-                <>
-                  <FiFileText size={14} /> View Details
-                </>
-              )}
+              <FiEye size={14} />
+              {contentExpanded ? 'Hide' : 'View'} Details
             </button>
           </div>
+          
+          {contentExpanded && (
+            <div style={{
+              marginTop: '0px',
+              padding: '0px',
+              background: 'transparent',
+              borderRadius: '0px',
+              border: 'none'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                marginBottom: '24px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid #e5e7eb'
+              }}>
+                <h4 style={{ 
+                  margin: 0, 
+                  color: '#374151', 
+                  fontSize: '16px', 
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📝 Content Analysis
+                </h4>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Headline Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                      {task.contentCreator.content.headline}
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline SEO</span>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${task.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
+                          height: '100%',
+                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease-in-out'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Caption Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                      {task.contentCreator.content.caption}
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption SEO</span>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${task.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
+                          height: '100%',
+                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease-in-out'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Hashtags Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+                    <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                      {task.contentCreator.content.hashtag}
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Overall SEO Score</span>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${task.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
+                          height: '100%',
+                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease-in-out'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
       
-      {/* Inline Content Expansion */}
-      {contentExpanded && task.contentCreator?.content && (
-        <div style={{
-          marginTop: '24px',
-          padding: '32px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          maxHeight: '60vh',
-          overflow: 'auto'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            marginBottom: '32px',
-            paddingBottom: '16px',
-            borderBottom: '2px solid #e5e7eb'
-          }}>
-            <h4 className="seo-heading-override" style={{ 
-              margin: 0, 
-              color: '#000000 !important', 
-              fontSize: '20px', 
-              fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
-            }}>
-              <FiFileText size={20} color="#3b82f6" /> Approved Content Analysis
-            </h4>
-            <div style={{
-              background: '#10b981 !important',
-              color: '#ffffff !important',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: '700'
-            }}>
-              Overall SEO: {task.contentCreator?.content?.seoAnalysis?.overallScore || 'N/A'}/100
-            </div>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
-            {/* Content Sections */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              <div style={{
-                background: '#ffffff',
-                padding: '20px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '700', 
-                  color: '#374151', 
-                  marginBottom: '12px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px' 
-                }}>
-                  <FiFileText size={14} color="#3b82f6" /> HEADLINE
-                  <div style={{
-                    background: task.contentCreator.content.headlineScore >= 85 ? '#10b981' : task.contentCreator.content.headlineScore >= 75 ? '#f59e0b' : '#ef4444',
-                    color: '#fff',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '700'
-                  }}>
-                    {task.contentCreator.content.seoAnalysis?.headlineScore || 'N/A'}
-                  </div>
-                </div>
-                <div style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  lineHeight: 1.5
-                }}>
-                  {task.contentCreator.content.headline}
-                </div>
-              </div>
-              
-              <div style={{
-                background: '#ffffff',
-                padding: '20px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '700', 
-                  color: '#374151', 
-                  marginBottom: '12px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px' 
-                }}>
-                  <FiEdit3 size={14} color="#10b981" /> CAPTION
-                  <div style={{
-                    background: task.contentCreator.content.captionScore >= 85 ? '#10b981' : task.contentCreator.content.captionScore >= 75 ? '#f59e0b' : '#ef4444',
-                    color: '#fff',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '700'
-                  }}>
-                    {task.contentCreator.content.seoAnalysis?.captionScore || 'N/A'}
-                  </div>
-                </div>
-                <div style={{
-                  fontSize: '15px',
-                  color: '#374151',
-                  lineHeight: 1.6
-                }}>
-                  {task.contentCreator.content.caption}
-                </div>
-              </div>
-              
-              <div style={{
-                background: '#ffffff',
-                padding: '20px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '700', 
-                  color: '#374151', 
-                  marginBottom: '12px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px' 
-                }}>
-                  <FiHash size={14} color="#f59e0b" /> HASHTAGS
-                  <div style={{
-                    background: task.contentCreator.content.hashtagScore >= 85 ? '#10b981' : task.contentCreator.content.hashtagScore >= 75 ? '#f59e0b' : '#ef4444',
-                    color: '#fff',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '700'
-                  }}>
-                    {task.contentCreator.content.seoAnalysis?.hashtagScore || 'N/A'}
-                  </div>
-                </div>
-                <div style={{
-                  fontSize: '15px',
-                  color: '#3b82f6',
-                  fontWeight: '600',
-                  lineHeight: 1.4
-                }}>
-                  {task.contentCreator.content.hashtag}
-                </div>
-              </div>
-            </div>
-            
-            {/* SEO Analytics Section */}
-            <div style={{
-              background: '#ffffff',
-              padding: '24px',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-            }}>
-              <h5 className="seo-heading-override" style={{ 
-                margin: '0 0 20px 0', 
-                fontSize: '16px', 
-                fontWeight: '700', 
-                color: '#000000 !important', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
-              }}>
-                <FiTrendingUp size={16} color="#10b981" /> SEO Analytics Dashboard
-              </h5>
-              
-              <div style={{ display: 'grid', gap: '12px', fontSize: '12px' }}>
-                {/* Basic Metrics */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#6b7280' }}>Word Count</span>
-                  <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator.content.caption?.split(' ').length || 0}</span>
-                </div>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#6b7280' }}>Character Count</span>
-                  <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator.content.caption?.length || 0}</span>
-                </div>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#6b7280' }}>Hashtag Count</span>
-                  <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator.content.hashtag?.split('#').length - 1 || 0}</span>
-                </div>
-                
-                {/* Sentiment Analysis */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Sentiment</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#6b7280' }}>Overall Tone</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.sentiment?.tone || 'N/A'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                    <span style={{ color: '#6b7280' }}>Confidence</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator?.content?.seoAnalysis?.sentiment?.confidence || 'N/A'}%</span>
-                  </div>
-                </div>
-                
-                {/* Power Words */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Power Words</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(task.contentCreator?.content?.seoAnalysis?.powerWords?.words || ['N/A']).map(word => (
-                      <span key={word} style={{
-                        background: '#fef3c7',
-                        color: '#92400e',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: '500'
-                      }}>
-                        {word}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Emotional Words */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Emotional Words</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {(task.contentCreator?.content?.seoAnalysis?.emotionalWords?.words || ['N/A']).map(word => (
-                      <span key={word} style={{
-                        background: '#fce7f3',
-                        color: '#be185d',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: '500'
-                      }}>
-                        {word}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Common vs Uncommon Words */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Word Complexity</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#6b7280' }}>Common Words</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.commonWords?.count || 'N/A'}%</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                    <span style={{ color: '#6b7280' }}>Uncommon Words</span>
-                    <span style={{ fontWeight: '600', color: '#f59e0b' }}>{task.contentCreator?.content?.seoAnalysis?.uncommonWords?.count || 'N/A'}%</span>
-                  </div>
-                </div>
-                
-                {/* Enhanced Readability */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Readability Analysis</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#6b7280' }}>Grade Level</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.readability?.gradeLevel || 'N/A'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                    <span style={{ color: '#6b7280' }}>Reading Time</span>
-                    <span style={{ fontWeight: '600', color: '#1f2937' }}>{task.contentCreator?.content?.seoAnalysis?.readability?.readingTime || 'N/A'} sec</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                    <span style={{ color: '#6b7280' }}>Flesch Score</span>
-                    <span style={{ fontWeight: '600', color: '#10b981' }}>{task.contentCreator?.content?.seoAnalysis?.readability?.fleschScore || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
       
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
         <button

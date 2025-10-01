@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ImageEditorWrapper = ({ onSave, onExport }) => {
+const ImageEditorWrapper = ({ onSave, onExport, initialCanvasData }) => {
   const handleMessage = (event) => {
     if (event.data && typeof event.data === 'string') {
       if (event.data.startsWith('SAVE:')) {
@@ -18,9 +18,13 @@ const ImageEditorWrapper = ({ onSave, onExport }) => {
     return () => window.removeEventListener('message', handleMessage);
   }, [onSave, onExport]);
 
+  const iframeSrc = initialCanvasData ? 
+    `/components/ImageEditor/editor.html?canvasData=${encodeURIComponent(initialCanvasData)}` :
+    '/components/ImageEditor/editor.html';
+
   return (
     <iframe
-      src="/components/ImageEditor/editor.html"
+      src={iframeSrc}
       style={{
         width: '100%',
         height: '100%',

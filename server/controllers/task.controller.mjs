@@ -141,6 +141,67 @@ const getTaskGraphicDesigner = async (req, res, next) => {
 // 3) EXPORTS
 // ========================
 
+const generateAIContent = async (req, res, next) => {
+    console.log('🤖 generateAIContent called with body:', req.body);
+    try {
+        const { topic, numContents = 1 } = req.body;
+        
+        if (!topic) {
+            return next(new AppError('Topic is required', 400));
+        }
+        
+        console.log(`🤖 Generating ${numContents} real AI variations for topic:`, topic);
+        const aiVariations = [];
+        
+        for (let i = 0; i < numContents; i++) {
+            console.log(`🤖 Step 1.${i + 1}: Generating AI content variation ${i + 1}...`);
+            // Generate content only (no SEO analysis yet)
+            const generatedContent = await AIService.generateContent('facebook', topic, 'headline');
+            const generatedCaption = await AIService.generateContent('facebook', topic, 'caption');
+            const generatedHashtag = await AIService.generateContent('facebook', topic, 'hashtag');
+            
+            console.log(`🔍 Step 2.${i + 1}: Analyzing variation ${i + 1} for SEO scores...`);
+            // Analyze the generated content for SEO scores
+            const headlineAnalysis = await AIService.analyzeSEO(generatedContent, 'headline');
+            const captionAnalysis = await AIService.analyzeSEO(generatedCaption, 'caption');
+            
+            console.log(`📊 Step 3.${i + 1}: Computing overall score for variation ${i + 1}...`);
+            // Backend computes overall score from headline and caption scores
+            const overallScore = Math.round((headlineAnalysis.score + captionAnalysis.score) / 2);
+            
+            const aiContent = {
+                id: Date.now() + i,
+                platform: 'generic',
+                topic,
+                headline: generatedContent,
+                caption: generatedCaption,
+                hashtag: generatedHashtag,
+                seoAnalysis: {
+                    headlineScore: headlineAnalysis.score,
+                    captionScore: captionAnalysis.score,
+                    overallScore: overallScore
+                },
+                generatedAt: new Date().toISOString()
+            };
+            
+            aiVariations.push(aiContent);
+        }
+        
+        res.status(200).json({
+            status: 'success',
+            message: `${numContents} AI content variations generated and analyzed successfully`,
+            data: {
+                variations: aiVariations,
+                totalCount: numContents,
+                topic: topic
+            }
+        });
+    } catch (error) {
+        console.error('❌ generateAIContent - Error:', error);
+        next(error);
+    }
+};
+
 const submitContent = async (req, res, next) => {
     console.log('📤 submitContent called with body:', req.body);
     try {
@@ -332,6 +393,37 @@ const deleteWorkflow = async (req, res, next) => {
     }
 };
 
+const saveDesignDraft = async (req, res, next) => {
+    console.log('💾 saveDesignDraft called');
+    try {
+        const { workflowId } = req.params;
+        const { designUrl, publicId, canvasData, description } = req.body;
+        
+        if (!designUrl) {
+            return next(new AppError('Design URL is required', 400));
+        }
+        
+        const draftData = {
+            designUrl,
+            publicId: publicId || null,
+            canvasData: canvasData || null,
+            description: description || 'Design draft',
+            savedAt: new Date().toISOString()
+        };
+        
+        const updatedWorkflow = await FirebaseService.saveDesignDraft(workflowId, draftData);
+        
+        res.status(200).json({
+            status: 'success',
+            message: 'Design draft saved successfully',
+            data: updatedWorkflow
+        });
+    } catch (error) {
+        console.error('❌ saveDesignDraft - Error:', error);
+        next(error);
+    }
+};
+
 const submitDesign = async (req, res, next) => {
     console.log('🎨 submitDesign called with body:', req.body);
     try {
@@ -374,6 +466,27 @@ const approveDesign = async (req, res, next) => {
     }
 };
 
+const rejectDesign = async (req, res, next) => {
+    console.log('❌ rejectDesign called with params:', req.params);
+    try {
+        const { workflowId } = req.params;
+        const { rejectedBy, feedback } = req.body;
+        
+        const updatedWorkflow = await FirebaseService.rejectDesign(workflowId, rejectedBy, feedback);
+        
+        io.emit('workflowUpdated', updatedWorkflow);
+        
+        res.status(200).json({
+            status: 'success',
+            message: 'Design rejected successfully',
+            data: updatedWorkflow
+        });
+    } catch (error) {
+        console.error('❌ rejectDesign - Error:', error);
+        next(error);
+    }
+};
+
 const assignToGraphicDesigner = async (req, res, next) => {
     console.log('🎨 assignToGraphicDesigner called with params:', req.params);
     try {
@@ -390,6 +503,30 @@ const assignToGraphicDesigner = async (req, res, next) => {
         });
     } catch (error) {
         console.error('❌ assignToGraphicDesigner - Error:', error);
+        next(error);
+    }
+};
+
+const postNow = async (req, res, next) => {
+    console.log('📤 postNow called with params:', req.params);
+    try {
+        const { workflowId } = req.params;
+        
+        const updatedWorkflow = await FirebaseService.updateWorkflowStatus(
+            workflowId, 
+            'posted', 
+            { currentStage: 'completed' }
+        );
+        
+        io.emit('workflowUpdated', updatedWorkflow);
+        
+        res.status(200).json({
+            status: 'success',
+            message: 'Content posted successfully',
+            data: updatedWorkflow
+        });
+    } catch (error) {
+        console.error('❌ postNow - Error:', error);
         next(error);
     }
 };
@@ -419,19 +556,38 @@ const getWorkflowById = async (workflowId) => {
     }
 };
 
+const getAllWorkflows = async (req, res, next) => {
+    console.log('📋 getAllWorkflows called');
+    try {
+        const workflows = await FirebaseService.getAllWorkflows();
+        res.status(200).json({
+            status: 'success',
+            data: workflows
+        });
+    } catch (error) {
+        console.error('❌ getAllWorkflows - Error:', error);
+        next(error);
+    }
+};
+
 export {
     createWorkflow,
     getWorkflowsByStage,
     getWorkflowsByMultipleStatuses,
     getWorkflowById,
+    getAllWorkflows,
+    generateAIContent,
     submitContent,
     approveContent,
     rejectContent,
+    saveDesignDraft,
     submitDesign,
     approveDesign,
+    rejectDesign,
     updateWorkflow,
     deleteWorkflow,
     assignToGraphicDesigner,
     setTaskGraphicDesigner,
-    getTaskGraphicDesigner
+    getTaskGraphicDesigner,
+    postNow
 };

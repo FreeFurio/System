@@ -2,21 +2,53 @@
 // 1) IMPORTS & INITIALIZATION
 // ========================
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
 import {
     createWorkflow,
     getWorkflowsByStage,
     getWorkflowsByMultipleStatuses,
     getWorkflowById,
+    getAllWorkflows,
+    generateAIContent,
     submitContent,
     approveContent,
     rejectContent,
+    saveDesignDraft,
     submitDesign,
     approveDesign,
+    rejectDesign,
     updateWorkflow,
     deleteWorkflow,
-    assignToGraphicDesigner
+    assignToGraphicDesigner,
+    postNow
 } from '../controllers/task.controller.mjs';
 import { body } from 'express-validator';
+
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'), false);
+        }
+    }
+});
 
 const router = express.Router();
 
@@ -53,6 +85,12 @@ router.post(
 // ========================
 // 2.2) GET TASK
 // ========================
+
+// Get all workflows
+router.get(
+    '/workflows',
+    getAllWorkflows
+)
 
 // Get workflows by stage
 router.get(
@@ -154,6 +192,15 @@ router.get(
     }
 )
 
+// AI Content Generation
+router.post(
+    '/generate-ai-content',
+    [
+        body('topic').notEmpty().withMessage('Topic is required')
+    ],
+    generateAIContent
+)
+
 // Content submission and approval
 router.post(
     '/workflow/:workflowId/submit-content',
@@ -175,6 +222,12 @@ router.post(
     rejectContent
 )
 
+// Design draft saving
+router.post(
+    '/workflow/:workflowId/save-design-draft',
+    saveDesignDraft
+)
+
 // Design submission and approval
 router.post(
     '/workflow/:workflowId/submit-design',
@@ -184,6 +237,11 @@ router.post(
 router.post(
     '/workflow/:workflowId/approve-design',
     approveDesign
+)
+
+router.post(
+    '/workflow/:workflowId/reject-design',
+    rejectDesign
 )
 
 // Workflow management routes
@@ -203,11 +261,43 @@ router.post(
     assignToGraphicDesigner
 )
 
+router.post(
+    '/workflow/:workflowId/post-now',
+    postNow
+)
+
+// Get approved workflows (design_approved status)
+router.get(
+    '/workflows/approved',
+    (req, res, next) => {
+        req.statuses = ['ready_for_design_assignment', 'design_approved'];
+        getWorkflowsByMultipleStatuses(req, res, next);
+    }
+)
+
 // Get content creator approval status
 router.get(
     '/workflows/content-creator/approval-status',
     (req, res, next) => {
         req.statuses = ['content_approval', 'ready_for_design_assignment', 'content_rejected'];
+        getWorkflowsByMultipleStatuses(req, res, next);
+    }
+)
+
+// Get graphic designer approval status
+router.get(
+    '/workflows/graphic-designer/approval-status',
+    (req, res, next) => {
+        req.statuses = ['design_approval', 'design_approved', 'design_rejected', 'posted'];
+        getWorkflowsByMultipleStatuses(req, res, next);
+    }
+)
+
+// Get posted workflows
+router.get(
+    '/workflows/posted',
+    (req, res, next) => {
+        req.statuses = ['posted'];
         getWorkflowsByMultipleStatuses(req, res, next);
     }
 )

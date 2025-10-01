@@ -22,7 +22,8 @@ const sidebarItems = [
   { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: FiClipboard },
   { label: 'Approval of Contents', path: '/marketing/approval', icon: FiCheckCircle },
   { label: 'Approved Contents', path: '/marketing/approved', icon: FiThumbsUp },
-  { label: 'Posted Content', path: '/marketing/posted-content', icon: FiSend },
+  { label: 'Posting', path: '/marketing/posting', icon: FiClock },
+  { label: 'Posted Contents', path: '/marketing/posted-contents', icon: FiSend },
 ];
 
 export default function MarketingLeadLayout() {

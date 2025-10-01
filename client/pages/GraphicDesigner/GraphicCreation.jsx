@@ -15,6 +15,7 @@ export default function GraphicCreation() {
   const [fetchError, setFetchError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEditor, setSelectedEditor] = useState('original');
+  const [canvasJsonData, setCanvasJsonData] = useState(null);
   
   console.log('🔄 Current selectedEditor:', selectedEditor);
 
@@ -24,6 +25,19 @@ export default function GraphicCreation() {
     if (taskId) {
       fetchWorkflow();
     }
+
+    // Handle messages from iframe
+    const handleMessage = (event) => {
+      if (event.data && typeof event.data === 'string') {
+        if (event.data.startsWith('CANVAS_JSON:')) {
+          const jsonData = event.data.replace('CANVAS_JSON:', '');
+          setCanvasJsonData(jsonData);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, [taskId]);
 
   const fetchWorkflow = async () => {
@@ -100,9 +114,92 @@ export default function GraphicCreation() {
 
 
 
-  const handleDesignSave = (designData) => {
-    setDesignData(designData);
-    console.log('🎨 Design saved:', designData);
+  const handleDesignSave = async (imageData) => {
+    if (!imageData) {
+      setError('No design data to save');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Get canvas JSON data from iframe
+      const iframe = document.querySelector('iframe');
+      let canvasJsonData = null;
+      
+      if (iframe && iframe.contentWindow) {
+        const canvasDataPromise = new Promise((resolve) => {
+          const handleCanvasData = (event) => {
+            if (event.data && typeof event.data === 'string' && event.data.startsWith('CANVAS_JSON:')) {
+              const jsonData = event.data.replace('CANVAS_JSON:', '');
+              window.removeEventListener('message', handleCanvasData);
+              resolve(jsonData);
+            }
+          };
+          window.addEventListener('message', handleCanvasData);
+          iframe.contentWindow.postMessage('GET_CANVAS_JSON', '*');
+        });
+        
+        canvasJsonData = await canvasDataPromise;
+      }
+
+      // Convert image data to blob
+      const response = await fetch(imageData);
+      const blob = await response.blob();
+      
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', blob);
+      formData.append('upload_preset', 'unsigned_uploads');
+      formData.append('folder', 'design-drafts');
+      
+      const cloudinaryResponse = await fetch(
+        'https://api.cloudinary.com/v1_1/dyxayxrpp/upload',
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+      
+      if (!cloudinaryResponse.ok) {
+        throw new Error('Failed to upload to Cloudinary');
+      }
+      
+      const cloudinaryResult = await cloudinaryResponse.json();
+      
+      // Save to database with Cloudinary URL
+      const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/save-design-draft`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          designUrl: cloudinaryResult.secure_url,
+          publicId: cloudinaryResult.public_id,
+          canvasData: canvasJsonData,
+          description: `Design draft for task ${taskId}`
+        })
+      });
+
+      const result = await saveResponse.json();
+      if (result.status === 'success') {
+        setDesignData(result.data);
+        console.log('🎨 Design draft saved successfully:', result.data);
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/graphic/finalized-design', {
+            state: { designData: result.data, taskId }
+          });
+        }, 1500);
+      } else {
+        setError('Failed to save design draft');
+      }
+    } catch (error) {
+      setError('Failed to save design draft');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDesignExport = async (imageData) => {
@@ -228,12 +325,12 @@ export default function GraphicCreation() {
           </div>
           {loading && (
             <div style={{ color: 'white', padding: '12px 20px', fontSize: '14px' }}>
-              Submitting design...
+              Saving design...
             </div>
           )}
           {success && (
             <div style={{ color: '#10b981', padding: '12px 20px', fontSize: '14px', fontWeight: '600' }}>
-              ✓ Design submitted!
+              ✓ Design saved! Redirecting to finalized design...
             </div>
           )}
           <button onClick={() => navigate('/graphic/task')} style={{ 
@@ -270,6 +367,7 @@ export default function GraphicCreation() {
           <ImageEditorWrapper 
             onSave={handleDesignSave}
             onExport={handleDesignExport}
+            initialCanvasData={workflow?.graphicDesigner?.canvasData}
           />
         ) : (
           <TemplatedEditor 

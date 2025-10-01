@@ -6,12 +6,13 @@ import { useUser } from '../../components/common/UserContext';
 import GraphicDesignerSettings from './GraphicDesignerSettings';
 import '../../styles/Admin.css';
 
-import { FiHome, FiImage, FiClipboard } from 'react-icons/fi';
+import { FiHome, FiImage, FiClipboard, FiClock } from 'react-icons/fi';
 
 const sidebarItems = [
-  { label: 'Dashboard', path: '/graphic/dashboard', icon: <span className="sidebar-icon-wrapper"><FiHome size={22} color="#F6C544" /></span> },
-  { label: 'Graphic Creation', path: '/graphic/creation', icon: <span className="sidebar-icon-wrapper"><FiImage size={22} color="#F6C544" /></span> },
-  { label: 'Task', path: '/graphic/task', icon: <span className="sidebar-icon-wrapper"><FiClipboard size={22} color="#F6C544" /></span> },
+  { label: 'Dashboard', path: '/graphic/dashboard', icon: FiHome },
+  { label: 'Graphic Creation', path: '/graphic/creation', icon: FiImage },
+  { label: 'Task', path: '/graphic/task', icon: FiClipboard },
+  { label: 'Ongoing Approval', path: '/graphic/ongoing-approval', icon: FiClock },
 ];
 
 export default function GraphicDesignerLayout() {
@@ -148,9 +149,35 @@ export default function GraphicDesignerLayout() {
       
       <div className="dashboard-container" style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
         {!sidebarCollapsed && (
-          <div className="sidebar" style={{ width: '240px', minWidth: '220px', background: '#ffffff', borderRight: '1px solid #ececec', padding: '32px 0 24px 0', borderRadius: 0, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxShadow: 'none', margin: 0, overflow: 'hidden' }}>
+          <div className="sidebar" style={{
+            width: '220px',
+            background: '#ffffff',
+            borderRight: '1px solid #ececec',
+            padding: '32px 0 24px 0',
+            borderRadius: 0,
+            minWidth: '180px',
+            fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            boxShadow: 'none',
+            margin: 0,
+            minHeight: 0,
+            overflowY: 'auto',
+            maxHeight: 'calc(100vh - 124px)'
+          }}>
           {/* User Profile */}
-          <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px 16px', background: '#f8fafc', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb', margin: '0 12px 32px 12px' }}>
+          <div className="user-profile-divider-wrapper" style={{ position: 'relative', marginBottom: 32, padding: '0 12px' }}>
+            <div className="user-profile" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 16, 
+              padding: '20px 16px', 
+              background: '#f8fafc', 
+              borderRadius: '12px', 
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e5e7eb'
+            }}>
             {user?.profilePicture ? (
               <img 
                 src={user.profilePicture} 
@@ -170,21 +197,54 @@ export default function GraphicDesignerLayout() {
                 <FiUser size={28} color="#fff" />
               </span>
             )}
-            <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-              <div className="user-name" style={{ fontWeight: 700, fontSize: 17, color: '#222', lineHeight: '1.2', whiteSpace: 'normal', maxHeight: '2.4em', overflow: 'hidden' }}>{user?.firstName || 'Graphic'} {user?.lastName || 'Designer'}</div>
-              <div className="user-role" style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
+              <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                <div className="user-name" style={{ 
+                  fontWeight: 700, 
+                  fontSize: 17, 
+                  color: '#222', 
+                  lineHeight: '1.2', 
+                  whiteSpace: 'normal', 
+                  maxHeight: '2.4em', 
+                  overflow: 'hidden' 
+                }}>{user?.firstName || 'Graphic'} {user?.lastName || 'Designer'}</div>
+                <div className="user-role" style={{ 
+                  fontSize: 13, 
+                  color: '#6b7280', 
+                  fontWeight: 500, 
+                  marginTop: 2 
+                }}>{designerRole.charAt(0).toUpperCase() + designerRole.slice(1)}</div>
+              </div>
             </div>
           </div>
-          {/* Navigation */}
-          <nav className="navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, padding: '0 12px' }}>
-            {sidebarItems.map(item => (
+          <nav className="navigation" style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 8, 
+            marginTop: 10, 
+            minHeight: 0,
+            padding: '0 12px'
+          }}>
+            {sidebarItems.map((item, index) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
-                style={{ padding: '14px 20px', fontWeight: 600, borderRadius: 12, color: location.pathname === item.path ? '#fff' : '#374151', background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent', marginBottom: 6, textDecoration: 'none', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none', fontSize: 15 }}
+                style={{
+                  padding: '14px 20px',
+                  fontWeight: 600,
+                  borderRadius: 12,
+                  color: location.pathname === item.path ? '#fff' : '#374151',
+                  background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                  marginBottom: 6,
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                  fontSize: 15
+                }}
               >
-                {item.icon}
+                <item.icon size={20} style={{ marginRight: 14 }} />
                 {item.label}
               </Link>
             ))}

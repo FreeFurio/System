@@ -181,9 +181,16 @@ app.all('/api/*', (req, res) => {
 // STATIC FILES - AFTER API ROUTES
 // ========================
 if (process.env.NODE_ENV === 'production') {
+  // Debug middleware for assets
+  app.use('/assets/*', (req, res, next) => {
+    console.log(`🎯 Asset request: ${req.url}`);
+    next();
+  });
+  
   // Serve static files with proper MIME types
   app.use(express.static(path.join(__dirname, '../client/dist'), {
     setHeaders: (res, filePath) => {
+      console.log(`📁 Serving static file: ${filePath}`);
       if (filePath.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript');
       } else if (filePath.endsWith('.mjs')) {
@@ -194,13 +201,12 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
   
-  // Explicit asset handling
-  app.get('/assets/*', (req, res) => {
-    res.status(404).send('Asset not found');
-  });
-  
-  // React app catch-all - ONLY for HTML routes
+  // React app catch-all - ONLY for non-asset routes
   app.get('*', (req, res) => {
+    // Skip catch-all for asset files
+    if (req.url.startsWith('/assets/')) {
+      return res.status(404).send('Asset not found');
+    }
     res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
   });
 } else {

@@ -49,12 +49,10 @@ app.use(
         connectSrc: [          
           "'self'",
           "wss://*.firebasedatabase.app",
-          "https://*.firebasedatabase.app"
+          "https://*.firebasedatabase.app",
+          "https://system-production-9942.up.railway.app"
         ],
-        scriptSrc: [          
-          "'self'",
-          "https://*.firebasedatabase.app"
-        ],
+        scriptSrc: ["'self'"],
       },
     },
   })

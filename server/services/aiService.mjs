@@ -2,13 +2,15 @@ import OpenAI from 'openai';
 
 class AIService {
   constructor() {
-    // Validate API key
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is required in environment variables');
+    // Use environment variable for API key
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is required');
     }
 
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: apiKey,
       timeout: parseInt(process.env.AI_TIMEOUT_MS) || 30000
     });
     

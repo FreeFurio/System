@@ -47,14 +47,25 @@
 
             var imgEditor = new ImageEditor('#image-editor-container', buttons, []);
             
+            // Load initial canvas data if provided
+            const urlParams = new URLSearchParams(window.location.search);
+            const canvasData = urlParams.get('canvasData');
+            if (canvasData) {
+                try {
+                    imgEditor.setCanvasJSON(canvasData);
+                } catch (error) {
+                    console.error('Failed to load canvas data:', error);
+                }
+            }
+            
             // Override save and download to communicate with parent
             const originalSave = document.querySelector('#save');
             const originalDownload = document.querySelector('#download');
             
             if (originalSave) {
                 originalSave.addEventListener('click', () => {
-                    const canvasData = imgEditor.getCanvasJSON();
-                    window.parent.postMessage('SAVE:' + JSON.stringify(canvasData), '*');
+                    const dataURL = imgEditor.canvas.toDataURL('image/png');
+                    window.parent.postMessage('SAVE:' + dataURL, '*');
                 });
             }
             
@@ -65,6 +76,14 @@
                     window.parent.postMessage('EXPORT:' + dataURL, '*');
                 });
             }
+            
+            // Handle canvas JSON requests
+            window.addEventListener('message', (event) => {
+                if (event.data === 'GET_CANVAS_JSON') {
+                    const canvasData = imgEditor.getCanvasJSON();
+                    window.parent.postMessage('CANVAS_JSON:' + JSON.stringify(canvasData), '*');
+                }
+            });
             
         } catch (error) {
             console.error('Failed to initialize editor:', error);

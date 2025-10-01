@@ -328,10 +328,11 @@ export default function OutputContent() {
           }}>Content Submitted!</h2>
           
           <p style={{
-            color: '#64748b',
-            fontSize: '18px',
+            color: '#475569',
+            fontSize: '20px',
             margin: '0 0 24px 0',
-            lineHeight: 1.6
+            lineHeight: 1.6,
+            fontWeight: '600'
           }}>Your content has been successfully submitted for approval.</p>
         </div>
       </div>

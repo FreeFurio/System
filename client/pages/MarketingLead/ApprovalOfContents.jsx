@@ -37,6 +37,8 @@ const SEOBar = ({ score, label, width = '100%' }) => {
 
 const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
   const [expanded, setExpanded] = useState(false);
+  const [showDesignModal, setShowDesignModal] = useState(false);
+  const isDesignApproval = workflow.status === 'design_approval';
   
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -101,7 +103,10 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
               fontWeight: '500',
               background: '#fff'
             }}>
-              Submitted {formatDate(workflow.contentCreator?.submittedAt)}
+              {isDesignApproval ? 
+                `Design submitted ${formatDate(workflow.graphicDesigner?.submittedAt)}` :
+                `Submitted ${formatDate(workflow.contentCreator?.submittedAt)}`
+              }
             </p>
           </div>
         </div>
@@ -170,6 +175,41 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
         </div>
       </div>
       
+      {/* View Design Button for Design Approvals */}
+      {isDesignApproval && (
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+          <button
+            onClick={() => setShowDesignModal(true)}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto',
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+            }}
+            onMouseLeave={e => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+            }}
+          >
+            🖼️ View Design
+          </button>
+        </div>
+      )}
+
       {/* Content Preview */}
       {workflow.contentCreator?.content && (
         <div style={{
@@ -182,7 +222,9 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>✨</span>
-              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Submitted Content</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>
+                {isDesignApproval ? 'Content Used for Design' : 'Submitted Content'}
+              </span>
             </div>
             <button
               onClick={() => setExpanded(!expanded)}
@@ -352,9 +394,81 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
           }}
         >
           <span style={{ fontSize: '16px' }}>✅</span>
-          Approve Content
+          {isDesignApproval ? 'Approve Design' : 'Approve Content'}
         </button>
       </div>
+
+      {/* Design Modal */}
+      {showDesignModal && isDesignApproval && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '24px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Submitted Design</h3>
+              <button
+                onClick={() => setShowDesignModal(false)}
+                style={{
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                ✕ Close
+              </button>
+            </div>
+            {(workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl) ? (
+              <img 
+                src={workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl} 
+                alt="Submitted Design" 
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                  border: '1px solid #e5e7eb'
+                }}
+              />
+            ) : (
+              <div style={{
+                padding: '40px',
+                textAlign: 'center',
+                color: '#6b7280',
+                fontSize: '16px'
+              }}>
+                No design image available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -372,7 +486,7 @@ export default function ApprovalOfContents() {
     
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
     socket.on("workflowUpdated", (data) => {
-      if (data.status === 'content_approval') {
+      if (data.status === 'content_approval' || data.status === 'design_approval') {
         setWorkflows(prev => {
           const existing = prev.find(w => w.id === data.id);
           if (existing) {
@@ -398,11 +512,13 @@ export default function ApprovalOfContents() {
       }
       const data = await response.json();
       if (data.status === 'success') {
-        const contentApprovals = data.data.filter(w => w.status === 'content_approval');
-        setWorkflows(contentApprovals);
+        const approvals = data.data.filter(w => 
+          w.status === 'content_approval' || w.status === 'design_approval'
+        );
+        setWorkflows(approvals);
       }
     } catch (error) {
-      console.error('Error fetching content approvals:', error);
+      console.error('Error fetching approvals:', error);
     } finally {
       setLoading(false);
     }
@@ -410,7 +526,11 @@ export default function ApprovalOfContents() {
 
   const handleApprove = async (workflowId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflowId}/approve-content`, {
+      const workflow = workflows.find(w => w.id === workflowId);
+      const isDesignApproval = workflow?.status === 'design_approval';
+      
+      const endpoint = isDesignApproval ? 'approve-design' : 'approve-content';
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflowId}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approvedBy: 'Marketing Lead' })
@@ -420,7 +540,7 @@ export default function ApprovalOfContents() {
         window.location.href = `/marketing/approved`;
       }
     } catch (error) {
-      console.error('Error approving content:', error);
+      console.error('Error approving:', error);
     }
   };
 
@@ -487,40 +607,98 @@ export default function ApprovalOfContents() {
           color: '#111827',
           margin: 0,
           letterSpacing: '-0.025em'
-        }}>Content Approval</h1>
+        }}>Approval of Contents</h1>
         <p style={{
           color: '#6b7280',
           fontSize: '16px',
           margin: '8px 0 0 0',
           fontWeight: '400'
         }}>
-          Review and approve content submissions from content creators
+          Review and approve submissions from content creators and graphics designers
         </p>
       </div>
 
-      {/* Content List */}
-      {workflows.length === 0 ? (
-        <div style={componentStyles.emptyState}>
-          <div style={componentStyles.emptyStateIcon}>📝</div>
-          <h3 style={componentStyles.emptyStateTitle}>
-            No Content Pending Approval
-          </h3>
-          <p style={componentStyles.emptyStateText}>
-            All content has been reviewed. New submissions will appear here.
-          </p>
+      {/* Content Creator Approvals */}
+      <div style={{ marginBottom: '40px' }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            Content Creator Approvals
+          </h2>
+          {workflows.filter(w => w.status === 'content_approval').length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No content pending approval.
+            </div>
+          ) : (
+            workflows.filter(w => w.status === 'content_approval').map(workflow => (
+              <ContentApprovalCard 
+                key={workflow.id} 
+                workflow={workflow} 
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            ))
+          )}
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          {workflows.map(workflow => (
-            <ContentApprovalCard 
-              key={workflow.id} 
-              workflow={workflow} 
-              onApprove={handleApprove}
-              onReject={handleReject}
-            />
-          ))}
+      </div>
+
+      {/* Graphics Designer Approvals */}
+      <div>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            Graphics Designer Approvals
+          </h2>
+          {workflows.filter(w => w.status === 'design_approval').length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No designs pending approval.
+            </div>
+          ) : (
+            workflows.filter(w => w.status === 'design_approval').map(workflow => (
+              <ContentApprovalCard 
+                key={workflow.id} 
+                workflow={workflow} 
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            ))
+          )}
         </div>
-      )}
+      </div>
       
       {/* Rejection Modal */}
       {rejectModal.show && (

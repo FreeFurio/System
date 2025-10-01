@@ -1,5 +1,5 @@
-// Mocked Content Service for Content Creator
-// Structured to match real AI service responses
+// Real AI Content Service for Content Creator
+// Integrates with OpenAI through backend API with mock fallback
 
 // Mock AI Content Generator - matches real AI service structure
 const generateMockContent = (input, index) => {
@@ -87,42 +87,66 @@ const generateMockSEOAnalysis = (content) => {
   };
 };
 
-// Create Content with AI Integration Flow
+// Create Content with Real AI Integration
 export async function createContent(data) {
   const { input, numContents = 1, taskId } = data;
   
   console.log('🔍 ContentService Debug - Received data:', { input, numContents, taskId });
   
-  // Step 1: Generate content using AI (mock)
-  console.log('🤖 Step 1: Generating content with AI...');
+  // Step 1: Generate content using Real AI
+  console.log('🤖 Step 1: Generating content with Real AI...');
   const contents = [];
-  for (let i = 0; i < numContents; i++) {
-    const generatedContent = generateMockContent(input, i);
-    console.log(`✅ Generated content ${i + 1} with SEO analysis`);
-    contents.push(generatedContent);
-  }
   
-  // If taskId exists, submit to backend workflow
-  if (taskId) {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/submit-content`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          headline: contents[0].headline,
-          caption: contents[0].caption,
-          hashtag: contents[0].hashtag
-        })
+  try {
+    // Call AI endpoint once to get base content
+    console.log('🤖 Calling AI service for base content...');
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/generate-ai-content`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: input,
+        numContents: numContents
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      // Process all real AI variations
+      result.data.variations.forEach((variation, index) => {
+        const aiContent = {
+          id: variation.id,
+          headline: variation.headline,
+          caption: variation.caption,
+          hashtag: variation.hashtag,
+          seoAnalysis: {
+            headlineScore: variation.seoAnalysis.headlineScore,
+            captionScore: variation.seoAnalysis.captionScore,
+            overallScore: variation.seoAnalysis.overallScore,
+            // Add compatibility fields for OutputContent component
+            wordCount: variation.caption.split(' ').length,
+            powerWords: { count: 2, words: ['AI', 'automation'] },
+            emotionalWords: { count: 1, words: ['transform'] },
+            sentiment: { tone: 'Positive', polarity: '0.8', confidence: 85 },
+            readability: { complexity: 'Simple', gradeLevel: '7th Grade' }
+          }
+        };
+        contents.push(aiContent);
+        console.log(`✅ Generated real AI variation ${index + 1} with SEO analysis`);
       });
-      
-      const result = await response.json();
-      if (result.status === 'success') {
-        console.log('✅ Content submitted to workflow successfully');
-      }
-    } catch (error) {
-      console.error('❌ Error submitting content to workflow:', error);
+    } else {
+      throw new Error('AI service failed');
+    }
+  } catch (error) {
+    console.error('❌ Error calling AI service, using mock data:', error);
+    // Fallback to all mock data if AI fails
+    for (let i = 0; i < numContents; i++) {
+      const generatedContent = generateMockContent(input, i);
+      contents.push(generatedContent);
     }
   }
+  
+  // Content generated for selection only - no automatic submission
   
   console.log('🎯 Content generation and SEO analysis completed');
   

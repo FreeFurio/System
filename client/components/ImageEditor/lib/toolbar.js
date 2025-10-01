@@ -121,8 +121,9 @@
         $(`${this.containerSelector} #toolbar .extended-buttons button`).click(function () {
           let id = $(this).attr('id');
           if (id === 'save') {
-            if (window.confirm('The current canvas will be saved in your local! Are you sure?')) {
-              saveInBrowser.save('canvasEditor', _self.canvas.toJSON());
+            if (window.confirm('The current design will be saved to the database! Are you sure?')) {
+              const dataURL = _self.canvas.toDataURL('image/png');
+              window.parent.postMessage('SAVE:' + dataURL, '*');
             }
           } else if (id === 'clear') {
             if (window.confirm('This will clear the canvas! Are you sure?')) {

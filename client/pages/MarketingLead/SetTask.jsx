@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { componentStyles } from '../../styles/designSystem';
@@ -9,6 +9,7 @@ import Toast from '../../components/common/Toast';
 
 export default function SetTask() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [objective, setObjective] = useState('');
   const [gender, setGender] = useState('');
   const [deadline, setDeadline] = useState(() => {
@@ -109,6 +110,11 @@ export default function SetTask() {
         setDeadline('');
         setDeadlineTime('12:00');
         setSelectedPlatforms([]);
+        
+        // Redirect to Ongoing Task tab after successful submission
+        setTimeout(() => {
+          navigate('/marketing/ongoing-task');
+        }, 1500);
       })
       .catch((err) => {
         setToast({ message: err.message || 'Submission failed', type: 'error' });

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import Toast from '../../components/common/Toast';
 
 export default function SetTaskGraphicDesigner() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const workflowId = searchParams.get('workflowId');
   const [workflow, setWorkflow] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     if (workflowId) {
@@ -67,11 +70,17 @@ export default function SetTaskGraphicDesigner() {
       const data = await response.json();
       if (data.status === 'success') {
         setSubmitted(true);
+        setToast({ message: 'Task assigned successfully!', type: 'success' });
+        
+        // Redirect to Ongoing Task tab after successful assignment
+        setTimeout(() => {
+          navigate('/marketing/ongoing-task');
+        }, 1500);
       } else {
-        setError('Failed to assign task');
+        setToast({ message: 'Failed to assign task', type: 'error' });
       }
     } catch (error) {
-      setError('Failed to assign task');
+      setToast({ message: 'Failed to assign task', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -417,35 +426,16 @@ export default function SetTaskGraphicDesigner() {
             {loading ? 'Assigning Task...' : submitted ? 'Task Assigned!' : 'Assign to Graphic Designer'}
           </button>
         
-          {error && (
-            <div style={{ 
-              color: '#ef4444', 
-              padding: '16px 20px',
-              background: '#fef2f2',
-              border: '2px solid #fecaca',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600'
-            }}>
-              {error}
-            </div>
-          )}
-          
-          {submitted && (
-            <div style={{ 
-              color: '#059669', 
-              padding: '16px 20px',
-              background: '#f0fdf4',
-              border: '2px solid #bbf7d0',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600'
-            }}>
-              Task assigned successfully!
-            </div>
-          )}
         </div>
       </div>
+      
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 } 

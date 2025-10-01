@@ -49,7 +49,8 @@ export default function LoginForm() {
     setMessage({ text: "", type: "" });
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
+      const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3000';
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.PROD ? '' : 'http://localhost:3000';
 
 class DraftService {
   static async saveDraft(content, workflowId = null) {

@@ -3,7 +3,8 @@
 // ========================
 import express from 'express';
 import { 
-    adminNotification
+    adminNotification,
+    contentCreatorNotification
 } from '../controllers/notification.controller.mjs';
 import { body } from 'express-validator';
 
@@ -18,8 +19,13 @@ const router = express.Router();
 // ========================
 
 router.get(
-    '/notification/admin',
+    '/admin',
     adminNotification
+);
+
+router.get(
+    '/contentcreator',
+    contentCreatorNotification
 );
 
 // ========================

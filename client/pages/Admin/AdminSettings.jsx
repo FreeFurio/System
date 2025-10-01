@@ -106,14 +106,28 @@ const AdminSettings = ({ isOpen, onClose }) => {
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSettings(prev => ({ ...prev, profilePicture: e.target.result }));
-      };
-      reader.readAsDataURL(file);
+      setLoading(true);
+      try {
+        const uploadService = (await import('../../services/uploadService')).default;
+        const result = await uploadService.uploadProfilePicture(file);
+        setSettings(prev => ({ ...prev, profilePicture: result.url }));
+        
+        // Update UserContext immediately
+        const updatedUser = { ...user, profilePicture: result.url };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        setMessage({ text: 'Profile picture uploaded successfully!', type: 'success' });
+        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      } catch (error) {
+        setMessage({ text: 'Failed to upload image', type: 'error' });
+        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -127,8 +141,7 @@ const AdminSettings = ({ isOpen, onClose }) => {
         const { ref, update } = await import('firebase/database');
         const { db } = await import('../../services/firebase');
         
-        const safeUsername = user.username.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const userRef = ref(db, `users/${safeUsername}`);
+        const userRef = ref(db, `${user.role}/${user.username.toLowerCase()}`);
         await update(userRef, {
           firstName: settings.firstName,
           lastName: settings.lastName,
@@ -254,11 +267,13 @@ const AdminSettings = ({ isOpen, onClose }) => {
                 onClick={() => setActiveTab(tab.id)}
                 style={{
                   width: '100%', padding: '12px 16px', border: 'none',
-                  background: activeTab === tab.id ? '#2563eb' : 'transparent',
+                  background: activeTab === tab.id ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
                   color: activeTab === tab.id ? '#ffffff' : '#6b7280',
                   borderRadius: '8px', cursor: 'pointer', marginBottom: '4px',
                   display: 'flex', alignItems: 'center', gap: '12px',
-                  fontSize: '0.875rem', fontWeight: '500', textAlign: 'left'
+                  fontSize: '0.875rem', fontWeight: '500', textAlign: 'left',
+                  boxShadow: activeTab === tab.id ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <Icon size={16} />
@@ -505,10 +520,12 @@ const AdminSettings = ({ isOpen, onClose }) => {
               disabled={loading}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '12px 24px', background: '#3b82f6', color: '#fff',
+                padding: '12px 24px', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: '#fff',
                 border: 'none', borderRadius: '8px', fontSize: '0.875rem',
                 fontWeight: '500', cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                transition: 'all 0.2s ease'
               }}
             >
               <FiSave size={16} />

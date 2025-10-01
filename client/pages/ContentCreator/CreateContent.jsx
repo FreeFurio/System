@@ -1,184 +1,262 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContent } from '../../services/contentService';
-import { componentStyles } from '../../styles/designSystem';
+import { FiEdit3, FiZap, FiTarget, FiRefreshCw, FiUser, FiCalendar, FiClock, FiSmartphone, FiClipboard } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
+
+const TaskDetailsSidebar = ({ task }) => {
+  if (!task) {
+    return (
+      <div style={{
+        width: '320px',
+        background: '#f8f9fa',
+        borderRadius: '16px',
+        padding: '24px',
+        border: '1px solid #e5e7eb',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#6b7280'
+      }}>
+        No task selected
+      </div>
+    );
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div style={{
+      width: '320px',
+      background: '#fff',
+      borderRadius: '16px',
+      padding: '24px',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+      height: 'fit-content'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        marginBottom: '20px',
+        paddingBottom: '16px',
+        borderBottom: '2px solid #e5e7eb'
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '10px',
+          background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '16px'
+        }}>
+          <FiTarget size={18} color="#fff" />
+        </div>
+        <div>
+          <h3 style={{
+            margin: 0,
+            fontSize: '16px',
+            fontWeight: '700',
+            color: '#1f2937'
+          }}>Task Details</h3>
+          <p style={{
+            margin: 0,
+            fontSize: '12px',
+            color: '#6b7280'
+          }}>Reference information</p>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{
+          fontSize: '13px',
+          fontWeight: '600',
+          color: '#374151',
+          marginBottom: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          <FiTarget size={12} color="#3b82f6" /> Objectives
+        </div>
+        <div style={{
+          fontSize: '14px',
+          color: '#1f2937',
+          lineHeight: '1.5',
+          background: '#f8f9fa',
+          padding: '12px',
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb'
+        }}>
+          {task.objectives}
+        </div>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gap: '16px',
+        marginBottom: '20px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiUser size={14} color="#3b82f6" />
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Target Gender</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>{task.gender}</div>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiCalendar size={14} color="#10b981" />
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Age Range</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>{task.minAge}-{task.maxAge} years</div>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiClock size={14} color="#ef4444" />
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Deadline</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>{formatDate(task.deadline)}</div>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={14} color="#8b5cf6" />
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>Platforms</div>
+            <PlatformDisplay platforms={task.selectedPlatforms || []} size="small" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function CreateContent() {
   const [input, setInput] = useState('');
-  const [numContents, setNumContents] = useState(1);
-  const [numContentsTouched, setNumContentsTouched] = useState(false);
+  const [numContents, setNumContents] = useState(3);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [generationStep, setGenerationStep] = useState(0);
-  const [showProgress, setShowProgress] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [searchParams] = useSearchParams();
   const taskId = searchParams.get('taskId');
+  const workflowId = searchParams.get('workflowId');
   const navigate = useNavigate();
 
+
+
   useEffect(() => {
-    console.log('🔍 CreateContent Debug - taskId from URL:', taskId);
-    if (taskId) {
-      // Fetch the actual workflow data to get objectives
-      fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/contentcreator`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'success') {
-            const workflow = data.data.find(w => w.id === taskId);
-            if (workflow) {
-              setInput(workflow.objectives);
-            }
+    const id = workflowId || taskId;
+    if (id) {
+      // Fetch from both content creator and marketing lead stages
+      Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/contentcreator`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/marketinglead`)
+      ])
+        .then(responses => Promise.all(responses.map(res => res.json())))
+        .then(([contentData, marketingData]) => {
+          let workflow = null;
+          if (contentData.status === 'success') {
+            workflow = contentData.data.find(w => w.id === id);
+          }
+          if (!workflow && marketingData.status === 'success') {
+            workflow = marketingData.data.find(w => w.id === id);
+          }
+          if (workflow) {
+            setSelectedTask(workflow);
           }
         })
         .catch(err => console.error('Error fetching workflow:', err));
     }
-  }, [taskId, searchParams]);
+  }, [taskId, workflowId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    setShowProgress(true);
-    
-    // Simulate generation steps
-    const steps = [
-      'Analyzing your content brief...',
-      'Generating creative headlines...',
-      'Crafting engaging captions...',
-      'Creating relevant hashtags...',
-      'Finalizing your content...'
-    ];
     
     try {
-      // Show progress steps
-      for (let i = 0; i < steps.length; i++) {
-        setGenerationStep(i);
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
-      
-      const res = await createContent({ input, numContents, taskId });
+      const finalId = workflowId || taskId;
+      const res = await createContent({ input, numContents, taskId: finalId });
       if (res.success) {
-        setLoading(false);
-        setShowProgress(false);
-        const finalTaskId = res.taskId || taskId;
+        const finalTaskId = res.taskId || finalId;
         const outputUrl = finalTaskId ? `/content/output?taskId=${finalTaskId}` : '/content/output';
         navigate(outputUrl, { state: { contents: res.contents, taskId: finalTaskId } });
       } else {
         setError('Failed to create content.');
-        setLoading(false);
-        setShowProgress(false);
       }
     } catch (err) {
       setError('An error occurred.');
+    } finally {
       setLoading(false);
-      setShowProgress(false);
     }
   };
 
-  if (showProgress) {
-    const steps = [
-      { text: 'Analyzing your content brief...', icon: '🔍' },
-      { text: 'Generating creative headlines...', icon: '💡' },
-      { text: 'Crafting engaging captions...', icon: '✍️' },
-      { text: 'Creating relevant hashtags...', icon: '🏷️' },
-      { text: 'Finalizing your content...', icon: '✨' }
-    ];
-    
+
+
+  // Show task selection prompt if no task is selected
+  if (!taskId && !workflowId) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+        minHeight: 'calc(100vh - 200px)',
+        padding: '32px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+        justifyContent: 'center'
       }}>
         <div style={{
-          background: '#ffffff',
-          borderRadius: 24,
+          background: '#fff',
+          borderRadius: '16px',
           padding: '48px',
-          maxWidth: '500px',
-          width: '90%',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb',
           textAlign: 'center',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          maxWidth: '500px'
         }}>
-          <div style={{
-            width: '80px',
-            height: '80px',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 24px',
-            fontSize: '32px',
-            animation: 'pulse 2s infinite'
-          }}>
-            🤖
-          </div>
-          
+          <div style={{ fontSize: '48px', marginBottom: '24px' }}>📝</div>
           <h2 style={{
-            fontSize: '28px',
-            fontWeight: '800',
-            color: '#1e293b',
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1f2937',
             margin: '0 0 16px 0'
-          }}>AI is Working...</h2>
-          
+          }}>Pick a Task First</h2>
           <p style={{
-            color: '#64748b',
+            color: '#6b7280',
             fontSize: '16px',
-            margin: '0 0 32px 0'
-          }}>Creating amazing content just for you</p>
-          
-          <div style={{ textAlign: 'left' }}>
-            {steps.map((step, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                padding: '12px 0',
-                opacity: index <= generationStep ? 1 : 0.3,
-                transition: 'opacity 0.3s ease'
-              }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: index <= generationStep ? '#10b981' : '#e5e7eb',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '16px',
-                  transition: 'background 0.3s ease'
-                }}>
-                  {index < generationStep ? '✓' : index === generationStep ? step.icon : '○'}
-                </div>
-                <span style={{
-                  fontSize: '15px',
-                  fontWeight: index === generationStep ? '600' : '500',
-                  color: index <= generationStep ? '#1e293b' : '#94a3b8'
-                }}>
-                  {step.text}
-                </span>
-              </div>
-            ))}
-          </div>
-          
-          <div style={{
-            width: '100%',
-            height: '4px',
-            background: '#e5e7eb',
-            borderRadius: '2px',
-            marginTop: '24px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              width: `${((generationStep + 1) / steps.length) * 100}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
-              borderRadius: '2px',
-              transition: 'width 0.8s ease'
-            }} />
-          </div>
+            margin: '0 0 32px 0',
+            lineHeight: '1.5'
+          }}>You need to select a task before you can create content. Go to the Task page to choose an assigned task.</p>
+          <button
+            onClick={() => navigate('/content/task')}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto'
+            }}
+          >
+            <FiClipboard size={16} />
+            Go to Tasks
+          </button>
         </div>
       </div>
     );
@@ -186,311 +264,196 @@ export default function CreateContent() {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', 
-      padding: '32px 20px',
-      fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+      minHeight: 'calc(100vh - 200px)',
+      padding: '32px',
+      display: 'flex',
+      gap: '32px',
+      alignItems: 'flex-start',
+      justifyContent: 'center'
     }}>
       <div style={{
-        maxWidth: 800,
-        margin: '0 auto'
+        background: '#fff',
+        borderRadius: '16px',
+        padding: '32px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        border: '1px solid #e5e7eb',
+        width: '100%',
+        maxWidth: '600px'
       }}>
-        {/* Header Section */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '40px'
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '12px',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            color: '#ffffff',
-            fontWeight: 600,
-            fontSize: 14,
-            borderRadius: 25,
-            padding: '10px 24px',
-            marginBottom: 20,
-            letterSpacing: '0.5px',
-            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)'
-          }}>
-            <span style={{fontSize: '18px'}}>🤖</span>
-            AI Content Generator
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <FiEdit3 size={28} color="#3b82f6" />
+            <h1 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: '#1f2937',
+              margin: 0
+            }}>Create Content</h1>
           </div>
-          <h1 style={{
-            fontWeight: 800,
-            fontSize: 42,
-            background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            margin: 0,
-            letterSpacing: '-1px'
-          }}>Create Amazing Content</h1>
           <p style={{
-            color: '#64748b',
-            fontSize: 18,
-            margin: '12px 0 0 0',
-            fontWeight: 500
-          }}>Generate engaging content with AI assistance</p>
+            color: '#6b7280',
+            fontSize: '16px',
+            margin: 0
+          }}>Generate AI-powered content for your marketing campaigns</p>
         </div>
 
-        {/* Main Form Card */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: 20,
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          padding: '0',
-          overflow: 'hidden',
-          border: '1px solid #e2e8f0'
-        }}>
-          {/* Form Header */}
-          <div style={{
-            background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-            padding: '32px 40px',
-            borderBottom: '1px solid #e2e8f0'
-          }}>
-            <h2 style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: '#1e293b',
-              margin: '0 0 8px 0'
-            }}>Content Details</h2>
-            <p style={{
-              color: '#64748b',
-              fontSize: 16,
-              margin: 0
-            }}>Tell us about the content you want to create</p>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '8px'
+            }}>Content Brief</label>
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Describe your content idea... (e.g., A post about our new product launch targeting young professionals)"
+              style={{
+                width: '100%',
+                height: '120px',
+                padding: '16px',
+                borderRadius: '12px',
+                border: '2px solid #e5e7eb',
+                fontSize: '15px',
+                background: '#fafbfc',
+                resize: 'none',
+                outline: 'none',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+                lineHeight: 1.6,
+                transition: 'all 0.2s ease'
+              }}
+              onFocus={e => {
+                e.target.style.borderColor = '#3b82f6';
+                e.target.style.background = '#fff';
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.background = '#fafbfc';
+              }}
+              required
+            />
           </div>
-        
-          {/* Form Content */}
-          <form onSubmit={handleSubmit} style={{ padding: '40px' }}>
-            <div style={{ display: 'grid', gap: '32px' }}>
-              {/* Content Description Section */}
-              <div style={{
-                background: '#f8fafc',
-                padding: '24px',
-                borderRadius: 12,
-                border: '1px solid #e2e8f0'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
-                  <span style={{ fontSize: '20px' }}>📝</span>
-                  <label style={{ 
-                    fontWeight: 700, 
-                    color: '#1e293b', 
-                    fontSize: 18
-                  }}>Content Description</label>
-                </div>
-                <p style={{
-                  color: '#64748b',
-                  fontSize: 14,
-                  margin: '0 0 16px 0'
-                }}>Describe what you want your content to be about. Be specific about your goals and target message.</p>
-                <textarea
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  placeholder="Example: A social media post about our new eco-friendly product line targeting environmentally conscious millennials..."
-                  rows={5}
-                  style={{ 
-                    width: '100%', 
-                    minHeight: 120, 
-                    padding: '16px 20px', 
-                    borderRadius: 12, 
-                    border: '2px solid #e2e8f0', 
-                    fontSize: 15, 
-                    background: '#ffffff', 
-                    resize: 'vertical', 
-                    outline: 'none', 
-                    boxSizing: 'border-box',
-                    fontFamily: 'inherit',
-                    lineHeight: 1.6,
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={e => {
-                    e.target.style.borderColor = '#3b82f6';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                  }}
-                  onBlur={e => {
-                    e.target.style.borderColor = '#e2e8f0';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  required
-                />
-              </div>
-        
-              {/* Generation Settings */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '24px'
-              }}>
-                {/* Number of Contents */}
-                <div style={{
-                  background: '#f8fafc',
-                  padding: '24px',
-                  borderRadius: 12,
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
-                    <span style={{ fontSize: '20px' }}>🔢</span>
-                    <label htmlFor="numContents" style={{ 
-                      fontWeight: 700, 
-                      color: '#1e293b', 
-                      fontSize: 16
-                    }}>Number of Variations</label>
-                  </div>
-                  <p style={{
-                    color: '#64748b',
-                    fontSize: 14,
-                    margin: '0 0 16px 0'
-                  }}>How many different versions would you like?</p>
-                  <input
-                    type="number"
-                    id="numContents"
-                    min={1}
-                    max={5}
-                    value={numContentsTouched ? numContents : 1}
-                    onFocus={(e) => {
-                      if (!numContentsTouched && numContents === 1) {
-                        setNumContents("");
-                      }
-                      setNumContentsTouched(true);
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                    }}
-                    onBlur={e => {
-                      if (e.target.value === '' || isNaN(Number(e.target.value))) {
-                        setNumContents(1);
-                        setNumContentsTouched(false);
-                      }
-                      e.target.style.borderColor = '#e2e8f0';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                    onChange={e => {
-                      const val = e.target.value;
-                      if (val === '' || isNaN(Number(val))) {
-                        setNumContents("");
-                      } else {
-                        setNumContents(Math.max(1, Math.min(5, Number(val))));
-                      }
-                    }}
-                    style={{ 
-                      width: '100%', 
-                      padding: '16px 20px', 
-                      borderRadius: 12, 
-                      border: '2px solid #e2e8f0', 
-                      fontSize: 15, 
-                      background: '#ffffff', 
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      transition: 'all 0.2s ease'
-                    }}
-                    required
-                  />
-                </div>
 
-                {/* Content Type Info */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-                  padding: '24px',
-                  borderRadius: 12,
-                  border: '1px solid #93c5fd'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 16 }}>
-                    <span style={{ fontSize: '20px' }}>✨</span>
-                    <h3 style={{ 
-                      fontWeight: 700, 
-                      color: '#1e40af', 
-                      fontSize: 16,
-                      margin: 0
-                    }}>What You'll Get</h3>
-                  </div>
-                  <ul style={{
-                    color: '#1e40af',
-                    fontSize: 14,
-                    margin: 0,
-                    paddingLeft: 20,
-                    lineHeight: 1.6
-                  }}>
-                    <li>📰 Engaging Headlines</li>
-                    <li>📝 Compelling Captions</li>
-                    <li>🏷️ Relevant Hashtags</li>
-                    <li>🎯 Optimized for Engagement</li>
-                  </ul>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '8px'
+              }}>Variations</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={numContents}
+                onChange={e => setNumContents(Math.max(1, Math.min(5, Number(e.target.value))))}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '15px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  background: '#fafbfc'
+                }}
+                required
+              />
+            </div>
+            <div style={{
+              background: '#f0f9ff',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #bae6fd',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <FiTarget size={20} color="#0369a1" />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: '#0369a1', marginBottom: '2px' }}>
+                  AI will generate:
                 </div>
-              </div>
-        
-              {/* Generate Button */}
-              <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                <button 
-                  type="submit" 
-                  disabled={!input.trim() || loading} 
-                  style={{ 
-                    ...componentStyles.button,
-                    ...(!input.trim() || loading 
-                      ? { background: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)', cursor: 'not-allowed', boxShadow: '0 4px 12px rgba(156, 163, 175, 0.3)' }
-                      : componentStyles.buttonPrimary),
-                    padding: '20px 48px',
-                    fontSize: '16px',
-                    minWidth: '200px'
-                  }}
-                  onMouseEnter={e => {
-                    if (input.trim() && !loading) {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 15px 35px rgba(59, 130, 246, 0.5)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (input.trim() && !loading) {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.4)';
-                    }
-                  }}
-                >
-                  {loading ? (
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                      <span style={{ 
-                        width: '18px', 
-                        height: '18px', 
-                        border: '2px solid #ffffff', 
-                        borderTop: '2px solid transparent', 
-                        borderRadius: '50%', 
-                        animation: 'spin 1s linear infinite' 
-                      }} />
-                      Generating Content...
-                    </span>
-                  ) : (
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                      <span style={{fontSize: '20px'}}>🚀</span>
-                      Generate Content
-                    </span>
-                  )}
-                </button>
+                <div style={{ fontSize: '12px', color: '#0369a1' }}>
+                  Headlines • Content • Hashtags
+                </div>
               </div>
             </div>
-        
-            {error && (
-              <div style={{ 
-                color: '#dc2626', 
-                marginTop: 24, 
-                fontWeight: 500, 
-                textAlign: 'center',
-                padding: '16px 24px',
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: 12,
-                fontSize: 14,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}>
-                <span>❌</span>
-                {error}
-              </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!input.trim() || loading}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              width: '100%',
+              padding: '16px',
+              background: (!input.trim() || loading) ? '#9ca3af' : '#3b82f6',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: (!input.trim() || loading) ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              if (!loading && input.trim()) {
+                e.target.style.background = '#2563eb';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!loading && input.trim()) {
+                e.target.style.background = '#3b82f6';
+              }
+            }}
+          >
+            {loading ? (
+              <>
+                <FiRefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                Generating...
+              </>
+            ) : (
+              <>
+                <FiZap size={16} />
+                Generate Content
+              </>
             )}
-          </form>
-        </div>
+          </button>
+
+          {error && (
+            <div style={{
+              padding: '12px 16px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '12px',
+              color: '#dc2626',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}>
+              {error}
+            </div>
+          )}
+        </form>
       </div>
+      
+      <TaskDetailsSidebar task={selectedTask} />
+      
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
+
   );
-} 
+}

@@ -12,14 +12,17 @@ import ForgotPassword from './pages/Login/ForgotPassword';
 import ResetPassword from './pages/Login/ResetPassword';
 import "./styles/Register.css";
 import "./styles/LoginForm.css";
+import "./styles/text-backgrounds.css";
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import SocialsAndInsights from './pages/Admin/SocialsAndInsights';
 import ApprovalOfAccountsPage from './pages/Admin/ApprovalOfAccountsPage';
 import AdminRoute from './components/common/AdminRoute';
 import ManageAccountsPage from './pages/Admin/ManageAccountsPage';
+import AdminPostedContents from './pages/Admin/PostedContents';
 import DashboardLayout from './components/common/DashboardLayout';
 import { UserProvider } from './components/common/UserContext';
 import './styles/darkmode.css';
+import './styles/text-backgrounds.css';
 // Marketing Lead imports
 import MarketingLeadLayout from './pages/MarketingLead/MarketingLeadLayout';
 import Dashboard from './pages/MarketingLead/Dashboard';
@@ -31,6 +34,8 @@ import OngoingTask from './pages/MarketingLead/OngoingTask';
 import SetSchedule from './pages/MarketingLead/SetSchedule';
 import OngoingSchedule from './pages/MarketingLead/OngoingSchedule';
 import PostedContent from './pages/MarketingLead/PostedContent';
+import PostedContents from './pages/MarketingLead/PostedContents';
+import Posting from './pages/MarketingLead/Posting';
 import SetTaskGraphicDesigner from './pages/MarketingLead/SetTaskGraphicDesigner';
 import UnifiedSetTask from './pages/MarketingLead/UnifiedSetTask';
 import ContentCreatorLayout from './pages/ContentCreator/ContentCreatorLayout';
@@ -42,6 +47,13 @@ import GraphicDesignerDashboard from './pages/GraphicDesigner/Dashboard';
 import GraphicDesignerTask from './pages/GraphicDesigner/Task';
 import GraphicCreation from './pages/GraphicDesigner/GraphicCreation';
 import OutputContent from './pages/ContentCreator/OutputContent';
+import OngoingApproval from './pages/ContentCreator/OngoingApproval';
+import GraphicDesignerOngoingApproval from './pages/GraphicDesigner/OngoingApproval';
+import FinalizedDesign from './pages/GraphicDesigner/FinalizedDesign';
+import Drafts from './pages/ContentCreator/Drafts';
+import UploadTest from './components/UploadTest';
+
+
 
 // Add global font import
 const fontLink = document.createElement('link');
@@ -70,6 +82,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/upload-test" element={<UploadTest />} />
+
+
         </Route>
         <Route path="/admin" element={<DashboardLayout />}>
           <Route index element={<AdminDashboard />} />
@@ -88,6 +103,11 @@ function App() {
               <SocialsAndInsights />
             </AdminRoute>
           } />
+          <Route path="posted-contents" element={
+            <AdminRoute>
+              <AdminPostedContents />
+            </AdminRoute>
+          } />
         </Route>
         {/* Marketing Lead Routes */}
         <Route path="/marketing" element={<MarketingLeadLayout />}>
@@ -96,6 +116,7 @@ function App() {
           <Route path="content-calendar" element={<ContentCalendar />} />
           <Route path="approval" element={<ApprovalOfContents />} />
           <Route path="approved" element={<ApprovedContents />} />
+          <Route path="posting" element={<Posting />} />
           <Route path="set-task" element={<SetTask />} />
           <Route path="set-task-graphic-designer" element={<SetTaskGraphicDesigner />} />
           <Route path="set-task-unified" element={<UnifiedSetTask />} />
@@ -103,6 +124,7 @@ function App() {
           <Route path="set-schedule" element={<SetSchedule />} />
           <Route path="ongoing-schedule" element={<OngoingSchedule />} />
           <Route path="posted-content" element={<PostedContent />} />
+          <Route path="posted-contents" element={<PostedContents />} />
         </Route>
         {/* Content Creator Routes */}
         <Route path="/content" element={<ContentCreatorLayout />}>
@@ -111,6 +133,8 @@ function App() {
           <Route path="create" element={<CreateContent />} />
           <Route path="output" element={<OutputContent />} />
           <Route path="task" element={<ContentCreatorTask />} />
+          <Route path="drafts" element={<Drafts />} />
+          <Route path="approval" element={<OngoingApproval />} />
         </Route>
         {/* Graphic Designer Routes */}
         <Route path="/graphic" element={<GraphicDesignerLayout />}>
@@ -118,6 +142,8 @@ function App() {
           <Route index element={<GraphicDesignerDashboard />} />
           <Route path="dashboard" element={<GraphicDesignerDashboard />} />
           <Route path="task" element={<GraphicDesignerTask />} />
+          <Route path="finalized-design" element={<FinalizedDesign />} />
+          <Route path="ongoing-approval" element={<GraphicDesignerOngoingApproval />} />
         </Route>
       </Routes>
         </Router>

@@ -137,21 +137,19 @@ const ManageAccountsPage = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h1 style={{
-              fontSize: '2rem',
-              fontWeight: '700',
-              color: 'var(--text-primary, #1f2937)',
+              fontSize: '32px',
+              fontWeight: '800',
+              color: '#111827',
               margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
+              letterSpacing: '-0.025em'
             }}>
-              <FiUsers size={28} color="#3b82f6" />
               Manage Accounts
             </h1>
             <p style={{
-              color: 'var(--text-secondary, #6b7280)',
-              fontSize: '1rem',
-              margin: '8px 0 0 0'
+              color: '#6b7280',
+              fontSize: '16px',
+              margin: '8px 0 0 0',
+              fontWeight: '400'
             }}>
               {getTotalAccounts()} total accounts • {getFilteredTotal()} showing
             </p>
@@ -261,20 +259,22 @@ const ManageAccountsPage = () => {
                   borderBottom: '2px solid var(--border-primary, #f3f4f6)'
                 }}>
                   <h2 style={{
-                    fontSize: '1.5rem',
-                    fontWeight: '600',
-                    color: 'var(--text-primary, #1f2937)',
+                    fontSize: '20px',
+                    fontWeight: '700',
+                    color: '#111827',
                     margin: 0
                   }}>
                     {formatRole(role)}
                   </h2>
                   <span style={{
-                    background: '#3b82f6',
-                    color: '#fff',
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    fontSize: '0.875rem',
-                    fontWeight: '500'
+                    background: '#dbeafe',
+                    color: '#1e40af',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}>
                     {filteredAccounts.length} account{filteredAccounts.length !== 1 ? 's' : ''}
                   </span>
@@ -287,6 +287,7 @@ const ManageAccountsPage = () => {
                       account={account}
                       onDelete={() => handleDelete(role, account.key)}
                       onModify={() => handleModify(account)}
+                      isApproved={true}
                     />
                   ))}
                 </div>

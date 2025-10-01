@@ -194,25 +194,29 @@ export const componentStyles = {
   buttonPrimary: {
     background: `linear-gradient(135deg, ${designTokens.colors.primary[500]} 0%, ${designTokens.colors.primary[600]} 100%)`,
     color: '#ffffff',
-    boxShadow: `0 4px 12px rgba(59, 130, 246, 0.3)`
+    boxShadow: `0 4px 12px rgba(59, 130, 246, 0.3)`,
+    transition: 'all 0.2s ease'
   },
 
   buttonSuccess: {
     background: `linear-gradient(135deg, ${designTokens.colors.success[500]} 0%, ${designTokens.colors.success[600]} 100%)`,
     color: '#ffffff',
-    boxShadow: `0 4px 12px rgba(16, 185, 129, 0.3)`
+    boxShadow: `0 4px 12px rgba(16, 185, 129, 0.3)`,
+    transition: 'all 0.2s ease'
   },
 
   buttonWarning: {
     background: `linear-gradient(135deg, ${designTokens.colors.warning[500]} 0%, ${designTokens.colors.warning[600]} 100%)`,
     color: '#ffffff',
-    boxShadow: `0 4px 12px rgba(245, 158, 11, 0.3)`
+    boxShadow: `0 4px 12px rgba(245, 158, 11, 0.3)`,
+    transition: 'all 0.2s ease'
   },
 
   buttonDanger: {
     background: `linear-gradient(135deg, ${designTokens.colors.danger[500]} 0%, ${designTokens.colors.danger[600]} 100%)`,
     color: '#ffffff',
-    boxShadow: `0 4px 12px rgba(239, 68, 68, 0.3)`
+    boxShadow: `0 4px 12px rgba(239, 68, 68, 0.3)`,
+    transition: 'all 0.2s ease'
   },
 
   // Loading Spinner
@@ -298,4 +302,58 @@ export const statusColors = {
   completed: designTokens.colors.success[500],
   active: designTokens.colors.success[500],
   inactive: designTokens.colors.gray[400]
+};
+
+// Text Background Utilities
+export const textBackgrounds = {
+  primary: '#ffffff',
+  secondary: '#f8fafc',
+  card: '#ffffff',
+  modal: '#ffffff'
+};
+
+// Text Styles with Backgrounds
+export const textStyles = {
+  heading: {
+    background: textBackgrounds.primary,
+    fontWeight: designTokens.typography.fontWeight.bold
+  },
+  subheading: {
+    background: textBackgrounds.primary,
+    fontWeight: designTokens.typography.fontWeight.semibold
+  },
+  body: {
+    background: textBackgrounds.primary,
+    fontWeight: designTokens.typography.fontWeight.normal
+  },
+  caption: {
+    background: textBackgrounds.primary,
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.gray[500]
+  }
+};
+
+// Hover Effects
+export const hoverEffects = {
+  // Standard card hover
+  cardHover: {
+    onMouseEnter: (e) => {
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+      e.currentTarget.style.transform = 'translateY(-2px)';
+    },
+    onMouseLeave: (e) => {
+      e.currentTarget.style.boxShadow = 'none';
+      e.currentTarget.style.transform = 'translateY(0)';
+    }
+  },
+  
+  // Button hover
+  buttonHover: {
+    onMouseEnter: (e) => {
+      e.currentTarget.style.transform = 'translateY(-1px)';
+    },
+    onMouseLeave: (e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+    }
+  }
 };

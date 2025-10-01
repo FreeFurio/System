@@ -149,21 +149,32 @@ export default function ContentCalendar() {
   const renderIndicators = (day) => {
     const dateKey = formatDate(day);
     const items = calendarData[dateKey] || [];
-    return items.map(item => (
-      <span 
+    return items.slice(0, 3).map(item => (
+      <div 
         key={item.id} 
         style={{
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
+          fontSize: '10px',
+          fontWeight: '600',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          marginBottom: '2px',
+          textAlign: 'center',
           background: 
-            item.type === 'ongoing' ? '#ffc107' :
-            item.type === 'approval' ? '#007bff' :
-            item.type === 'approved' ? '#28a745' :
-            item.type === 'rejected' ? '#dc3545' :
-            item.type === 'scheduled' ? '#6f42c1' : '#6b7280'
+            item.type === 'ongoing' ? '#fef3c7' :
+            item.type === 'approval' ? '#dbeafe' :
+            item.type === 'approved' ? '#d1fae5' :
+            item.type === 'rejected' ? '#fee2e2' :
+            item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6'
         }}
-      ></span>
+      >
+        {
+          item.type === 'ongoing' ? 'IN PROGRESS' :
+          item.type === 'approval' ? 'PENDING' :
+          item.type === 'approved' ? 'APPROVED' :
+          item.type === 'rejected' ? 'REJECTED' :
+          item.type === 'scheduled' ? 'POSTED' : item.type.toUpperCase()
+        }
+      </div>
     ));
   };
 
@@ -197,6 +208,8 @@ export default function ContentCalendar() {
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
     const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+    const today = new Date();
+    const todayDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const days = [];
 
     // Empty cells for days before the first day of the month
@@ -213,6 +226,7 @@ export default function ContentCalendar() {
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = formatDate(day);
       const hasContent = calendarData[dateKey] && calendarData[dateKey].length > 0;
+      const isPastDate = dateKey < todayDateString;
       
       days.push(
         <div 
@@ -220,41 +234,48 @@ export default function ContentCalendar() {
           style={{
             minHeight: '120px',
             padding: '8px',
-            background: hasContent ? '#f0f9ff' : '#fff',
+            background: isPastDate ? '#f9fafb' : (hasContent ? '#f0f9ff' : '#fff'),
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
-            cursor: 'pointer',
+            cursor: isPastDate ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s ease',
-            position: 'relative'
+            position: 'relative',
+            opacity: isPastDate ? 0.5 : 1
           }}
-          onClick={() => handleDateClick(day)}
+          onClick={() => !isPastDate && handleDateClick(day)}
           onMouseEnter={(e) => {
-            if (hasContent) {
-              const rect = e.target.getBoundingClientRect();
-              setHoverPosition({ x: rect.left + rect.width / 2, y: rect.top });
-              setHoveredDate(dateKey);
+            if (!isPastDate) {
+              if (hasContent) {
+                const rect = e.target.getBoundingClientRect();
+                setHoverPosition({ x: rect.left + rect.width / 2, y: rect.top });
+                setHoveredDate(dateKey);
+              }
+              e.target.style.background = hasContent ? '#dbeafe' : '#f8fafc';
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
             }
-            e.target.style.background = hasContent ? '#dbeafe' : '#f8fafc';
-            e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
           }}
           onMouseLeave={(e) => {
-            setHoveredDate(null);
-            e.target.style.background = hasContent ? '#f0f9ff' : '#fff';
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = 'none';
+            if (!isPastDate) {
+              setHoveredDate(null);
+              e.target.style.background = hasContent ? '#f0f9ff' : '#fff';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = 'none';
+            }
           }}
         >
           <span style={{
             fontSize: '14px',
             fontWeight: '600',
-            color: '#374151'
+            color: isPastDate ? '#9ca3af' : '#374151'
           }}>{day}</span>
           <div style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: '4px',
-            marginTop: '4px'
+            flexDirection: 'column',
+            gap: '2px',
+            marginTop: '4px',
+            maxHeight: '80px',
+            overflow: 'hidden'
           }}>
             {renderIndicators(day)}
           </div>
@@ -267,6 +288,11 @@ export default function ContentCalendar() {
 
   const getSelectedDateItems = () => {
     return selectedDate ? calendarData[selectedDate] || [] : [];
+  };
+
+  const getTodayDateString = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   };
 
   if (loading) {
@@ -406,47 +432,219 @@ export default function ContentCalendar() {
       )}
 
       {selectedDate && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="date-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Content for {selectedDate}</h3>
-              <button className="close-btn" onClick={closeModal}>&times;</button>
+        <div className="modal-overlay" onClick={closeModal} style={{
+          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+          background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+          backdropFilter: "blur(4px)"
+        }}>
+          <div className="date-modal" onClick={(e) => e.stopPropagation()} style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            padding: 0,
+            maxWidth: '500px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+            border: '1px solid #e5e7eb',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '24px 32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: '#fff',
+              borderRadius: '16px 16px 0 0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px'
+                }}>
+                  📅
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+                    Content for {selectedDate}
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', opacity: 0.9 }}>
+                    Scheduled content and tasks
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={closeModal}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  width: 40,
+                  height: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#ffffff',
+                  fontSize: '18px'
+                }}
+              >
+                ×
+              </button>
             </div>
-            <div className="modal-content">
+            
+            {/* Content */}
+            <div style={{ padding: '24px', overflowY: 'auto', flex: 1, background: '#fafbfc' }}>
               {getSelectedDateItems().length > 0 ? (
-                getSelectedDateItems().map(item => (
-                  <div key={item.id} className={`content-item ${item.type}`}>
-                    <div className="item-header">
-                      <span className={`status-badge ${item.type}`}>
-                        {item.type.replace('-', ' ').toUpperCase()}
-                      </span>
-                      {item.time && <span className="time">{item.time}</span>}
+                <div style={{ display: 'grid', gap: '16px' }}>
+                  {getSelectedDateItems().map(item => (
+                    <div key={item.id} className="text-bg" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '18px 20px',
+                      background: '#ffffff',
+                      borderRadius: '12px',
+                      border: '1px solid #e5e7eb',
+                      gap: '16px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      transition: 'all 0.2s ease'
+                    }}>
+                      <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '10px',
+                        background: 
+                          item.type === 'ongoing' ? '#fef3c7' :
+                          item.type === 'approval' ? '#dbeafe' :
+                          item.type === 'approved' ? '#d1fae5' :
+                          item.type === 'rejected' ? '#fee2e2' :
+                          item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '18px'
+                      }}>
+                        {
+                          item.type === 'ongoing' ? '⏳' :
+                          item.type === 'approval' ? '👀' :
+                          item.type === 'approved' ? '✅' :
+                          item.type === 'rejected' ? '❌' :
+                          item.type === 'scheduled' ? '🚀' : '📋'
+                        }
+                      </div>
+                      <div className="text-bg" style={{ flex: 1 }}>
+                        <div className="text-bg" style={{
+                          fontSize: '0.8rem',
+                          color: '#8b9dc3',
+                          fontWeight: 500,
+                          marginBottom: '4px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {item.type.replace('-', ' ')}
+                        </div>
+                        <div className="text-bg" style={{
+                          fontSize: '1rem',
+                          color: '#2d3748',
+                          fontWeight: 600,
+                          marginBottom: '2px'
+                        }}>
+                          {item.title}
+                        </div>
+                        {item.description && (
+                          <div className="text-bg" style={{
+                            fontSize: '0.875rem',
+                            color: '#6b7280',
+                            lineHeight: 1.4
+                          }}>
+                            {item.description}
+                          </div>
+                        )}
+                        {item.time && (
+                          <div className="text-bg" style={{
+                            fontSize: '0.75rem',
+                            color: '#667eea',
+                            fontWeight: 500,
+                            marginTop: '4px'
+                          }}>
+                            📅 {item.time}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="item-title">{item.title}</div>
-                    {item.description && (
-                      <div className="item-description" style={{
-                        fontSize: '13px',
-                        color: '#6b7280',
-                        marginBottom: '4px'
-                      }}>{item.description}</div>
-                    )}
-                    <div className="item-status" style={{ textTransform: 'capitalize' }}>
-                      {item.status.replace('_', ' ').replace('-', ' ')}
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
-                <div className="no-content">
-                  <p>No content scheduled for this date.</p>
-                  <button 
-                    className="add-content-btn"
-                    onClick={() => {
-                      navigate(`/marketing/set-task?date=${selectedDate}`);
-                      closeModal();
-                    }}
-                  >
-                    Set Task
-                  </button>
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px 20px',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📅</div>
+                  <h4 className="text-bg" style={{
+                    color: '#6b7280',
+                    fontSize: '1.125rem',
+                    margin: '0 0 8px 0',
+                    fontWeight: 500
+                  }}>
+                    No content scheduled
+                  </h4>
+                  <p className="text-bg" style={{
+                    color: '#9ca3af',
+                    margin: '0 0 20px 0',
+                    fontSize: '0.875rem'
+                  }}>
+                    No tasks or content found for this date
+                  </p>
+                  {selectedDate >= getTodayDateString() && (
+                    <button 
+                      onClick={() => {
+                        navigate(`/marketing/set-task?date=${selectedDate}`);
+                        closeModal();
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                      }}
+                      onMouseEnter={e => e.target.style.transform = 'translateY(-1px)'}
+                      onMouseLeave={e => e.target.style.transform = 'translateY(0)'}
+                    >
+                      📝 Set Task
+                    </button>
+                  )}
+                  {selectedDate < getTodayDateString() && (
+                    <div style={{
+                      padding: '12px 24px',
+                      background: '#f3f4f6',
+                      color: '#6b7280',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      textAlign: 'center'
+                    }}>
+                      ⏰ Cannot create tasks for past dates
+                    </div>
+                  )}
                 </div>
               )}
             </div>

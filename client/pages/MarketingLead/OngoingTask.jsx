@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { io } from "socket.io-client";
 import { cachedFetch } from '../../utils/apiCache';
+import { FiTrash2, FiTarget, FiUser, FiCalendar, FiBarChart, FiSmartphone, FiClock, FiEdit3, FiStar, FiFileText, FiHash, FiTrendingUp, FiEye, FiCheckCircle, FiSend, FiClipboard } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const EditTaskModal = ({ task, type, onClose, onSave }) => {
   const formatDateForInput = (dateString) => {
@@ -20,9 +22,8 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
 
   return (
     <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', zIndex: 1000
+      position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+      background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
     }}>
       <div style={{
         backgroundColor: 'white', 
@@ -264,22 +265,118 @@ const EditTaskModal = ({ task, type, onClose, onSave }) => {
   );
 };
 
+const DeleteModal = ({ isOpen, onConfirm, onCancel, taskTitle, taskType }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      paddingTop: '100px'
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: '16px', padding: '32px',
+        maxWidth: '400px', width: '90%',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+        transform: isOpen ? 'translateY(0)' : 'translateY(-20px)',
+        transition: 'all 0.3s ease',
+        fontFamily: 'Inter, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ 
+            width: '48px', height: '48px', borderRadius: '50%',
+            background: '#fef2f2', margin: '0 auto 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <FiTrash2 size={20} color="#dc2626" />
+          </div>
+          <h3 style={{
+            fontSize: '18px', fontWeight: '700', color: '#1f2937',
+            margin: '0 0 8px 0'
+          }}>
+            Delete Task
+          </h3>
+          <p style={{
+            fontSize: '14px', color: '#6b7280', margin: '0 0 16px 0',
+            lineHeight: '1.5'
+          }}>
+            Are you sure you want to delete this {taskType} task?
+          </p>
+          <div style={{
+            background: '#f9fafb', padding: '12px', borderRadius: '8px',
+            border: '1px solid #e5e7eb'
+          }}>
+            <p style={{
+              fontSize: '13px', fontWeight: '600', color: '#374151',
+              margin: 0, wordBreak: 'break-word'
+            }}>
+              "{taskTitle}"
+            </p>
+          </div>
+        </div>
+        <div style={{ 
+          display: 'flex', gap: '12px', justifyContent: 'flex-end'
+        }}>
+          <button 
+            onClick={onCancel}
+            style={{
+              padding: '12px 24px', background: '#6b7280', color: '#fff',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              fontSize: '14px', fontWeight: '600',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={e => e.target.style.backgroundColor = '#4b5563'}
+            onMouseLeave={e => e.target.style.backgroundColor = '#6b7280'}
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onConfirm}
+            style={{
+              padding: '12px 24px', background: '#dc2626', color: '#fff',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              fontSize: '14px', fontWeight: '600',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={e => e.target.style.backgroundColor = '#b91c1c'}
+            onMouseLeave={e => e.target.style.backgroundColor = '#dc2626'}
+          >
+            Delete Task
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TaskCard = ({ task, type, onEdit, onDelete }) => {
+  const [contentExpanded, setContentExpanded] = useState(false);
+  
+  console.log('TaskCard render - contentExpanded:', contentExpanded, 'task.content:', !!task.content, 'type:', type);
+  console.log('Full task object:', task);
+  
   const getStatusColor = (status) => {
     switch (status) {
-      case 'created': return '#3b82f6';
-      case 'pending_approval': return '#f59e0b';
-      case 'approved': return '#10b981';
+      case 'content_creation': return '#f59e0b';
+      case 'content_approval': return '#f59e0b';
+      case 'ready_for_design_assignment': return '#10b981';
+      case 'design_creation': return '#3b82f6';
+      case 'design_approval': return '#f59e0b';
+      case 'posted': return '#10b981';
       default: return '#6b7280';
     }
   };
 
-  const getStatusBg = (status) => {
+  const getStatusText = (status) => {
     switch (status) {
-      case 'created': return '#eff6ff';
-      case 'pending_approval': return '#fffbeb';
-      case 'approved': return '#f0fdf4';
-      default: return '#f9fafb';
+      case 'content_creation': return 'Content Creation';
+      case 'content_approval': return 'Pending Approval';
+      case 'ready_for_design_assignment': return 'Ready for Design';
+      case 'design_creation': return 'Design Creation';
+      case 'design_approval': return 'Design Approval';
+      case 'posted': return 'Posted';
+      default: return 'In Progress';
     }
   };
 
@@ -292,60 +389,111 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
     });
   };
 
+  const getTaskIcon = () => {
+    if (task.status === 'content_approval') return <FiFileText size={20} color="#fff" />;
+    if (task.status === 'ready_for_design_assignment') return <FiCheckCircle size={20} color="#fff" />;
+    if (task.status === 'design_creation') return <FiEdit3 size={20} color="#fff" />;
+    if (task.status === 'design_approval') return <FiEye size={20} color="#fff" />;
+    if (task.status === 'posted') return <FiSend size={20} color="#fff" />;
+    return <FiClipboard size={20} color="#fff" />;
+  };
+
   return (
     <div style={{
-      border: '1px solid #e5e7eb',
-      borderRadius: '12px',
+      background: '#fff',
+      borderRadius: '16px',
       padding: '24px',
-      marginBottom: '16px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-      transition: 'all 0.2s ease'
+      marginBottom: '20px',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      border: '1px solid #e5e7eb',
+      transition: 'all 0.3s ease'
     }}
     onMouseEnter={e => {
-      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-      e.target.style.transform = 'translateY(-1px)';
+      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+      e.currentTarget.style.transform = 'translateY(-2px)';
     }}
     onMouseLeave={e => {
-      e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-      e.target.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+      e.currentTarget.style.transform = 'translateY(0)';
     }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h4 style={{ 
-          margin: 0, 
-          color: '#1f2937', 
-          fontSize: '1.125rem', 
-          fontWeight: '600' 
-        }}>
-          {type} Task
-        </h4>
-        <span style={{
-          padding: '6px 12px',
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', background: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            {getTaskIcon()}
+          </div>
+          <div style={{ background: '#fff' }}>
+            <h3 style={{ 
+              margin: '0 0 4px 0', 
+              color: '#1f2937', 
+              fontSize: '18px', 
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+              background: '#fff'
+            }}>
+              {task.status === 'content_approval' ? 'Content Approval Required' : 
+               task.status === 'ready_for_design_assignment' ? 'Ready for Design Assignment' :
+               task.status === 'design_creation' ? 'Design Creation in Progress' :
+               task.status === 'design_approval' ? 'Design Approval Required' :
+               task.status === 'posted' ? 'Content Posted Successfully' :
+               `${type} Task`}
+            </h3>
+            <p style={{
+              margin: 0,
+              color: '#6b7280',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: '#fff'
+            }}>
+              {task.createdAt ? `Created ${formatDate(task.createdAt)}` : 'Recently created'}
+            </p>
+          </div>
+        </div>
+        <div style={{
+          background: getStatusColor(task.status),
+          color: '#fff',
+          padding: '8px 16px',
           borderRadius: '20px',
           fontSize: '12px',
-          fontWeight: '600',
-          color: getStatusColor(task.status),
-          backgroundColor: getStatusBg(task.status),
-          border: `1px solid ${getStatusColor(task.status)}20`
+          fontWeight: '700',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          {task.status?.replace(/_/g, ' ').toUpperCase() || 'CREATED'}
-        </span>
+          <FiClock size={12} /> {getStatusText(task.status)}
+        </div>
       </div>
       
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '20px', background: '#fff' }}>
         <div style={{ 
           fontSize: '14px', 
           fontWeight: '600', 
           color: '#374151', 
-          marginBottom: '4px' 
+          marginBottom: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#fff'
         }}>
-          Objectives:
+          <FiTarget size={16} color="#3b82f6" /> Task Objectives
         </div>
         <div style={{ 
-          fontSize: '14px', 
-          color: '#6b7280', 
-          lineHeight: '1.5' 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500',
+          background: '#fff'
         }}>
           {task.objectives}
         </div>
@@ -353,153 +501,301 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
       
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-        gap: '12px', 
-        marginBottom: '16px',
-        padding: '16px',
-        backgroundColor: '#f8fafc',
-        borderRadius: '8px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
       }}>
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>GENDER</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.gender}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiUser size={16} color="#3b82f6" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{task.gender}</div>
+          </div>
         </div>
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>AGE RANGE</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.minAge}-{task.maxAge}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiCalendar size={16} color="#10b981" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{task.minAge}-{task.maxAge} years</div>
+          </div>
         </div>
         {task.numContent && (
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>CONTENT COUNT</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{task.numContent}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiBarChart size={16} color="#f59e0b" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Content Count</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{task.numContent}</div>
+            </div>
           </div>
         )}
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>DEADLINE</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{formatDate(task.deadline)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiClock size={16} color="#ef4444" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(task.deadline)}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={16} color="#8b5cf6" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={task.selectedPlatforms || []} size="small" />
+          </div>
         </div>
       </div>
       
-      {task.createdAt && (
-        <div style={{ 
-          fontSize: '12px', 
-          color: '#9ca3af', 
-          marginBottom: '16px',
-          fontStyle: 'italic'
-        }}>
-          Created: {formatDate(task.createdAt)}
-        </div>
-      )}
+
       
-      {/* Content Preview - Same design as ApprovalOfContents */}
-      {task.content && (
+      {/* Content Section for tasks with submitted content */}
+      {task.contentCreator?.content && (
         <div style={{
-          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          background: 'transparent',
           padding: '20px',
           borderRadius: '12px',
           marginBottom: '20px',
-          border: '1px solid #0ea5e9'
+          border: '1px solid #e5e7eb'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>✨</span>
-              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e' }}>Submitted Content</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Submitted Content</span>
             </div>
+            <button
+              onClick={() => setContentExpanded(!contentExpanded)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#0ea5e9',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}
+            >
+              <FiEye size={14} />
+              {contentExpanded ? 'Hide' : 'View'} Details
+            </button>
           </div>
           
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div>
-              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📰</span> HEADLINE
-              </div>
+          {contentExpanded && (
+            <div style={{
+              marginTop: '0px',
+              padding: '0px',
+              background: 'transparent',
+              borderRadius: '0px',
+              border: 'none'
+            }}>
               <div style={{ 
-                fontSize: '15px', 
-                color: '#1e293b', 
-                fontWeight: '600',
-                background: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #bae6fd'
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start',
+                marginBottom: '24px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid #e5e7eb'
               }}>
-                {task.content.headline}
+                <h4 style={{ 
+                  margin: 0, 
+                  color: '#374151', 
+                  fontSize: '16px', 
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📝 Content Analysis
+                </h4>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Headline Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                      {task.contentCreator.content.headline}
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline SEO</span>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${task.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
+                          height: '100%',
+                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease-in-out'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Caption Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                      {task.contentCreator.content.caption}
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption SEO</span>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${task.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
+                          height: '100%',
+                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease-in-out'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Hashtags Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+                    <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                      {task.contentCreator.content.hashtag}
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Overall SEO Score</span>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${task.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
+                          height: '100%',
+                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease-in-out'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div>
-              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📝</span> CAPTION
-              </div>
-              <div style={{ 
-                fontSize: '14px', 
-                color: '#374151', 
-                lineHeight: 1.6,
-                background: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #bae6fd'
-              }}>
-                {task.content.caption}
-              </div>
-            </div>
-            
-            <div>
-              <div style={{ fontSize: '12px', color: '#0c4a6e', fontWeight: '600', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🏷️</span> HASHTAGS
-              </div>
-              <div style={{ 
-                fontSize: '14px', 
-                color: '#3b82f6', 
-                fontWeight: '600',
-                background: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #bae6fd'
-              }}>
-                {task.content.hashtag}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
       
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+
+      
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
         <button
           onClick={() => onEdit(task)}
           style={{
-            padding: '8px 16px', 
-            backgroundColor: '#3b82f6', 
+            padding: '12px 24px', 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
             border: 'none', 
-            borderRadius: '8px', 
+            borderRadius: '12px', 
             cursor: 'pointer', 
             fontSize: '14px',
-            fontWeight: '600',
-            transition: 'background-color 0.2s ease'
+            fontWeight: '700',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
-          onMouseEnter={e => e.target.style.backgroundColor = '#2563eb'}
-          onMouseLeave={e => e.target.style.backgroundColor = '#3b82f6'}
+          onMouseEnter={e => {
+            e.target.style.transform = 'translateY(-1px)';
+            e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+          }}
+          onMouseLeave={e => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+          }}
         >
-          Edit
+          <FiEdit3 size={14} /> Edit Task
         </button>
         <button
           onClick={() => onDelete(task)}
           style={{
-            padding: '8px 16px', 
-            backgroundColor: '#ef4444', 
+            padding: '12px 24px', 
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
             color: 'white',
             border: 'none', 
-            borderRadius: '8px', 
+            borderRadius: '12px', 
             cursor: 'pointer', 
             fontSize: '14px',
-            fontWeight: '600',
-            transition: 'background-color 0.2s ease'
+            fontWeight: '700',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
-          onMouseEnter={e => e.target.style.backgroundColor = '#dc2626'}
-          onMouseLeave={e => e.target.style.backgroundColor = '#ef4444'}
+          onMouseEnter={e => {
+            e.target.style.transform = 'translateY(-1px)';
+            e.target.style.boxShadow = '0 6px 16px rgba(255, 107, 107, 0.4)';
+          }}
+          onMouseLeave={e => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.3)';
+          }}
         >
-          Delete
+          <FiTrash2 size={14} /> Delete
         </button>
       </div>
+
     </div>
   );
 };
@@ -510,6 +806,9 @@ export default function OngoingTask() {
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
   const [editingType, setEditingType] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ 
+    isOpen: false, task: null, type: null 
+  });
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -616,43 +915,70 @@ export default function OngoingTask() {
     }
   };
 
-  const handleDelete = async (task, type) => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      try {
-        const taskType = type === 'Content Creator' ? 'contentcreator' : 'graphicdesigner';
-        const taskId = task.id || task._id;
-        
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/task/${taskType}/${encodeURIComponent(taskId)}`, {
-          method: 'DELETE'
-        });
-        
-        if (response.ok) {
-          if (type === 'Content Creator') {
-            setCreatorTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
-          } else {
-            setDesignerTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
-          }
-          console.log('Task deleted successfully');
+  const handleDeleteClick = (task, type) => {
+    setDeleteModal({ 
+      isOpen: true, 
+      task, 
+      type,
+      taskTitle: task.objectives || 'Untitled Task'
+    });
+  };
+
+  const confirmDelete = async () => {
+    const { task, type } = deleteModal;
+    try {
+      const taskId = task.id || task._id;
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${encodeURIComponent(taskId)}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        if (type === 'Content Creator') {
+          setCreatorTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
         } else {
-          const errorText = await response.text();
-          console.error('Failed to delete task:', errorText);
-          alert('Failed to delete task');
+          setDesignerTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
         }
-      } catch (error) {
-        console.error('Error deleting task:', error);
-        alert('Error deleting task: ' + error.message);
+        console.log('Task deleted successfully');
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to delete task:', errorText);
+        alert('Failed to delete task');
       }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Error deleting task: ' + error.message);
+    } finally {
+      setDeleteModal({ isOpen: false, task: null, type: null });
     }
   };
 
   return (
     <div style={{ padding: '0', maxWidth: '100%' }}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: '800',
+          color: '#111827',
+          margin: 0,
+          letterSpacing: '-0.025em'
+        }}>
           Ongoing Tasks
         </h1>
-        <p style={{ color: '#6b7280', margin: 0 }}>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '16px',
+          margin: '8px 0 0 0',
+          fontWeight: '400'
+        }}>
           Monitor and manage active tasks for content creators and graphic designers
         </p>
       </div>
@@ -702,7 +1028,7 @@ export default function OngoingTask() {
                   task={task} 
                   type="Content Creator" 
                   onEdit={(task) => handleEdit(task, 'Content Creator')}
-                  onDelete={(task) => handleDelete(task, 'Content Creator')}
+                  onDelete={(task) => handleDeleteClick(task, 'Content Creator')}
                 />
               ))
             ) : (
@@ -759,7 +1085,7 @@ export default function OngoingTask() {
                   task={task} 
                   type="Graphic Designer" 
                   onEdit={(task) => handleEdit(task, 'Graphic Designer')}
-                  onDelete={(task) => handleDelete(task, 'Graphic Designer')}
+                  onDelete={(task) => handleDeleteClick(task, 'Graphic Designer')}
                 />
               ))
             ) : (
@@ -777,6 +1103,16 @@ export default function OngoingTask() {
           type={editingType}
           onClose={() => { setEditingTask(null); setEditingType(null); }}
           onSave={handleSaveEdit}
+        />
+      )}
+      
+      {deleteModal.isOpen && (
+        <DeleteModal
+          isOpen={deleteModal.isOpen}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteModal({ isOpen: false, task: null, type: null })}
+          taskTitle={deleteModal.taskTitle}
+          taskType={deleteModal.type}
         />
       )}
     </div>

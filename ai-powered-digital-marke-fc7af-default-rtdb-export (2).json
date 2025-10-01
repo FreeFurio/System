@@ -1,0 +1,1487 @@
+{
+  "Admin": {
+    "admin": {
+      "createdAt": "2025-09-02T06:20:08.152Z",
+      "email": "admin@salon.com",
+      "firstName": "asdad",
+      "forcePasswordReset": false,
+      "lastLogin": "2025-09-29T04:34:27.782Z",
+      "lastName": "asdasd",
+      "locked": false,
+      "password": "$2b$12$T.ArqBij.EkFrfkQ6LGiLOJPf7wBMlPKmF79kMQMelBDqioeBy/VO",
+      "profilePicture": "https://res.cloudinary.com/dyxayxrpp/image/upload/v1758090601/profile-pictures/wrqqxo4qaehchj0wsc2t.png",
+      "role": "Admin",
+      "status": "active",
+      "username": "Admin"
+    }
+  },
+  "ApprovalofAccounts": {
+    "adminwfa": {
+      "city": "Tarlac City",
+      "contactNumber": "09569366091",
+      "country": "Philippines",
+      "createdAt": "2025-09-29T03:17:03.544Z",
+      "email": "tobia166@gmail.com",
+      "expiresAt": "2025-09-29T03:27:03.284Z",
+      "firstName": "Reeon Lance",
+      "lastName": "Janeo",
+      "otp": "867625",
+      "password": "$2b$12$YdJkKTVe4qWU6sqLaXPfreMfhG5DqZIwgGPErk7EFQNq4GGEMA5ny",
+      "registrationCompleted": true,
+      "registrationDate": "2025-09-29T03:17:24.650Z",
+      "role": "MarketingLead",
+      "state": "Tarlac",
+      "username": "adminwfa",
+      "verified": true,
+      "zipCode": "2300"
+    }
+  },
+  "ContentCreator": {
+    "lance_06": {
+      "city": "Tarlac City",
+      "contactNumber": "09569366091",
+      "country": "Philippines",
+      "createdAt": "2025-09-03T05:19:36.233Z",
+      "email": "tobia166@gmail.com",
+      "expiresAt": "2025-09-03T05:29:35.823Z",
+      "firstName": "asd",
+      "key": "lance_06",
+      "lastLogin": "2025-09-30T14:15:49.699Z",
+      "lastName": "asd",
+      "otp": "972760",
+      "password": "$2b$12$9CPCgRRhWlq6rjqywScPXOD6djgnlbrBe2S8EnQlMWSvsj6M5zzqO",
+      "profilePicture": "https://res.cloudinary.com/dyxayxrpp/image/upload/v1758153597/profile-pictures/jxo1yjqrpy9xrsej92gq.png",
+      "registrationCompleted": true,
+      "registrationDate": "2025-09-03T05:19:52.976Z",
+      "role": "ContentCreator",
+      "state": "Tarlac",
+      "username": "Lance_06",
+      "verified": true,
+      "zipCode": "2300"
+    }
+  },
+  "GraphicDesigner": {
+    "reeon_06": {
+      "city": "Tarlac City",
+      "contactNumber": "09569366091",
+      "country": "Philippines",
+      "createdAt": "2025-09-23T03:20:19.947Z",
+      "email": "tobia166@gmail.com",
+      "expiresAt": "2025-09-23T03:30:19.693Z",
+      "firstName": "wow",
+      "key": "reeon_06",
+      "lastLogin": "2025-09-30T22:42:00.253Z",
+      "lastName": "sda",
+      "otp": "417784",
+      "password": "$2b$12$EhvlRnjfMK585zmfCVaDb.Amb0siEs4f2XqnGLM75gCmleTYL/U62",
+      "profilePicture": "https://res.cloudinary.com/dyxayxrpp/image/upload/v1758665446/profile-pictures/j5lzf35jfh0vegan029n.png",
+      "registrationCompleted": true,
+      "registrationDate": "2025-09-23T03:20:37.838Z",
+      "role": "GraphicDesigner",
+      "state": "Tarlac",
+      "username": "Reeon_06",
+      "verified": true,
+      "zipCode": "2300"
+    }
+  },
+  "MarketingLead": {
+    "tobia_06": {
+      "city": "Tarlac City",
+      "contactNumber": "09569366091",
+      "country": "Philippines",
+      "createdAt": "2025-09-03T01:54:44.239Z",
+      "email": "tobia166@gmail.com",
+      "expiresAt": "2025-09-03T02:04:43.846Z",
+      "firstName": "dadawd",
+      "key": "tobia_06",
+      "lastLogin": "2025-09-30T22:47:41.010Z",
+      "lastName": "adawd",
+      "otp": "474467",
+      "password": "$2b$12$IKzgQUdNXzVElo.tGNonPu3.wAo.A6xuVTySgcMCd4ZlZI5EqCAei",
+      "profilePicture": "https://res.cloudinary.com/dyxayxrpp/image/upload/v1758681820/profile-pictures/iv3crbrr8uconviyjpbl.png",
+      "registrationCompleted": true,
+      "registrationDate": "2025-09-03T01:55:10.536Z",
+      "role": "MarketingLead",
+      "state": "Tarlac",
+      "username": "Tobia_06",
+      "verified": true,
+      "zipCode": "2300"
+    }
+  },
+  "loginAttempts": {
+    "janeo_06": {
+      "attempts": 3,
+      "lastAttempt": 1758952817943,
+      "username": "janeo_06"
+    }
+  },
+  "notification": {
+    "admin": {
+      "-O_oLVTra_aY1sWGGz8T": {
+        "message": "A new account needs approval.",
+        "read": true,
+        "timestamp": "2025-09-23T02:14:41.500Z",
+        "type": "approval_needed",
+        "user": {
+          "city": "Tarlac City",
+          "contactNumber": "09569366091",
+          "country": "Philippines",
+          "createdAt": "2025-09-23T02:14:20.510Z",
+          "email": "tobia166@gmail.com",
+          "expiresAt": "2025-09-23T02:24:20.262Z",
+          "firstName": "Reeon Lance",
+          "id": "asdasdws",
+          "lastName": "Tobia",
+          "otp": "955728",
+          "password": "$2b$12$Y3A6w6Z9kJa8kYlFw8x44.45qcufWPU6/Fgh8Hf3vmRRVMkFfEEWe",
+          "registrationCompleted": true,
+          "registrationDate": "2025-09-23T02:14:41.452Z",
+          "role": "GraphicDesigner",
+          "state": "Tarlac",
+          "username": "asdasdws",
+          "verified": true,
+          "zipCode": "2300"
+        }
+      },
+      "-O_o_aIzXMeje0qKuxyq": {
+        "message": "A new account needs approval.",
+        "read": true,
+        "timestamp": "2025-09-23T03:20:37.885Z",
+        "type": "approval_needed",
+        "user": {
+          "city": "Tarlac City",
+          "contactNumber": "09569366091",
+          "country": "Philippines",
+          "createdAt": "2025-09-23T03:20:19.947Z",
+          "email": "tobia166@gmail.com",
+          "expiresAt": "2025-09-23T03:30:19.693Z",
+          "firstName": "Reeon Lance",
+          "id": "Reeon_06",
+          "lastName": "Tobia",
+          "otp": "417784",
+          "password": "$2b$12$EhvlRnjfMK585zmfCVaDb.Amb0siEs4f2XqnGLM75gCmleTYL/U62",
+          "registrationCompleted": true,
+          "registrationDate": "2025-09-23T03:20:37.838Z",
+          "role": "GraphicDesigner",
+          "state": "Tarlac",
+          "username": "Reeon_06",
+          "verified": true,
+          "zipCode": "2300"
+        }
+      },
+      "-O_sVeHzM_Clf9U24kxx": {
+        "message": "A new account needs approval.",
+        "read": true,
+        "timestamp": "2025-09-23T21:37:32.479Z",
+        "type": "approval_needed",
+        "user": {
+          "city": "Tarlac City",
+          "contactNumber": "09569366091",
+          "country": "Philippines",
+          "createdAt": "2025-09-23T21:37:13.310Z",
+          "email": "tobia166@gmail.com",
+          "expiresAt": "2025-09-23T21:47:13.044Z",
+          "firstName": "Reeon Lance",
+          "id": "Janeo_06",
+          "lastName": "Tobia",
+          "otp": "175232",
+          "password": "$2b$12$aTpUB2JKVzKtP0x3cAzDAeCl9l8NUJwHpNyfV9guaXKUdVvgiWFZe",
+          "registrationCompleted": true,
+          "registrationDate": "2025-09-23T21:37:32.433Z",
+          "role": "MarketingLead",
+          "state": "Tarlac",
+          "username": "Janeo_06",
+          "verified": true,
+          "zipCode": "2300"
+        }
+      },
+      "-O_u_A_zET4zfoUn8hrl": {
+        "message": "A new account needs approval.",
+        "read": true,
+        "timestamp": "2025-09-24T07:16:32.143Z",
+        "type": "approval_needed",
+        "user": {
+          "city": "Tarlac City",
+          "contactNumber": "09569366091",
+          "country": "Philippines",
+          "createdAt": "2025-09-24T07:16:11.653Z",
+          "email": "tobia166@gmail.com",
+          "expiresAt": "2025-09-24T07:26:11.413Z",
+          "firstName": "Reeon Lance",
+          "id": "janeo_06",
+          "lastName": "Tobia",
+          "otp": "565897",
+          "password": "$2b$12$a2N4qME8W5exAuKkTHq4vu9TzjYeV74UotvDOOEyQPE/Feio5rhmG",
+          "registrationCompleted": true,
+          "registrationDate": "2025-09-24T07:16:32.100Z",
+          "role": "MarketingLead",
+          "state": "Tarlac",
+          "username": "janeo_06",
+          "verified": true,
+          "zipCode": "2300"
+        }
+      },
+      "-OaITO_e9NGb_8CgJkce": {
+        "message": "A new account needs approval.",
+        "read": true,
+        "timestamp": "2025-09-29T03:17:24.695Z",
+        "type": "approval_needed",
+        "user": {
+          "city": "Tarlac City",
+          "contactNumber": "09569366091",
+          "country": "Philippines",
+          "createdAt": "2025-09-29T03:17:03.544Z",
+          "email": "tobia166@gmail.com",
+          "expiresAt": "2025-09-29T03:27:03.284Z",
+          "firstName": "Reeon Lance",
+          "id": "adminwfa",
+          "lastName": "Janeo",
+          "otp": "867625",
+          "password": "$2b$12$YdJkKTVe4qWU6sqLaXPfreMfhG5DqZIwgGPErk7EFQNq4GGEMA5ny",
+          "registrationCompleted": true,
+          "registrationDate": "2025-09-29T03:17:24.650Z",
+          "role": "MarketingLead",
+          "state": "Tarlac",
+          "username": "adminwfa",
+          "verified": true,
+          "zipCode": "2300"
+        }
+      }
+    },
+    "contentcreator": {
+      "-O_o_vdkJXrf13DrzrOy": {
+        "message": "New task assigned: Create Content",
+        "read": true,
+        "timestamp": "2025-09-23T03:22:05.296Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-O_o_vdAtvM55HTtDn9_"
+      },
+      "-O_oaLfW9xUQJA-7CUxV": {
+        "message": "Your content has been approved: cssada",
+        "read": true,
+        "timestamp": "2025-09-23T03:23:56.001Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-O_VF0c9Cmvno_MvorDt"
+      },
+      "-O_sWIuzpQi4Vl7WUEBU": {
+        "message": "Content submitted successfully for: Create Content",
+        "read": true,
+        "timestamp": "2025-09-23T21:40:22.978Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-O_o_vdAtvM55HTtDn9_"
+      },
+      "-O_sWxoKiebKgAJpqwj2": {
+        "message": "New task assigned: WOW",
+        "read": true,
+        "timestamp": "2025-09-23T21:43:14.584Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-O_sWxni4Msd4bxRZ6g9"
+      },
+      "-O_tZ0FcqtT0tz3hKszv": {
+        "message": "Your content has been rejected: Create Content. Please review feedback and resubmit.",
+        "read": true,
+        "timestamp": "2025-09-24T02:31:49.266Z",
+        "type": "content_rejected",
+        "user": "Content Creator",
+        "workflowId": "-O_o_vdAtvM55HTtDn9_"
+      },
+      "-O_txi2ru9UiyFNfPgF-": {
+        "message": "New task assigned: CREATE A WOW",
+        "read": false,
+        "timestamp": "2025-09-24T04:24:06.766Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-O_txi2A_4tQB0qRx_75"
+      },
+      "-O_u_hmyRXASkVFClNHT": {
+        "message": "New task assigned: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:18:52.241Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-O_ua8i4oP_jqFfxQRZX": {
+        "message": "Content submitted successfully for: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:20:46.616Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-O_uaJq_HLjOhcZHIUAw": {
+        "message": "Content submitted successfully for: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:21:32.216Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-O_uadgcRNTEfNjo6eQm": {
+        "message": "Your content has been rejected: Create a Food Conten. Please review feedback and resubmit.",
+        "read": false,
+        "timestamp": "2025-09-24T07:22:57.595Z",
+        "type": "content_rejected",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-O_ualC7TY9uC7tu0v4i": {
+        "message": "Content submitted successfully for: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:23:28.347Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-O_uanpw0mm3h3xP6mEK": {
+        "message": "Content submitted successfully for: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:23:39.151Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-O_uau4jncG0ZwA5iZUh": {
+        "message": "Your content has been approved: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:24:04.738Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-O_u_hlMgo66JY_35xkI"
+      },
+      "-Oa39EJrZ3qxE5JxBCbU": {
+        "message": "New task assigned: dasdas",
+        "read": false,
+        "timestamp": "2025-09-26T03:55:00.537Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa39EHB8HGUE4uj_D_r"
+      },
+      "-Oa3EB3rljX0hcT6GcE8": {
+        "message": "New task assigned: WOW",
+        "read": false,
+        "timestamp": "2025-09-26T04:16:38.029Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa3EB3FwEDrKCeNg3jM"
+      },
+      "-Oa3F96rPZKBVgeG4I-X": {
+        "message": "Content submitted successfully for: WOW",
+        "read": false,
+        "timestamp": "2025-09-26T04:20:52.173Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa3EB3FwEDrKCeNg3jM"
+      },
+      "-Oa3FDdvLdbGetvgPztU": {
+        "message": "Content submitted successfully for: WOW",
+        "read": false,
+        "timestamp": "2025-09-26T04:21:10.737Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa3EB3FwEDrKCeNg3jM"
+      },
+      "-Oa8W-0ExIdmxVGh6xO1": {
+        "message": "New task assigned: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-27T04:52:34.012Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa8VzzrKPH0r4Q_16X-"
+      },
+      "-Oa8W8FbeDWG93fuGA4Q": {
+        "message": "Content submitted successfully for: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-27T04:53:11.860Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa8VzzrKPH0r4Q_16X-"
+      },
+      "-Oa8WSMgFU-jt3U3cm2I": {
+        "message": "New task assigned: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-27T04:54:34.233Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa8WSLIq_M8mcPQGz4R"
+      },
+      "-Oa8WX4_y2u2-M_Sy5WB": {
+        "message": "New task assigned: wqeq",
+        "read": false,
+        "timestamp": "2025-09-27T04:54:53.554Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa8WX3DByI-v_YR42ah"
+      },
+      "-Oa8Wj7tFodoPaY3f5br": {
+        "message": "Content submitted successfully for: wqeq",
+        "read": false,
+        "timestamp": "2025-09-27T04:55:47.014Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa8WX3DByI-v_YR42ah"
+      },
+      "-Oa8awFmmhav98AguOVn": {
+        "message": "Content submitted successfully for: wqeq",
+        "read": false,
+        "timestamp": "2025-09-27T05:18:31.582Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa8WX3DByI-v_YR42ah"
+      },
+      "-Oa8cLxlozxj8ecz3PpL": {
+        "message": "New task assigned: rwads",
+        "read": false,
+        "timestamp": "2025-09-27T05:24:43.102Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa8cLwl3r3nlgkN7554"
+      },
+      "-Oa8cXPqQmz_3yzC0XzB": {
+        "message": "Content submitted successfully for: rwads",
+        "read": false,
+        "timestamp": "2025-09-27T05:25:30.087Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa8cLwl3r3nlgkN7554"
+      },
+      "-Oa8chDKdH2I-pFQo7U0": {
+        "message": "New task assigned: adadw",
+        "read": false,
+        "timestamp": "2025-09-27T05:26:14.342Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa8chCF_Pwqjaktb6rN"
+      },
+      "-Oa8clbJJwpxeCheerPr": {
+        "message": "Content submitted successfully for: adadw",
+        "read": false,
+        "timestamp": "2025-09-27T05:26:32.325Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa8chCF_Pwqjaktb6rN"
+      },
+      "-Oa8ft50hBl_4jZGSODO": {
+        "message": "New task assigned: eqewq",
+        "read": false,
+        "timestamp": "2025-09-27T05:40:09.473Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-Oa8ft4Q60F2Jjq3k_zJ"
+      },
+      "-Oa8hnBk8E62JgHAmKsQ": {
+        "message": "Content submitted successfully for: eqewq",
+        "read": false,
+        "timestamp": "2025-09-27T05:48:29.616Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-Oa8ft4Q60F2Jjq3k_zJ"
+      },
+      "-Oa8jM5tlPHnbRFpUMKx": {
+        "message": "Your content has been approved: eqewq",
+        "read": false,
+        "timestamp": "2025-09-27T05:55:18.841Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-Oa8ft4Q60F2Jjq3k_zJ"
+      },
+      "-Oa8jM797R8AmWr08-Tm": {
+        "message": "Your content has been approved: eqewq",
+        "read": false,
+        "timestamp": "2025-09-27T05:55:18.922Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-Oa8ft4Q60F2Jjq3k_zJ"
+      },
+      "-OaIcMlG_mawOo99uyUt": {
+        "message": "New task assigned: dsa",
+        "read": false,
+        "timestamp": "2025-09-29T04:00:58.689Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaIcMkOPQXbch9_8fkn"
+      },
+      "-OaIn9v8tXeWUh4zMCQ1": {
+        "message": "Content submitted successfully for: dsa",
+        "read": false,
+        "timestamp": "2025-09-29T04:48:09.656Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaIcMkOPQXbch9_8fkn"
+      },
+      "-OaInot3IfjDu-Oszxv_": {
+        "message": "Content submitted successfully for: dsa",
+        "read": false,
+        "timestamp": "2025-09-29T04:51:01.555Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaIcMkOPQXbch9_8fkn"
+      },
+      "-OaIycB8qu1REllupHEB": {
+        "message": "New task assigned: wadad",
+        "read": false,
+        "timestamp": "2025-09-29T05:38:13.113Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaIycAUEVRvp9edy4JT"
+      },
+      "-OaIyhNna_Yvc-22vn7_": {
+        "message": "Your content has been approved: dsa",
+        "read": false,
+        "timestamp": "2025-09-29T05:38:34.402Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-OaIcMkOPQXbch9_8fkn"
+      },
+      "-OaIz1QuUFpnCGXIp6J9": {
+        "message": "Content submitted successfully for: wadad",
+        "read": false,
+        "timestamp": "2025-09-29T05:40:01.686Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaIycAUEVRvp9edy4JT"
+      },
+      "-OaJ-xviG6z1oFFDAe9f": {
+        "message": "Content submitted successfully for: wadad",
+        "read": false,
+        "timestamp": "2025-09-29T05:48:27.530Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaIycAUEVRvp9edy4JT"
+      },
+      "-OaJ0JyzsgWmYkkEcQCB": {
+        "message": "New task assigned: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T05:50:01.947Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaJ0JyOk35nyDsi6KPo"
+      },
+      "-OaJ0Tsxr79tQNTd8n2q": {
+        "message": "Content submitted successfully for: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T05:50:42.521Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaJ0JyOk35nyDsi6KPo"
+      },
+      "-OaJD2jhh4GqLVkxCZVx": {
+        "message": "New task assigned: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:45:39.209Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaJD2j5TiuoZZVfbTNv"
+      },
+      "-OaJD88nXMRs5R2gplLT": {
+        "message": "Content submitted successfully for: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:46:01.359Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaJD2j5TiuoZZVfbTNv"
+      },
+      "-OaJDHBnsBOrk2oAh5TL": {
+        "message": "Content submitted successfully for: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:46:38.415Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaJD2j5TiuoZZVfbTNv"
+      },
+      "-OaJEm5CFqsi30i8B_5u": {
+        "message": "New task assigned: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:53:11.209Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaJEm4a7jPeVibxU2nR"
+      },
+      "-OaJEro9bqadVAmYN6OJ": {
+        "message": "Content submitted successfully for: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:53:34.630Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaJEm4a7jPeVibxU2nR"
+      },
+      "-OaJHBCtLQhEgCLWk__P": {
+        "message": "Content submitted successfully for: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T07:03:42.485Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaJEm4a7jPeVibxU2nR"
+      },
+      "-OaLDhPYrPBVYWKJtIAK": {
+        "message": "New task assigned: asdasd",
+        "read": false,
+        "timestamp": "2025-09-29T16:07:42.967Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaLDhOxtQC7itobLk5z"
+      },
+      "-OaLDpNt13ZDlnxyKh1x": {
+        "message": "Content submitted successfully for: asdasd",
+        "read": false,
+        "timestamp": "2025-09-29T16:08:15.629Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaLDhOxtQC7itobLk5z"
+      },
+      "-OaLP9k6vvjnZwiOU88M": {
+        "message": "New task assigned: qwrqwrr",
+        "read": false,
+        "timestamp": "2025-09-29T16:57:46.851Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaLP9jIQH2FczZNDEJa"
+      },
+      "-OaLTu81h9Yc7mYVUCHS": {
+        "message": "Content submitted successfully for: qwrqwrr",
+        "read": false,
+        "timestamp": "2025-09-29T17:18:29.534Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaLP9jIQH2FczZNDEJa"
+      },
+      "-OaLVjzhiPavs_xMM2jF": {
+        "message": "New task assigned: adsda",
+        "read": false,
+        "timestamp": "2025-09-29T17:26:32.265Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaLVjz5SB8tbv7ceJai"
+      },
+      "-OaLVqYpU01Jr2icxV4l": {
+        "message": "Content submitted successfully for: adsda",
+        "read": false,
+        "timestamp": "2025-09-29T17:26:59.153Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaLVjz5SB8tbv7ceJai"
+      },
+      "-OaLVtu9FQq7q2GuEiGF": {
+        "message": "Content submitted successfully for: adsda",
+        "read": false,
+        "timestamp": "2025-09-29T17:27:12.870Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaLVjz5SB8tbv7ceJai"
+      },
+      "-OaLaR43glti8Z7lXiRk": {
+        "message": "Your content has been approved: adsda",
+        "read": false,
+        "timestamp": "2025-09-29T17:51:23.761Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-OaLVjz5SB8tbv7ceJai"
+      },
+      "-OaLdIBHfwaMPmamQ_fm": {
+        "message": "New task assigned: adsa",
+        "read": false,
+        "timestamp": "2025-09-29T18:03:53.790Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaLdIAdruqC0aRhrvtI"
+      },
+      "-OaLdMVA0ko0fDWv-ySu": {
+        "message": "Content submitted successfully for: adsa",
+        "read": false,
+        "timestamp": "2025-09-29T18:04:11.447Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaLdIAdruqC0aRhrvtI"
+      },
+      "-OaLdO0bwFpkHxedXyr0": {
+        "message": "Content submitted successfully for: adsa",
+        "read": false,
+        "timestamp": "2025-09-29T18:04:17.683Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaLdIAdruqC0aRhrvtI"
+      },
+      "-OaNErwb2DnBueZdDfc8": {
+        "message": "New task assigned: adwa",
+        "read": false,
+        "timestamp": "2025-09-30T01:32:02.212Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaNErvyR6tal9QiKncF"
+      },
+      "-OaNExrmRBhsLLu-s0iu": {
+        "message": "Content submitted successfully for: adwa",
+        "read": false,
+        "timestamp": "2025-09-30T01:32:26.479Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaNErvyR6tal9QiKncF"
+      },
+      "-OaNFAAN-vjFZNl6PQQZ": {
+        "message": "Content submitted successfully for: adwa",
+        "read": false,
+        "timestamp": "2025-09-30T01:33:20.981Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaNErvyR6tal9QiKncF"
+      },
+      "-OaNFN7Wcik8lfab3JoH": {
+        "message": "New task assigned: awdawd",
+        "read": false,
+        "timestamp": "2025-09-30T01:34:14.046Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaNFN6vWpxG8h0k0oEf"
+      },
+      "-OaNGkgG64zMOmBL4hzO": {
+        "message": "Content submitted successfully for: awdawd",
+        "read": false,
+        "timestamp": "2025-09-30T01:40:16.782Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaNFN6vWpxG8h0k0oEf"
+      },
+      "-OaNH2woqnymaGJbLiIk": {
+        "message": "Content submitted successfully for: awdawd",
+        "read": false,
+        "timestamp": "2025-09-30T01:41:35.665Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaNFN6vWpxG8h0k0oEf"
+      },
+      "-OaNHD3jZm0J5SbXmj1K": {
+        "message": "Your content has been approved: awdawd",
+        "read": false,
+        "timestamp": "2025-09-30T01:42:17.132Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-OaNFN6vWpxG8h0k0oEf"
+      },
+      "-OaPxakZgEZgqz5kOv6c": {
+        "message": "Your content has been approved: awdawd",
+        "read": false,
+        "timestamp": "2025-09-30T14:11:05.297Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-OaNFN6vWpxG8h0k0oEf"
+      },
+      "-OaPybytNhuXinfaVvmX": {
+        "message": "New task assigned: 123",
+        "read": false,
+        "timestamp": "2025-09-30T14:15:32.454Z",
+        "type": "new_task",
+        "user": "Content Creator",
+        "workflowId": "-OaPybyFXSyejaIwAw2d"
+      },
+      "-OaPyhXZOo82FWcM4xvo": {
+        "message": "Content submitted successfully for: 123",
+        "read": false,
+        "timestamp": "2025-09-30T14:15:55.217Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaPybyFXSyejaIwAw2d"
+      },
+      "-OaPyipYl38NcT6D7kSs": {
+        "message": "Content submitted successfully for: 123",
+        "read": false,
+        "timestamp": "2025-09-30T14:16:00.528Z",
+        "type": "content_submitted",
+        "user": "Content Creator",
+        "workflowId": "-OaPybyFXSyejaIwAw2d"
+      },
+      "-OaPyn7ux0UKuFzHP2rH": {
+        "message": "Your content has been approved: 123",
+        "read": false,
+        "timestamp": "2025-09-30T14:16:18.151Z",
+        "type": "content_approved",
+        "user": "Content Creator",
+        "workflowId": "-OaPybyFXSyejaIwAw2d"
+      }
+    },
+    "marketing": {
+      "-O_VjzqZ96V8L1t9FJEY": {
+        "message": "New task created: weqdasd",
+        "read": false,
+        "timestamp": "2025-09-19T06:53:40.609Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_j3d1fJk6Y_igeg7Po": {
+        "message": "New task created: sadad",
+        "read": false,
+        "timestamp": "2025-09-22T01:38:32.772Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_j45260ggppbop5olv": {
+        "message": "Content submitted for approval: 💡 Why weqdasd is Talking About This",
+        "read": false,
+        "timestamp": "2025-09-22T01:40:31.632Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_j5P4D30_CR2WSDGgP": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of cssada",
+        "read": false,
+        "timestamp": "2025-09-22T01:46:15.831Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_j5Q_cT_rT4r8J41E4": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-22T01:46:22.001Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_j6L9KXUNQf-bROvxC": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-22T01:50:21.964Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-O_jUywUSyNdpX5vqg8X": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-22T03:38:00.749Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_jaF7MhdJ5UOWTwxvB": {
+        "message": "New task created: asdasd",
+        "read": false,
+        "timestamp": "2025-09-22T04:05:24.488Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_jkO_xCmaGY7PActry": {
+        "message": "Content submitted for approval: 🌟 The Ultimate Guide to daw",
+        "read": false,
+        "timestamp": "2025-09-22T04:49:45.011Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_m4wsRYIfwSNDYtMDb": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-22T15:43:05.842Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-O_o9M4m52cccdH7N8Hi": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of cssada",
+        "read": false,
+        "timestamp": "2025-09-23T01:21:39.191Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_o9Q2PqHNuj_QyyqNw": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of cssada",
+        "read": false,
+        "timestamp": "2025-09-23T01:21:55.422Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_oAYo6Nln3YpspdIsY": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of cssada",
+        "read": false,
+        "timestamp": "2025-09-23T01:26:53.451Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_oAZyCP2lJ3JMhRx8U": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-23T01:26:58.193Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_o_veL47YROteChFPj": {
+        "message": "New task created: Create Content",
+        "read": false,
+        "timestamp": "2025-09-23T03:22:05.335Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_oaLg6vXXBDpKlmjee": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-23T03:23:56.039Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-O_sWIvcKtI0RTpNbEed": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with PA Solutions",
+        "read": false,
+        "timestamp": "2025-09-23T21:40:23.019Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_sWxoxWCx61s0kUN2e": {
+        "message": "New task created: WOW",
+        "read": false,
+        "timestamp": "2025-09-23T21:43:14.624Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_txi3UtVN5BHpdwWjP": {
+        "message": "New task created: CREATE A WOW",
+        "read": false,
+        "timestamp": "2025-09-24T04:24:06.806Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_u_hnZkFKblrkwm6r7": {
+        "message": "New task created: Create a Food Conten",
+        "read": false,
+        "timestamp": "2025-09-24T07:18:52.279Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-O_ua8ih_Nus1X7V5GA1": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of FOOD",
+        "read": false,
+        "timestamp": "2025-09-24T07:20:46.656Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_uaJrAsvN-kR2qEtNK": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions FOODS",
+        "read": false,
+        "timestamp": "2025-09-24T07:21:32.254Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_ualCiLA-OZAJV8ZWv": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of FOODs",
+        "read": false,
+        "timestamp": "2025-09-24T07:23:28.385Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_uanqW-V6XfFwFA7kL": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-24T07:23:39.188Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-O_uau5K69YTIHBm0gEb": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-24T07:24:04.776Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-Oa39EMlPcByv7DuxTxd": {
+        "message": "New task created: dasdas",
+        "read": false,
+        "timestamp": "2025-09-26T03:55:00.723Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa3EB4T7DOn9zY1EPNs": {
+        "message": "New task created: WOW",
+        "read": false,
+        "timestamp": "2025-09-26T04:16:38.068Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa3F97TrEjfbsyyXdYM": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of WOWIEE",
+        "read": false,
+        "timestamp": "2025-09-26T04:20:52.212Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa3FDegHGQkQ4kH3k1V": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of WOWIEE",
+        "read": false,
+        "timestamp": "2025-09-26T04:21:10.786Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8W-1cSMb2uNjBPLKk": {
+        "message": "New task created: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-27T04:52:34.101Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa8W8GzHFoyHjrsgBIE": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of qweqwewq",
+        "read": false,
+        "timestamp": "2025-09-27T04:53:11.948Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8WSO31ChLBqgtTDiQ": {
+        "message": "New task created: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-27T04:54:34.321Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa8WX5w2dpRuD1ubEQ6": {
+        "message": "New task created: wqeq",
+        "read": false,
+        "timestamp": "2025-09-27T04:54:53.641Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa8Wj9GBjlQ_3e2k0Ik": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of awdad",
+        "read": false,
+        "timestamp": "2025-09-27T04:55:47.102Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8awGmrWjhH0g4T-6F": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-27T05:18:31.646Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8cLymugaA8uTASyok": {
+        "message": "New task created: rwads",
+        "read": false,
+        "timestamp": "2025-09-27T05:24:43.166Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa8cXQvzHVxmhHbW33h": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of qweqe",
+        "read": false,
+        "timestamp": "2025-09-27T05:25:30.156Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8chERgkz0xA4Lv5Ig": {
+        "message": "New task created: adadw",
+        "read": false,
+        "timestamp": "2025-09-27T05:26:14.413Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa8clcNowoS4B0Kp1L3": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of wqeq",
+        "read": false,
+        "timestamp": "2025-09-27T05:26:32.393Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8ft5c3H4PVEEAoIHK": {
+        "message": "New task created: eqewq",
+        "read": false,
+        "timestamp": "2025-09-27T05:40:09.512Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-Oa8hnCMU1E5qdkvOS5_": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-27T05:48:29.655Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-Oa8jM6Vsi_NKrDNYk1Z": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-27T05:55:18.880Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-Oa8jM7nls6joVSZdkK9": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-27T05:55:18.963Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-OaIcMluP_k1FhyGZCCj": {
+        "message": "New task created: dsa",
+        "read": false,
+        "timestamp": "2025-09-29T04:00:58.729Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaIn9vkN4UH2ZWFTvt0": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of qwedasc",
+        "read": false,
+        "timestamp": "2025-09-29T04:48:09.695Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaInoth7YVLwAZolENH": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of rwefs",
+        "read": false,
+        "timestamp": "2025-09-29T04:51:01.596Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaIycBorDCk2RLxRYGH": {
+        "message": "New task created: wadad",
+        "read": false,
+        "timestamp": "2025-09-29T05:38:13.155Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaIyhOScs4PSfUUC4PY": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-29T05:38:34.444Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-OaIz1RYQ09z4ze9c1lq": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of 123",
+        "read": false,
+        "timestamp": "2025-09-29T05:40:01.727Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaJ-xwJkndkWWi0MPtM": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of 123",
+        "read": false,
+        "timestamp": "2025-09-29T05:48:27.568Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaJ0JzbTeojIzhVGeRt": {
+        "message": "New task created: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T05:50:01.987Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaJ0Tt_fIzeuDDX8RCd": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of 123123",
+        "read": false,
+        "timestamp": "2025-09-29T05:50:42.561Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaJD2kL7qnE7_d6NsPX": {
+        "message": "New task created: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:45:39.250Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaJD89PrUpqOjdL2rdK": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of 123",
+        "read": false,
+        "timestamp": "2025-09-29T06:46:01.398Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaJDHCRCCF-BZs7L61R": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of dadsad",
+        "read": false,
+        "timestamp": "2025-09-29T06:46:38.456Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaJEm5pKm_nQh50RQFO": {
+        "message": "New task created: qweqwe",
+        "read": false,
+        "timestamp": "2025-09-29T06:53:11.249Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaJErol3hNoCf7Qwbeg": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of 12323",
+        "read": false,
+        "timestamp": "2025-09-29T06:53:34.669Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaJHBDVFn7p6Bx0LhAP": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of 12323",
+        "read": false,
+        "timestamp": "2025-09-29T07:03:42.524Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaLDhQ9OzLxAzTjyp9o": {
+        "message": "New task created: asdasd",
+        "read": false,
+        "timestamp": "2025-09-29T16:07:43.007Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaLDpOTbb22ehtWPTYC": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of asdasd",
+        "read": false,
+        "timestamp": "2025-09-29T16:08:15.666Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaLP9kjPODp4aEWlTeW": {
+        "message": "New task created: qwrqwrr",
+        "read": false,
+        "timestamp": "2025-09-29T16:57:46.891Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaLTu8ffSJp7lJPWRkd": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of awda",
+        "read": false,
+        "timestamp": "2025-09-29T17:18:29.575Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaLVk-KuBwtLniS59JV": {
+        "message": "New task created: adsda",
+        "read": false,
+        "timestamp": "2025-09-29T17:26:32.305Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaLVqZTuCw5aQSZtHnF": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of awdad",
+        "read": false,
+        "timestamp": "2025-09-29T17:26:59.194Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaLVtum7Fb7AiY4timV": {
+        "message": "Content submitted for approval: ✨ Transform Your Life with Amazing Solutions",
+        "read": false,
+        "timestamp": "2025-09-29T17:27:12.911Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaLaR4h-Lt6o5x9KHPT": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-29T17:51:23.801Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-OaLdIBtRCaTTaEKm8X2": {
+        "message": "New task created: adsa",
+        "read": false,
+        "timestamp": "2025-09-29T18:03:53.829Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaLdMVn1kX8SOOjdqb3": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of awdawd",
+        "read": false,
+        "timestamp": "2025-09-29T18:04:11.487Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaLdO1EAzvqULlskKtZ": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of awdawd",
+        "read": false,
+        "timestamp": "2025-09-29T18:04:17.723Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaNErxEZUOd1fo-YO1q": {
+        "message": "New task created: adwa",
+        "read": false,
+        "timestamp": "2025-09-30T01:32:02.252Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaNExsQAaoNvpil2SbJ": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of qeqwe",
+        "read": false,
+        "timestamp": "2025-09-30T01:32:26.520Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaNFAAzEH5R5iOK7k7s": {
+        "message": "Content submitted for approval: 🌟 The Ultimate Guide to qeqwe",
+        "read": false,
+        "timestamp": "2025-09-30T01:33:21.020Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaNFN87kfwwPaE1he1c": {
+        "message": "New task created: awdawd",
+        "read": false,
+        "timestamp": "2025-09-30T01:34:14.085Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaNGkgvUDNNZK7d9bXP": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of Travel",
+        "read": false,
+        "timestamp": "2025-09-30T01:40:16.824Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaNH2xQlegTPyYESPA-": {
+        "message": "Content submitted for approval: 💡 Why Travel is Talking About This",
+        "read": false,
+        "timestamp": "2025-09-30T01:41:35.704Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaNHD4KgzOo5YNkUX4y": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-30T01:42:17.170Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-OaPxalAp-YkPEZj8YcK": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-30T14:11:05.336Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      },
+      "-OaPybzVz4t3YepS72i4": {
+        "message": "New task created: 123",
+        "read": false,
+        "timestamp": "2025-09-30T14:15:32.493Z",
+        "type": "task_created",
+        "user": "System"
+      },
+      "-OaPyhYBLnLFtPehU7mm": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of qwe",
+        "read": false,
+        "timestamp": "2025-09-30T14:15:55.257Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaPyiq9b102_wXsCtxY": {
+        "message": "Content submitted for approval: 🚀 Discover the Power of qwe",
+        "read": false,
+        "timestamp": "2025-09-30T14:16:00.567Z",
+        "type": "content_submitted",
+        "user": "Content Creator"
+      },
+      "-OaPyn8V9d3yWg9UnPAP": {
+        "message": "Content approved and ready for design assignment",
+        "read": false,
+        "timestamp": "2025-09-30T14:16:18.189Z",
+        "type": "content_approved",
+        "user": "Marketing Lead"
+      }
+    }
+  },
+  "systemSettings": {
+    "loginSecurity": {
+      "enableAccountLockout": true,
+      "lockoutDuration": 1,
+      "maxLoginAttempts": 5,
+      "updatedAt": "2025-09-02T07:04:04.676Z",
+      "updatedBy": "Admin"
+    },
+    "passwordPolicies": {
+      "minPasswordLength": 5,
+      "passwordExpiry": 90,
+      "requireLowercase": true,
+      "requireNumbers": true,
+      "requireSpecialChars": false,
+      "requireUppercase": true,
+      "updatedAt": "2025-09-02T06:58:47.932Z",
+      "updatedBy": "Admin"
+    }
+  },
+  "workflows": {
+    "-OaPybyFXSyejaIwAw2d": {
+      "contentCreator": {
+        "content": {
+          "caption": "Ready to take your qwe to the next level? Our innovative approach combines cutting-edge technology with proven strategies to deliver exceptional results. Join thousands who have already transformed their experience!",
+          "hashtag": "#qwe #success #transformation #growth #excellence",
+          "headline": "🚀 Discover the Power of qwe",
+          "seoAnalysis": {
+            "analyzedAt": "2025-09-30T14:15:55.131Z",
+            "captionScore": 85,
+            "commonWords": {
+              "count": 7,
+              "words": [
+                "the",
+                "and",
+                "with",
+                "for"
+              ]
+            },
+            "emotionalWords": {
+              "count": 2,
+              "words": [
+                "exciting"
+              ]
+            },
+            "hashtagScore": 89,
+            "headlineScore": 75,
+            "overallScore": 88,
+            "powerWords": {
+              "count": 2,
+              "words": [
+                "innovative",
+                "amazing",
+                "revolutionary"
+              ]
+            },
+            "readability": {
+              "complexity": "Moderate",
+              "fleschScore": 64,
+              "gradeLevel": "6th Grade",
+              "readingTime": 1
+            },
+            "sentiment": {
+              "confidence": 74,
+              "polarity": "-0.56",
+              "tone": "Neutral",
+              "words": [
+                "amazing"
+              ]
+            },
+            "uncommonWords": {
+              "count": 2,
+              "words": [
+                "revolutionary"
+              ]
+            },
+            "wordCount": 36
+          },
+          "submittedAt": "2025-09-30T14:16:00.452Z"
+        },
+        "submittedAt": "2025-09-30T14:16:00.490Z"
+      },
+      "createdAt": "2025-09-30T14:15:32.413Z",
+      "currentStage": "completed",
+      "deadline": "2025-10-09T14:03:00",
+      "finalApproval": {
+        "approvedAt": "2025-09-30T22:47:54.691Z",
+        "approvedBy": "Marketing Lead"
+      },
+      "gender": "Male",
+      "graphicDesigner": {
+        "designs": {
+          "description": "Design created for task -OaPybyFXSyejaIwAw2d",
+          "designUrl": "https://res.cloudinary.com/dyxayxrpp/image/upload/v1759241811/design-drafts/uslkv365mtvfpkejjw6x.png"
+        },
+        "submittedAt": "2025-09-30T14:16:56.689Z"
+      },
+      "marketingApproval": {
+        "approvedAt": "2025-09-30T14:16:18.112Z",
+        "approvedBy": "Marketing Lead"
+      },
+      "maxAge": 13,
+      "minAge": 12,
+      "objectives": "123",
+      "selectedPlatforms": [
+        "facebook",
+        "instagram",
+        "twitter"
+      ],
+      "status": "posted",
+      "updatedAt": "2025-09-30T22:47:54.691Z"
+    }
+  }
+}

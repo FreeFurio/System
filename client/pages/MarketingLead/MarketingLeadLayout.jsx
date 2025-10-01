@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend, FiChevronDown, FiMenu } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend, FiChevronDown, FiMenu, FiEdit2, FiPenTool } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import { DarkModeProvider } from '../../components/common/DarkModeContext';
@@ -15,14 +15,15 @@ const sidebarItems = [
     hasDropdown: true,
     icon: FiEdit,
     subItems: [
-      { label: 'Content Creator', path: '/marketing/set-task', icon: '💻' },
-      { label: 'Graphic Designer', path: '/marketing/set-task-graphic-designer', icon: '🎨' }
+      { label: 'Content Creator', path: '/marketing/set-task', icon: FiEdit2 },
+      { label: 'Graphic Designer', path: '/marketing/set-task-graphic-designer', icon: FiPenTool }
     ]
   },
   { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: FiClipboard },
   { label: 'Approval of Contents', path: '/marketing/approval', icon: FiCheckCircle },
   { label: 'Approved Contents', path: '/marketing/approved', icon: FiThumbsUp },
-  { label: 'Posted Content', path: '/marketing/posted-content', icon: FiSend },
+  { label: 'Posting', path: '/marketing/posting', icon: FiClock },
+  { label: 'Posted Contents', path: '/marketing/posted-contents', icon: FiSend },
 ];
 
 export default function MarketingLeadLayout() {
@@ -119,23 +120,25 @@ export default function MarketingLeadLayout() {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: '50%', 
-                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center',
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: 22, 
-                color: '#fff', 
-                fontWeight: 700,
-                flexShrink: 0
-              }}>
-                <FiUser size={24} color="#F6C544" />
-              </span>
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  style={{ 
+                    width: 40, height: 40, borderRadius: '50%', 
+                    objectFit: 'cover', flexShrink: 0
+                  }} 
+                />
+              ) : (
+                <span style={{ 
+                  width: 40, height: 40, borderRadius: '50%', 
+                  background: '#e74c3c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  flexShrink: 0
+                }}>
+                  <FiUser size={24} color="#fff" />
+                </span>
+              )}
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
@@ -165,7 +168,7 @@ export default function MarketingLeadLayout() {
         {!sidebarCollapsed && (
           <div className="sidebar" style={{
             width: '220px',
-            background: '#f8f9fb',
+            background: '#ffffff',
             borderRight: '1px solid #ececec',
             padding: '32px 0 24px 0',
             borderRadius: 0,
@@ -187,37 +190,40 @@ export default function MarketingLeadLayout() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: 16, 
-                padding: '14px 12px', 
-                background: '#f8f9fb', 
-                borderRadius: 0, 
-                boxShadow: 'none'
+                padding: '20px 16px', 
+                background: '#f8fafc', 
+                borderRadius: '12px', 
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e5e7eb'
               }}>
-                <span className="header-profile-avatar" style={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: '50%', 
-                  background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                  backgroundSize: 'cover', 
-                  backgroundPosition: 'center',
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  fontSize: 28, 
-                  color: '#fff', 
-                  fontWeight: 700,
-                  flexShrink: 0
-                }}>
-                  <FiUser size={28} color="#F6C544" />
-                </span>
+                {user?.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt="Profile" 
+                    style={{ 
+                      width: 48, height: 48, borderRadius: '50%', 
+                      objectFit: 'cover', flexShrink: 0
+                    }} 
+                  />
+                ) : (
+                  <span style={{ 
+                    width: 48, height: 48, borderRadius: '50%', 
+                    background: '#e74c3c',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    flexShrink: 0
+                  }}>
+                    <FiUser size={28} color="#fff" />
+                  </span>
+                )}
                 <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div className="user-name" style={{ 
                     fontWeight: 700, 
                     fontSize: 17, 
                     color: '#222', 
-                    lineHeight: 1.1, 
-                    whiteSpace: 'nowrap', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis' 
+                    lineHeight: '1.2', 
+                    whiteSpace: 'normal', 
+                    maxHeight: '2.4em', 
+                    overflow: 'hidden' 
                   }}>{user?.firstName || 'Marketing'} {user?.lastName || 'Lead'}</div>
                   <div className="user-role" style={{ 
                     fontSize: 13, 
@@ -233,7 +239,8 @@ export default function MarketingLeadLayout() {
               flexDirection: 'column', 
               gap: 8, 
               marginTop: 10, 
-              minHeight: 0
+              minHeight: 0,
+              padding: '0 12px'
             }}>
               {sidebarItems.map((item, index) => (
                 <div key={item.path || index} style={{ position: 'relative' }}>
@@ -248,7 +255,7 @@ export default function MarketingLeadLayout() {
                           fontWeight: 600,
                           borderRadius: 8,
                           color: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#fff' : '#222',
-                          background: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#e53935' : 'none',
+                          background: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
                           marginBottom: 4,
                           textDecoration: 'none',
                           transition: 'background 0.2s, color 0.2s',
@@ -256,7 +263,8 @@ export default function MarketingLeadLayout() {
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           border: 'none',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          boxShadow: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none'
                         }}
                       >
                         <item.icon size={18} style={{ marginRight: 12 }} />
@@ -272,30 +280,23 @@ export default function MarketingLeadLayout() {
                       </button>
                       {showSetTaskDropdown && (
                         <div style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          background: '#fff',
+                          background: '#f8fafc',
                           borderRadius: 8,
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                          border: '1px solid #e5e7eb',
-                          zIndex: 10,
-                          marginTop: 4
+                          marginTop: 8,
+                          marginBottom: 8
                         }}>
                           {item.subItems.map(subItem => (
                             <button
                               key={subItem.path}
                               onClick={() => {
                                 navigate(subItem.path);
-                                setShowSetTaskDropdown(false);
                               }}
                               style={{
                                 width: '100%',
-                                padding: '12px 16px',
+                                padding: '10px 20px',
                                 border: 'none',
-                                background: location.pathname === subItem.path ? '#fef2f2' : 'transparent',
-                                color: location.pathname === subItem.path ? '#ef4444' : '#1f2937',
+                                background: location.pathname === subItem.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                                color: location.pathname === subItem.path ? '#fff' : '#6b7280',
                                 textAlign: 'left',
                                 cursor: 'pointer',
                                 fontSize: 14,
@@ -304,20 +305,13 @@ export default function MarketingLeadLayout() {
                                 alignItems: 'center',
                                 gap: 8,
                                 transition: 'all 0.2s ease',
-                                borderRadius: location.pathname === subItem.path ? 6 : 0
+                                borderRadius: 6,
+                                margin: '4px 8px',
+                                boxShadow: location.pathname === subItem.path ? '0 2px 6px rgba(245, 158, 11, 0.2)' : 'none'
                               }}
-                              onMouseEnter={e => {
-                                if (location.pathname !== subItem.path) {
-                                  e.target.style.background = '#f9fafb';
-                                }
-                              }}
-                              onMouseLeave={e => {
-                                if (location.pathname !== subItem.path) {
-                                  e.target.style.background = 'transparent';
-                                }
-                              }}
+
                             >
-                              <span style={{ fontSize: 16 }}>{subItem.icon}</span>
+                              <subItem.icon size={16} />
                               {subItem.label}
                             </button>
                           ))}
@@ -327,18 +321,21 @@ export default function MarketingLeadLayout() {
                   ) : (
                     <Link
                       to={item.path}
+                      onClick={() => setShowSetTaskDropdown(false)}
                       className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
                       style={{
-                        padding: '12px 24px',
+                        padding: '14px 20px',
                         fontWeight: 600,
-                        borderRadius: 8,
-                        color: location.pathname === item.path ? '#fff' : '#222',
-                        background: location.pathname === item.path ? '#e53935' : 'none',
-                        marginBottom: 4,
+                        borderRadius: 12,
+                        color: location.pathname === item.path ? '#fff' : '#374151',
+                        background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                        marginBottom: 6,
                         textDecoration: 'none',
-                        transition: 'background 0.2s, color 0.2s',
+                        transition: 'all 0.2s ease',
                         display: 'flex',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                        fontSize: 15
                       }}
                     >
                       <item.icon size={18} style={{ marginRight: 12 }} />

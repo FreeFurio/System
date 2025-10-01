@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { componentStyles } from '../../styles/designSystem';
+import PlatformSelector from '../../components/common/PlatformSelector';
+import { FiSend } from 'react-icons/fi';
+import Toast from '../../components/common/Toast';
 
 export default function SetTask() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [objective, setObjective] = useState('');
   const [gender, setGender] = useState('');
   const [deadline, setDeadline] = useState(() => {
@@ -16,11 +20,14 @@ export default function SetTask() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+  const [deadlineTime, setDeadlineTime] = useState('12:00');
   const [submitted, setSubmitted] = useState(false);
   const [ageRange, setAgeRange] = useState([20, 40]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const dateFromUrl = searchParams.get('date');
@@ -53,16 +60,32 @@ export default function SetTask() {
   const minDate = `${yyyy}-${mm}-${dd}`;
   const maxDate = `${yyyy + 3}-${mm}-${dd}`;
 
+  const handlePlatformChange = (platformId) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platformId)
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    if (selectedPlatforms.length === 0) {
+      setToast({ message: 'Please select at least one social media platform', type: 'error' });
+      setLoading(false);
+      return;
+    }
+    
     const payload = {
       objectives: objective,
       gender,
       minAge: ageRange[0],
       maxAge: ageRange[1],
-      deadline
+      deadline: `${deadline}T${deadlineTime}:00`,
+      selectedPlatforms
     };
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/content-creator/task`, {
       method: 'POST',
@@ -80,14 +103,21 @@ export default function SetTask() {
         return data;
       })
       .then(() => {
-        setSubmitted(true);
+        setToast({ message: 'Task submitted successfully!', type: 'success' });
         setObjective('');
         setGender('');
         setAgeRange([20, 40]);
         setDeadline('');
+        setDeadlineTime('12:00');
+        setSelectedPlatforms([]);
+        
+        // Redirect to Ongoing Task tab after successful submission
+        setTimeout(() => {
+          navigate('/marketing/ongoing-task');
+        }, 1500);
       })
       .catch((err) => {
-        setError(err.message || 'Submission failed');
+        setToast({ message: err.message || 'Submission failed', type: 'error' });
       })
       .finally(() => setLoading(false));
   };
@@ -95,13 +125,27 @@ export default function SetTask() {
   return (
     <div style={{ padding: '0', maxWidth: '100%' }}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
-          Set Task - Content Creator
-        </h1>
-        <p style={{ color: '#6b7280', margin: 0 }}>
-          Create and assign tasks to content creators with detailed specifications
-        </p>
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          margin: 0,
+          color: '#111827',
+          fontSize: '32px',
+          fontWeight: '800',
+          letterSpacing: '-0.025em'
+        }}>Set Task - Content Creator</h1>
+        <p style={{
+          margin: '8px 0 0 0',
+          color: '#6b7280',
+          fontSize: '16px',
+          fontWeight: '400'
+        }}>Create and assign tasks to content creators with detailed specifications</p>
       </div>
 
       {/* Form Container */}
@@ -149,9 +193,9 @@ export default function SetTask() {
                 overflowY: 'auto'
               }}
               onFocus={e => {
-                e.target.style.borderColor = '#3b82f6';
+                e.target.style.borderColor = '#f59e0b';
                 e.target.style.background = '#fff';
-                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)';
               }}
               onBlur={e => {
                 e.target.style.borderColor = '#e5e7eb';
@@ -182,16 +226,16 @@ export default function SetTask() {
                   gap: '8px',
                   padding: '16px 24px',
                   borderRadius: '12px',
-                  border: `2px solid ${gender === option ? '#3b82f6' : '#e5e7eb'}`,
-                  background: gender === option ? '#eff6ff' : '#fafbfc',
+                  border: `2px solid ${gender === option ? '#f59e0b' : '#e5e7eb'}`,
+                  background: gender === option ? '#fef3c7' : '#fafbfc',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   fontWeight: '600',
                   fontSize: '15px',
-                  color: gender === option ? '#3b82f6' : '#6b7280',
+                  color: gender === option ? '#d97706' : '#6b7280',
                   minWidth: '120px',
                   justifyContent: 'center',
-                  boxShadow: gender === option ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none'
+                  boxShadow: gender === option ? '0 0 0 3px rgba(245, 158, 11, 0.1)' : 'none'
                 }}>
                   <input 
                     type="radio" 
@@ -213,49 +257,54 @@ export default function SetTask() {
             <label style={{ 
               fontWeight: '700', 
               display: 'block', 
-              marginBottom: '12px', 
+              marginBottom: '16px', 
               color: '#1f2937', 
               fontSize: '16px',
               letterSpacing: '-0.025em'
             }}>
               Target Age Range
             </label>
+            
+            {/* Age Display */}
             <div style={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              justifyContent: 'center', 
               alignItems: 'center',
-              marginBottom: '20px'
+              gap: '16px',
+              marginBottom: '24px'
             }}>
               <div style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 color: '#ffffff',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: '600',
-                minWidth: '50px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '18px',
+                fontWeight: '700',
+                minWidth: '60px',
                 textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
               }}>{ageRange[0]}</div>
-              <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: '500', margin: '0 16px' }}>to</span>
+              <span style={{ color: '#374151', fontSize: '16px', fontWeight: '600' }}>to</span>
               <div style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 color: '#ffffff',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: '600',
-                minWidth: '50px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '18px',
+                fontWeight: '700',
+                minWidth: '60px',
                 textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
               }}>{ageRange[1]}</div>
             </div>
+            
+            {/* Slider Container */}
             <div style={{ 
-              padding: '24px', 
-              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+              padding: '32px 24px', 
+              background: '#ffffff', 
               borderRadius: '16px', 
-              border: '2px solid #e5e7eb',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
             }}>
               <Slider
                 range
@@ -265,30 +314,32 @@ export default function SetTask() {
                 onChange={setAgeRange}
                 allowCross={false}
                 trackStyle={[{ 
-                  backgroundColor: '#3b82f6', 
+                  backgroundColor: '#f59e0b', 
                   height: 8,
                   borderRadius: 4
                 }]}
                 handleStyle={[
                   { 
                     backgroundColor: '#ffffff', 
-                    borderColor: '#3b82f6', 
+                    borderColor: '#f59e0b', 
                     borderWidth: 3,
                     height: 24, 
                     width: 24, 
                     marginTop: -8,
                     borderRadius: '50%',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
+                    cursor: 'pointer'
                   },
                   { 
                     backgroundColor: '#ffffff', 
-                    borderColor: '#3b82f6', 
+                    borderColor: '#f59e0b', 
                     borderWidth: 3,
                     height: 24, 
                     width: 24, 
                     marginTop: -8,
                     borderRadius: '50%',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
+                    cursor: 'pointer'
                   }
                 ]}
                 railStyle={{ 
@@ -298,13 +349,15 @@ export default function SetTask() {
                 }}
                 step={1}
               />
+              
+              {/* Age Markers */}
               <div style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
-                marginTop: '16px', 
-                fontSize: '12px', 
+                marginTop: '20px', 
+                fontSize: '14px', 
                 color: '#6b7280', 
-                fontWeight: '500' 
+                fontWeight: '600' 
               }}>
                 <span>3</span>
                 <span>15</span>
@@ -312,31 +365,33 @@ export default function SetTask() {
                 <span>45</span>
                 <span>60+</span>
               </div>
+              
+              {/* Age Group Labels */}
               <div style={{ 
-                marginTop: '16px', 
+                marginTop: '20px', 
                 display: 'flex', 
                 flexWrap: 'wrap', 
                 gap: '8px', 
-                justifyContent: 'center' 
+                justifyContent: 'center'
               }}>
                 {getAgeLabels(ageRange).map(label => (
                   <span key={label} style={{ 
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
                     color: '#ffffff',
-                    borderRadius: '16px', 
-                    padding: '6px 16px', 
-                    fontSize: '13px', 
+                    borderRadius: '20px', 
+                    padding: '8px 16px', 
+                    fontSize: '14px', 
                     fontWeight: '600',
-                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)'
                   }}>{label}</span>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Deadline Date */}
+          {/* Platform Selection */}
           <div>
-            <label htmlFor="deadline" style={{ 
+            <label style={{ 
               fontWeight: '700', 
               display: 'block', 
               marginBottom: '12px', 
@@ -344,94 +399,175 @@ export default function SetTask() {
               fontSize: '16px',
               letterSpacing: '-0.025em'
             }}>
-              Posting Date
+              Target Social Media Platforms
             </label>
-            <input
-              type="date"
-              id="deadline"
-              value={deadline}
-              min={minDate}
-              max={maxDate}
-              onChange={e => setDeadline(e.target.value)}
-              onFocus={e => {
-                e.target.style.borderColor = '#3b82f6';
-                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-              }}
-              onBlur={e => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.boxShadow = 'none';
-              }}
-              style={{ 
-                padding: '16px 20px', 
-                borderRadius: '12px', 
-                border: '2px solid #e5e7eb', 
-                fontSize: '15px', 
-                background: '#fafbfc', 
-                outline: 'none', 
-                width: '240px',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease'
-              }}
-              required
-            />
+            <div style={{
+              padding: '24px',
+              background: '#fafbfc',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb'
+            }}>
+              <PlatformSelector 
+                selectedPlatforms={selectedPlatforms}
+                onPlatformChange={handlePlatformChange}
+              />
+              <p style={{
+                fontSize: '14px',
+                color: '#6b7280',
+                margin: '12px 0 0 0',
+                fontWeight: '500'
+              }}>
+                Select platforms where content will be automatically posted
+              </p>
+            </div>
+          </div>
+
+          {/* Posting Date & Time */}
+          <div>
+            <label style={{ 
+              fontWeight: '700', 
+              display: 'block', 
+              marginBottom: '12px', 
+              color: '#1f2937', 
+              fontSize: '16px',
+              letterSpacing: '-0.025em'
+            }}>
+              Posting Date & Time
+            </label>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div>
+                <label htmlFor="deadline" style={{ 
+                  fontSize: '14px', 
+                  color: '#6b7280', 
+                  fontWeight: '600',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Date
+                </label>
+                <input
+                  type="date"
+                  id="deadline"
+                  value={deadline}
+                  min={minDate}
+                  max={maxDate}
+                  onChange={e => setDeadline(e.target.value)}
+                  onFocus={e => {
+                    e.target.style.borderColor = '#f59e0b';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  style={{ 
+                    padding: '16px 20px', 
+                    borderRadius: '12px', 
+                    border: '2px solid #e5e7eb', 
+                    fontSize: '15px', 
+                    background: '#fafbfc', 
+                    outline: 'none', 
+                    width: '200px',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="deadlineTime" style={{ 
+                  fontSize: '14px', 
+                  color: '#6b7280', 
+                  fontWeight: '600',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Time
+                </label>
+                <input
+                  type="time"
+                  id="deadlineTime"
+                  value={deadlineTime}
+                  onChange={e => setDeadlineTime(e.target.value)}
+                  onFocus={e => {
+                    e.target.style.borderColor = '#f59e0b';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                  style={{ 
+                    padding: '16px 20px', 
+                    borderRadius: '12px', 
+                    border: '2px solid #e5e7eb', 
+                    fontSize: '15px', 
+                    background: '#fafbfc', 
+                    outline: 'none', 
+                    width: '160px',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  required
+                />
+              </div>
+            </div>
+            <p style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              margin: '8px 0 0 0',
+              fontWeight: '500'
+            }}>
+              Content will be automatically posted at the specified date and time
+            </p>
           </div>
           
           <button 
             type="submit" 
             disabled={loading} 
             style={{ 
-              ...componentStyles.button,
-              ...(loading ? { background: '#9ca3af', cursor: 'not-allowed', boxShadow: 'none' } : componentStyles.buttonPrimary),
+              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '16px 32px',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: loading ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.3)',
               marginTop: '24px',
               alignSelf: 'flex-start'
             }}
             onMouseEnter={e => {
               if (!loading) {
-                e.target.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
+                e.target.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.4)';
+                e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
               }
             }}
             onMouseLeave={e => {
               if (!loading) {
-                e.target.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
               }
             }}
           >
+            <FiSend size={16} />
             {loading ? 'Submitting Task...' : 'Submit Task'}
           </button>
-          
-          {error && (
-            <div style={{ 
-              color: '#ef4444', 
-              padding: '16px 20px',
-              background: '#fef2f2',
-              border: '2px solid #fecaca',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600'
-            }}>
-              {error}
-            </div>
-          )}
-          
-          {submitted && (
-            <div style={{ 
-              color: '#059669', 
-              padding: '16px 20px',
-              background: '#f0fdf4',
-              border: '2px solid #bbf7d0',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600'
-            }}>
-              Task submitted successfully!
-            </div>
-          )}
+
         </form>
       </div>
+      
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

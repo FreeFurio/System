@@ -8,9 +8,9 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "cloudinary": "^2.7.0",
     "fabric": "^6.7.1",
     "firebase": "^11.9.1",
-    "polotno": "^2.25.11",
     "rc-slider": "^11.1.8",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

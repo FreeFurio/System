@@ -1,20 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut, FiHome, FiEdit, FiClipboard, FiMenu } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiEdit, FiClipboard, FiClock, FiMenu, FiFileText } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
+import ContentCreatorSettings from './ContentCreatorSettings';
 import '../../styles/Admin.css';
 
 const sidebarItems = [
   { label: 'Dashboard', path: '/content/dashboard', icon: FiHome },
   { label: 'Create Content', path: '/content/create', icon: FiEdit },
   { label: 'Task', path: '/content/task', icon: FiClipboard },
+  { label: 'Drafts', path: '/content/drafts', icon: FiFileText },
+  { label: 'Ongoing Approval', path: '/content/approval', icon: FiClock },
 ];
 
 export default function ContentCreatorLayout() {
   const { user, setUser } = useUser();
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const profileRef = useRef(null);
   const location = useLocation();
 
@@ -96,23 +100,25 @@ export default function ContentCreatorLayout() {
               }}
               onClick={() => setShowProfile((prev) => !prev)}
             >
-              <span className="header-profile-avatar" style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: '50%', 
-                background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center',
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: 22, 
-                color: '#fff', 
-                fontWeight: 700,
-                flexShrink: 0
-              }}>
-                <FiUser size={24} color="#F6C544" />
-              </span>
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  style={{ 
+                    width: 40, height: 40, borderRadius: '50%', 
+                    objectFit: 'cover', flexShrink: 0
+                  }} 
+                />
+              ) : (
+                <span style={{ 
+                  width: 40, height: 40, borderRadius: '50%', 
+                  background: '#e74c3c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  flexShrink: 0
+                }}>
+                  <FiUser size={24} color="#fff" />
+                </span>
+              )}
             </button>
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
@@ -120,7 +126,13 @@ export default function ContentCreatorLayout() {
                   <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName || 'Content'} {user?.lastName || 'Creator'}</div>
                   <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Content Creator'}</div>
                 </div>
-                <button style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button 
+                  onClick={() => {
+                    setShowSettings(true);
+                    setShowProfile(false);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
                   <FiSettings style={{ marginRight: 8 }} /> Settings
                 </button>
                 <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c' }}>
@@ -136,7 +148,7 @@ export default function ContentCreatorLayout() {
         {!sidebarCollapsed && (
           <div className="sidebar" style={{
             width: '220px',
-            background: '#f8f9fb',
+            background: '#ffffff',
             borderRight: '1px solid #ececec',
             padding: '32px 0 24px 0',
             borderRadius: 0,
@@ -158,37 +170,40 @@ export default function ContentCreatorLayout() {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: 16, 
-                padding: '14px 12px', 
-                background: '#f8f9fb', 
-                borderRadius: 0, 
-                boxShadow: 'none'
+                padding: '20px 16px', 
+                background: '#f8fafc', 
+                borderRadius: '12px', 
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e5e7eb'
               }}>
-                <span className="header-profile-avatar" style={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: '50%', 
-                  background: user?.profilePicture ? `url(${user.profilePicture})` : '#e74c3c',
-                  backgroundSize: 'cover', 
-                  backgroundPosition: 'center',
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  fontSize: 28, 
-                  color: '#fff', 
-                  fontWeight: 700,
-                  flexShrink: 0
-                }}>
-                  <FiUser size={28} color="#F6C544" />
-                </span>
+                {user?.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt="Profile" 
+                    style={{ 
+                      width: 48, height: 48, borderRadius: '50%', 
+                      objectFit: 'cover', flexShrink: 0
+                    }} 
+                  />
+                ) : (
+                  <span style={{ 
+                    width: 48, height: 48, borderRadius: '50%', 
+                    background: '#e74c3c',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    flexShrink: 0
+                  }}>
+                    <FiUser size={28} color="#fff" />
+                  </span>
+                )}
                 <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div className="user-name" style={{ 
                     fontWeight: 700, 
                     fontSize: 17, 
                     color: '#222', 
-                    lineHeight: 1.1, 
-                    whiteSpace: 'nowrap', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis' 
+                    lineHeight: '1.2', 
+                    whiteSpace: 'normal', 
+                    maxHeight: '2.4em', 
+                    overflow: 'hidden' 
                   }}>{user?.firstName || 'Content'} {user?.lastName || 'Creator'}</div>
                   <div className="user-role" style={{ 
                     fontSize: 13, 
@@ -204,27 +219,30 @@ export default function ContentCreatorLayout() {
               flexDirection: 'column', 
               gap: 8, 
               marginTop: 10, 
-              minHeight: 0
+              minHeight: 0,
+              padding: '0 12px'
             }}>
-              {sidebarItems.map(item => (
+              {sidebarItems.map((item, index) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
                   style={{
-                    padding: '12px 24px',
+                    padding: '14px 20px',
                     fontWeight: 600,
-                    borderRadius: 8,
-                    color: location.pathname === item.path ? '#fff' : '#222',
-                    background: location.pathname === item.path ? '#e53935' : 'none',
-                    marginBottom: 4,
+                    borderRadius: 12,
+                    color: location.pathname === item.path ? '#fff' : '#374151',
+                    background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                    marginBottom: 6,
                     textDecoration: 'none',
-                    transition: 'background 0.2s, color 0.2s',
+                    transition: 'all 0.2s ease',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                    fontSize: 15
                   }}
                 >
-                  <item.icon size={18} style={{ marginRight: 12 }} />
+                  <item.icon size={20} style={{ marginRight: 14 }} />
                   {item.label}
                 </Link>
               ))}
@@ -258,6 +276,11 @@ export default function ContentCreatorLayout() {
           </div>
         </div>
       </footer>
+      
+      <ContentCreatorSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </div>
   );
 }

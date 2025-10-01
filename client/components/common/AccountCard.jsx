@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import './AccountCard.css';
 import UserDetailsModal from './UserDetailsModal';
-import { FiMail, FiUser } from 'react-icons/fi';
+import { FiMail, FiUser, FiCalendar, FiCheck, FiX, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { hoverEffects } from '../../styles/designSystem';
 
 const formatRole = (role) => role.replace(/([a-z])([A-Z])/g, '$1 $2');
 
-const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
+const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApproved = false }) => {
   const [showDetails, setShowDetails] = useState(false);
   const initial = (account.firstName || 'U').charAt(0).toUpperCase();
 
   const getRoleColor = (role) => {
     const colors = {
-      'ContentCreator': '#8b5cf6',
-      'MarketingLead': '#3b82f6', 
-      'GraphicDesigner': '#10b981'
+      'ContentCreator': '#ff6b35',
+      'MarketingLead': '#ff9a56', 
+      'GraphicDesigner': '#ff8142'
     };
-    return colors[role] || '#6b7280';
+    return colors[role] || '#ff7a47';
   };
 
   return (
@@ -24,122 +25,150 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
         className="account-card-new"
         onClick={() => setShowDetails(true)}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '16px 20px',
-          background: 'var(--bg-primary, #fff)',
-          border: '1px solid var(--border-primary, #e5e7eb)',
-          borderRadius: '8px',
-          boxShadow: 'none',
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '20px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
           cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          marginBottom: '8px',
-          borderLeft: `4px solid ${getRoleColor(account.role)}`,
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          outline: 'none',
-          WebkitTapHighlightColor: 'transparent',
-          WebkitTouchCallout: 'none',
-          WebkitAppearance: 'none'
+          transition: 'all 0.3s ease',
+          userSelect: 'none'
         }}
-        onMouseEnter={(e) => {
-          e.target.style.boxShadow = 'none';
-          e.target.style.transform = 'translateY(-1px)';
+        onMouseEnter={e => {
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+          e.currentTarget.style.transform = 'translateY(-2px)';
         }}
-        onMouseLeave={(e) => {
-          e.target.style.boxShadow = 'none';
-          e.target.style.transform = 'translateY(0)';
+        onMouseLeave={e => {
+          e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+          e.currentTarget.style.transform = 'translateY(0)';
         }}
-        onMouseDown={(e) => e.preventDefault()}
-        onFocus={(e) => e.target.blur()}
       >
-        {/* Avatar */}
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '8px',
-          background: `${getRoleColor(account.role)}20`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '16px',
-          fontWeight: '600',
-          color: getRoleColor(account.role),
-          marginRight: '12px',
-          border: `2px solid ${getRoleColor(account.role)}30`,
-          position: 'relative'
-        }}>
-          {initial}
-          <div style={{
-            position: 'absolute',
-            bottom: '-2px',
-            right: '-2px',
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: '#10b981',
-            border: '2px solid var(--bg-primary, #fff)'
-          }} />
-        </div>
-
-        {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: '15px',
+        {/* Header with Icon and Title */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: isApproved && account.profilePicture ? 'transparent' : 
+                         isApproved ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' :
+                         'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontSize: '20px',
+              fontWeight: '600',
+              overflow: 'hidden'
+            }}>
+              {isApproved && account.profilePicture ? (
+                <img 
+                  src={account.profilePicture} 
+                  alt={`${account.firstName} ${account.lastName}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <FiUser size={24} />
+              )}
+            </div>
+            <div style={{ background: '#fff' }}>
+              <div className="text-bg" style={{
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#1f2937',
+                marginBottom: '4px',
+                letterSpacing: '-0.025em',
+                background: '#fff'
+              }}>
+                {account.firstName} {account.lastName}
+              </div>
+              <div className="text-bg" style={{
+                fontSize: '14px',
+                color: '#6b7280',
+                fontWeight: '500',
+                background: '#fff'
+              }}>
+                {formatRole(account.role)}
+              </div>
+            </div>
+          </div>
+          <span style={{
+            background: isApproved ? '#d1fae5' : '#fed7aa',
+            color: isApproved ? '#065f46' : '#9a3412',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '11px',
             fontWeight: '600',
-            color: 'var(--text-primary, #1f2937)',
-            marginBottom: '2px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
           }}>
-            {account.firstName} {account.lastName}
-          </div>
-          
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '2px'
-          }}>
-            <span style={{
-              fontSize: '12px',
-              fontWeight: '500',
-              color: getRoleColor(account.role),
-              background: `${getRoleColor(account.role)}15`,
-              padding: '2px 6px',
-              borderRadius: '4px'
-            }}>
-              {formatRole(account.role)}
-            </span>
-          </div>
+            {isApproved ? 'APPROVED' : 'PENDING'}
+          </span>
+        </div>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            color: 'var(--text-secondary, #6b7280)',
-            fontSize: '13px'
+        <div style={{ marginBottom: '20px', background: '#fff' }}>
+          <div style={{ 
+            fontSize: '14px', 
+            fontWeight: '600', 
+            color: '#374151', 
+            marginBottom: '8px',
+            background: '#fff'
           }}>
-            <FiMail size={12} />
-            <span style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
-              {account.email}
-            </span>
+            Account Details:
+          </div>
+          <div style={{ 
+            fontSize: '16px', 
+            color: '#1f2937', 
+            lineHeight: '1.6',
+            fontWeight: '500',
+            background: '#fff'
+          }}>
+            {account.email}
           </div>
         </div>
 
-        {/* Actions */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: '16px',
+          marginBottom: '20px',
+          padding: '20px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0'
+        }}>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
+              {isApproved ? 'Member since:' : 'Created:'}
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+              {new Date().toLocaleDateString()}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Role:</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+              {formatRole(account.role)}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Status:</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+              {isApproved ? 'Active' : 'Pending'}
+            </div>
+          </div>
+        </div>
+
         <div style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          marginLeft: '12px'
+          gap: '12px',
+          justifyContent: 'flex-end',
+          marginTop: '24px'
         }}>
           {onDelete && (
             <>
@@ -147,20 +176,31 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
                 <button
                   onClick={(e) => { e.stopPropagation(); onModify(); }}
                   style={{
-                    background: '#3b82f6',
+                    background: '#10b981',
                     color: '#fff',
                     border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '500',
+                    padding: '8px 16px',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    fontWeight: '600',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '6px',
+                    height: '36px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                   }}
                 >
-                  <FiUser size={12} />
+                  <FiEdit size={14} />
                   Modify
                 </button>
               )}
@@ -170,13 +210,28 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
                   background: '#ef4444',
                   color: '#fff',
                   border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                 }}
               >
+                <FiTrash2 size={14} />
                 Delete
               </button>
             </>
@@ -189,13 +244,28 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
                   background: '#10b981',
                   color: '#fff',
                   border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                 }}
               >
+                <FiCheck size={14} />
                 Accept
               </button>
               <button
@@ -204,13 +274,28 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
                   background: '#ef4444',
                   color: '#fff',
                   border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                 }}
               >
+                <FiX size={14} />
                 Reject
               </button>
             </>
@@ -226,6 +311,7 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify }) => {
         onReject={onReject}
         onModify={onModify}
         onDelete={onDelete}
+        isApproved={isApproved}
       />
     </>
   );

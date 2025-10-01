@@ -76,67 +76,206 @@ const AdminDashboard = () => {
     );
   }
 
-  const StatCard = ({ icon: Icon, title, value, color, bgColor }) => (
-    <div style={componentStyles.statCard}>
-      <div style={{ ...componentStyles.statIcon, background: bgColor }}>
-        <Icon size={24} color={color} />
+  const StatCard = ({ icon: Icon, title, value, badge, color = 'blue' }) => (
+    <div style={{
+      background: '#fff',
+      border: '1px solid #e5e7eb',
+      borderRadius: '12px',
+      padding: '20px',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+      transition: 'all 0.2s ease',
+      cursor: 'pointer'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
+            background: color === 'blue' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' :
+                       color === 'green' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' :
+                       color === 'orange' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' :
+                       'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}>
+            <Icon size={28} />
+          </div>
+          <div>
+            <div style={{
+              fontSize: '16px',
+              fontWeight: '500',
+              color: '#6b7280',
+              marginBottom: '4px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              {title}
+            </div>
+          </div>
+        </div>
+        <span style={{
+          background: color === 'blue' ? '#dbeafe' :
+                     color === 'green' ? '#d1fae5' :
+                     color === 'orange' ? '#fed7aa' :
+                     '#e0e7ff',
+          color: color === 'blue' ? '#1e40af' :
+                color === 'green' ? '#065f46' :
+                color === 'orange' ? '#9a3412' :
+                '#5b21b6',
+          padding: '4px 8px',
+          borderRadius: '6px',
+          fontSize: '11px',
+          fontWeight: '600',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          {badge}
+        </span>
       </div>
-      <div>
-        <h3 style={componentStyles.statValue}>{value}</h3>
-        <p style={componentStyles.statLabel}>{title}</p>
+      <div style={{
+        fontSize: '36px',
+        fontWeight: '800',
+        color: '#111827',
+        marginBottom: '8px',
+        lineHeight: '1'
+      }}>
+        {value}
       </div>
     </div>
   );
 
   return (
-    <div style={componentStyles.pageContainer}>
+    <>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    <div style={{
+      padding: '24px',
+      backgroundColor: '#ffffff',
+      minHeight: '100vh'
+    }}>
       {/* Header */}
-      <div style={componentStyles.pageHeader}>
-        <h1 style={componentStyles.pageTitle}>Admin Dashboard</h1>
-        <p style={componentStyles.pageSubtitle}>
-          Overview of your salon management system
-        </p>
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          margin: 0,
+          color: '#111827',
+          fontSize: '32px',
+          fontWeight: '800',
+          letterSpacing: '-0.025em'
+        }}>Admin Dashboard</h1>
+        <p style={{
+          margin: '8px 0 0 0',
+          color: '#6b7280',
+          fontSize: '16px',
+          fontWeight: '400'
+        }}>Overview of your digital marketing system</p>
       </div>
 
       {/* Stats Grid */}
-      <div style={componentStyles.statsGrid}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+        marginBottom: '32px'
+      }}>
         <StatCard
           icon={FiUsers}
           title="Total Users"
           value={stats.totalUsers}
-          color="#3b82f6"
-          bgColor="#eff6ff"
+          badge="TOTAL"
+          color="blue"
         />
         <StatCard
           icon={FiUserCheck}
           title="Active Users"
           value={stats.activeUsers}
-          color="#10b981"
-          bgColor="#f0fdf4"
+          badge="ACTIVE"
+          color="green"
         />
         <StatCard
           icon={FiUserX}
           title="Pending Approvals"
           value={stats.pendingApprovals}
-          color="#f59e0b"
-          bgColor="#fffbeb"
+          badge="PENDING"
+          color="orange"
         />
         <StatCard
           icon={FiActivity}
           title="System Status"
-          value="Active"
-          color="#10b981"
-          bgColor="#f0fdf4"
+          value="Online"
+          badge="STATUS"
+          color="purple"
         />
       </div>
 
       {/* Role Breakdown & Recent Activity */}
-      <div style={componentStyles.twoColumnGrid}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: '24px'
+      }}>
         {/* Role Breakdown */}
-        <div style={componentStyles.card}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', margin: '0 0 20px 0' }}>
-            Users by Role
-          </h2>
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff'
+              }}>
+                <FiUsers size={20} />
+              </div>
+              <div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: '#111827',
+                  marginBottom: '2px'
+                }}>
+                  Users by Role
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#6b7280'
+                }}>
+                  Role distribution overview
+                </div>
+              </div>
+            </div>
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {Object.entries(stats.roleBreakdown).map(([role, count]) => {
               const percentage = stats.activeUsers > 0 ? (count / stats.activeUsers * 100).toFixed(1) : 0;
@@ -163,10 +302,52 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div style={componentStyles.card}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', margin: '0 0 20px 0' }}>
-            Recent Activity
-          </h2>
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff'
+              }}>
+                <FiActivity size={20} />
+              </div>
+              <div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: '#111827',
+                  marginBottom: '2px'
+                }}>
+                  Recent Activity
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#6b7280'
+                }}>
+                  Latest system events
+                </div>
+              </div>
+            </div>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#10b981',
+              animation: 'pulse 2s infinite'
+            }} />
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {stats.recentActivity.length > 0 ? stats.recentActivity.map((activity, index) => (
               <div key={index} style={{
@@ -195,6 +376,7 @@ const AdminDashboard = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

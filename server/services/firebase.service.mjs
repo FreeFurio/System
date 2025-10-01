@@ -198,6 +198,7 @@ class FirebaseService {
         minAge: workflowData.minAge,
         maxAge: workflowData.maxAge,
         deadline: workflowData.deadline,
+        selectedPlatforms: workflowData.selectedPlatforms || [],
         status: 'content_creation',
         currentStage: 'contentcreator',
         createdAt: new Date().toISOString(),
@@ -214,6 +215,15 @@ class FirebaseService {
       
       const workflowRef = push(ref(db, 'workflows'));
       await set(workflowRef, workflow);
+      
+      // Create notification for new task
+      await this.createContentCreatorNotification({
+        type: 'new_task',
+        message: `New task assigned: ${workflow.objectives}`,
+        workflowId: workflowRef.key,
+        user: 'Content Creator'
+      });
+      
       console.log('🔄 createWorkflow success - Workflow created with key:', workflowRef.key);
       return workflowRef.key;
     } catch (error) {
@@ -233,8 +243,27 @@ class FirebaseService {
         return [];
       }
       
+      const now = new Date();
       const result = Object.entries(workflows)
-        .filter(([key, workflow]) => workflow.currentStage === stage)
+        .filter(([key, workflow]) => {
+          // Update status if deadline has passed for approved designs
+          if (workflow.status === 'design_approved' && workflow.deadline) {
+            const deadline = new Date(workflow.deadline);
+            if (now >= deadline) {
+              // Update to posted status
+              this.updateWorkflowStatus(key, 'posted', { currentStage: 'completed' });
+              workflow.status = 'posted';
+              workflow.currentStage = 'completed';
+            }
+          }
+          
+          if (stage === 'contentcreator') {
+            // Show tasks that are in content creation stage OR have been rejected and need rework
+            return workflow.currentStage === stage && 
+                   (workflow.status === 'content_creation' || workflow.status === 'content_rejected');
+          }
+          return workflow.currentStage === stage;
+        })
         .map(([key, workflow]) => ({ id: key, ...workflow }));
       
       console.log('📋 getWorkflowsByStage result:', result.length + ' workflows found for stage:', stage);
@@ -242,6 +271,39 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error getting workflows by stage:', error);
       throw new AppError('Failed to get workflows', 500);
+    }
+  }
+
+  static async saveDesignDraft(workflowId, draftData) {
+    console.log('💾 saveDesignDraft called with:', { workflowId, draftData });
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        graphicDesigner: {
+          ...workflow.graphicDesigner,
+          designUrl: draftData.designUrl,
+          publicId: draftData.publicId,
+          canvasData: draftData.canvasData,
+          description: draftData.description,
+          savedAt: draftData.savedAt
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('💾 saveDesignDraft success - Design draft saved to Cloudinary');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error saving design draft:', error);
+      throw new Error('Failed to save design draft');
     }
   }
 
@@ -261,6 +323,7 @@ class FirebaseService {
         status: 'design_approval',
         currentStage: 'marketinglead',
         graphicDesigner: {
+          ...workflow.graphicDesigner,
           designs: designData,
           submittedAt: new Date().toISOString()
         },
@@ -268,7 +331,15 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
-      console.log('🎨 submitDesign success - Design submitted');
+      
+      // Create notification for Marketing Lead
+      await this.createMarketingNotification({
+        type: 'design_submitted',
+        message: `Design submitted for approval: ${workflow.objectives}`,
+        user: 'Graphic Designer'
+      });
+      
+      console.log('🎨 submitDesign success - Design submitted with canvas data preserved');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error submitting design:', error);
@@ -287,9 +358,22 @@ class FirebaseService {
         return null;
       }
       
-      const result = snapshot.val();
+      const workflow = snapshot.val();
+      
+      // Update status if deadline has passed for approved designs
+      if (workflow.status === 'design_approved' && workflow.deadline) {
+        const now = new Date();
+        const deadline = new Date(workflow.deadline);
+        if (now >= deadline) {
+          // Update to posted status
+          await this.updateWorkflowStatus(workflowId, 'posted', { currentStage: 'completed' });
+          workflow.status = 'posted';
+          workflow.currentStage = 'completed';
+        }
+      }
+      
       console.log('📄 getWorkflowById success - Workflow found');
-      return { id: workflowId, ...result };
+      return { id: workflowId, ...workflow };
     } catch (error) {
       console.error('❌ Error getting workflow by ID:', error);
       throw new AppError('Failed to get workflow', 500);
@@ -307,24 +391,69 @@ class FirebaseService {
       }
       
       const workflow = snapshot.val();
+      const now = new Date();
+      const deadline = new Date(workflow.deadline);
+      
+      // Check if deadline has passed
+      const status = now >= deadline ? 'posted' : 'design_approved';
+      const currentStage = now >= deadline ? 'completed' : 'approved';
+      
       const updatedWorkflow = {
         ...workflow,
-        status: 'posted',
-        currentStage: 'completed',
+        status: status,
+        currentStage: currentStage,
         finalApproval: {
           approvedAt: new Date().toISOString(),
-          approvedBy: approvedBy,
-          postedAt: new Date().toISOString()
+          approvedBy: approvedBy
         },
         updatedAt: new Date().toISOString()
       };
       
       await set(workflowRef, updatedWorkflow);
-      console.log('✅ approveDesign success - Design approved and posted');
+      
+      // Auto-post if deadline has passed
+      if (status === 'posted') {
+        console.log('📢 Triggering auto-post for approved design');
+        await this.autoPostToSocialMedia(workflowId, updatedWorkflow);
+      }
+      
+      console.log(`✅ approveDesign success - Design approved, status: ${status}`);
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error approving design:', error);
       throw new Error('Failed to approve design');
+    }
+  }
+
+  static async rejectDesign(workflowId, rejectedBy, feedback) {
+    console.log('❌ rejectDesign called with workflowId:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'design_rejected',
+        currentStage: 'graphicdesigner',
+        marketingRejection: {
+          rejectedAt: new Date().toISOString(),
+          rejectedBy: rejectedBy,
+          feedback: feedback
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('❌ rejectDesign success - Design rejected and returned to graphic designer');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error rejecting design:', error);
+      throw new Error('Failed to reject design');
     }
   }
 
@@ -336,10 +465,24 @@ class FirebaseService {
       
       if (!workflows) return [];
       
+      const now = new Date();
       const result = Object.entries(workflows)
-        .map(([key, workflow]) => ({ id: key, ...workflow }));
+        .map(([key, workflow]) => {
+          // Update status if deadline has passed for approved designs
+          if (workflow.status === 'design_approved' && workflow.deadline) {
+            const deadline = new Date(workflow.deadline);
+            if (now >= deadline) {
+              // Update to posted status
+              this.updateWorkflowStatus(key, 'posted', { currentStage: 'completed' });
+              workflow.status = 'posted';
+              workflow.currentStage = 'completed';
+            }
+          }
+          return { id: key, ...workflow };
+        });
       
       console.log('📋 getAllWorkflows result:', result.length + ' workflows found');
+      console.log('📋 getAllWorkflows statuses:', result.map(w => ({ id: w.id, status: w.status, stage: w.currentStage })));
       return result;
     } catch (error) {
       console.error('❌ Error getting all workflows:', error);
@@ -392,11 +535,22 @@ class FirebaseService {
           content: contentData,
           submittedAt: new Date().toISOString()
         },
+        marketingRejection: null,
         updatedAt: new Date().toISOString()
       };
       
       await set(workflowRef, updatedWorkflow);
-      console.log('📤 submitContent success - Content submitted');
+      
+      // Create notification for content submission
+      await this.createContentCreatorNotification({
+        type: 'content_submitted',
+        message: `Content submitted successfully for: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: 'Content Creator'
+      });
+      
+      console.log('📤 submitContent success - Content with SEO analysis saved to database');
+      console.log('📊 SEO data saved:', contentData.seoAnalysis ? 'Yes' : 'No');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error submitting content:', error);
@@ -454,11 +608,61 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for content approval
+      await this.createContentCreatorNotification({
+        type: 'content_approved',
+        message: `Your content has been approved: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: 'Content Creator'
+      });
+      
       console.log('✅ approveContent success - Content approved, ready for design assignment');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error approving content:', error);
       throw new Error('Failed to approve content');
+    }
+  }
+
+  static async rejectContent(workflowId, rejectedBy, feedback) {
+    console.log('❌ rejectContent called with workflowId:', workflowId);
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const workflow = snapshot.val();
+      const updatedWorkflow = {
+        ...workflow,
+        status: 'content_rejected',
+        currentStage: 'contentcreator',
+        marketingRejection: {
+          rejectedAt: new Date().toISOString(),
+          rejectedBy: rejectedBy,
+          feedback: feedback
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for content rejection
+      await this.createContentCreatorNotification({
+        type: 'content_rejected',
+        message: `Your content has been rejected: ${workflow.objectives}. Please review feedback and resubmit.`,
+        workflowId: workflowId,
+        user: 'Content Creator'
+      });
+      
+      console.log('❌ rejectContent success - Content rejected and returned to content creator');
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error rejecting content:', error);
+      throw new Error('Failed to reject content');
     }
   }
 
@@ -483,8 +687,21 @@ class FirebaseService {
       
       if (!workflows) return [];
       
+      const now = new Date();
       const filteredWorkflows = Object.entries(workflows)
-        .filter(([key, workflow]) => workflow.status === status)
+        .filter(([key, workflow]) => {
+          // Update status if deadline has passed for approved designs
+          if (workflow.status === 'design_approved' && workflow.deadline) {
+            const deadline = new Date(workflow.deadline);
+            if (now >= deadline) {
+              // Update to posted status
+              this.updateWorkflowStatus(key, 'posted', { currentStage: 'completed' });
+              workflow.status = 'posted';
+              workflow.currentStage = 'completed';
+            }
+          }
+          return workflow.status === status;
+        })
         .map(([key, workflow]) => ({ id: key, ...workflow }));
       
       console.log('📈 getWorkflowsByStatus result:', filteredWorkflows.length + ' workflows found');
@@ -492,6 +709,79 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error getting workflows by status:', error);
       throw new AppError('Failed to get workflows', 500);
+    }
+  }
+
+  static async getWorkflowsByMultipleStatuses(statuses) {
+    console.log('📈 getWorkflowsByMultipleStatuses called with statuses:', statuses);
+    try {
+      const snapshot = await get(ref(db, 'workflows'));
+      const workflows = snapshot.val();
+      
+      if (!workflows) return [];
+      
+      const now = new Date();
+      const filteredWorkflows = Object.entries(workflows)
+        .filter(([key, workflow]) => {
+          // Update status if deadline has passed for approved designs
+          if (workflow.status === 'design_approved' && workflow.deadline) {
+            const deadline = new Date(workflow.deadline);
+            if (now >= deadline) {
+              // Update to posted status
+              this.updateWorkflowStatus(key, 'posted', { currentStage: 'completed' });
+              workflow.status = 'posted';
+              workflow.currentStage = 'completed';
+            }
+          }
+          
+          // For design-related statuses, check if graphicDesigner exists
+          if (statuses.includes('design_approval') || statuses.includes('design_rejected') || statuses.includes('posted') || statuses.includes('design_approved')) {
+              return statuses.includes(workflow.status);
+          }
+          // For content-related statuses, check if contentCreator exists
+          return workflow.contentCreator && statuses.includes(workflow.status);
+        })
+        .map(([key, workflow]) => ({ id: key, ...workflow }));
+      
+      console.log('📈 getWorkflowsByMultipleStatuses result:', filteredWorkflows.length + ' workflows found');
+      return filteredWorkflows;
+    } catch (error) {
+      console.error('❌ Error getting workflows by multiple statuses:', error);
+      throw new AppError('Failed to get workflows', 500);
+    }
+  }
+
+  static async updateWorkflowStatus(workflowId, status, additionalData = {}) {
+    console.log('🔄 updateWorkflowStatus called with:', { workflowId, status, additionalData });
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Workflow not found');
+      }
+      
+      const currentWorkflow = snapshot.val();
+      const updatedWorkflow = {
+        ...currentWorkflow,
+        status,
+        ...additionalData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      
+      // Auto-post to social media when status changes to 'posted'
+      if (status === 'posted' && currentWorkflow.status !== 'posted') {
+        console.log('📢 Triggering auto-post for workflow:', workflowId);
+        await this.autoPostToSocialMedia(workflowId, updatedWorkflow);
+      }
+      
+      console.log('🔄 updateWorkflowStatus success - Status updated to:', status);
+      return updatedWorkflow;
+    } catch (error) {
+      console.error('❌ Error updating workflow status:', error);
+      throw new Error('Failed to update workflow status');
     }
   }
 
@@ -527,6 +817,49 @@ class FirebaseService {
     }
   }
 
+  static async createMarketingNotification(notificationData) {
+    console.log('🔔 createMarketingNotification called with data:', notificationData);
+    try {
+      const createNotifRef = push(ref(db, 'notification/marketing'));
+      const notifData = {
+        type: notificationData.type,
+        message: notificationData.message,
+        read: notificationData.read || false,
+        timestamp: notificationData.timestamp || new Date().toISOString(),
+        user: notificationData.user
+      };
+      
+      await set(createNotifRef, notifData);
+      console.log('🔔 createMarketingNotification success - Notification saved');
+      return createNotifRef.key;
+    } catch (error) {
+      console.error('❌ Error saving Marketing notification:', error);
+      throw new Error('Failed to save Marketing notification');
+    }
+  }
+
+  static async createContentCreatorNotification(notificationData) {
+    console.log('🔔 createContentCreatorNotification called with data:', notificationData);
+    try {
+      const createNotifRef = push(ref(db, 'notification/contentcreator'));
+      const notifData = {
+        type: notificationData.type,
+        message: notificationData.message,
+        read: notificationData.read || false,
+        timestamp: notificationData.timestamp || new Date().toISOString(),
+        workflowId: notificationData.workflowId,
+        user: notificationData.user
+      };
+      
+      await set(createNotifRef, notifData);
+      console.log('🔔 createContentCreatorNotification success - Notification saved');
+      return createNotifRef.key;
+    } catch (error) {
+      console.error('❌ Error saving Content Creator notification:', error);
+      throw new Error('Failed to save Content Creator notification');
+    }
+  }
+
   // ========================
   // 5.2) GET NOTIFICATIONS
   // ========================
@@ -540,6 +873,19 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error getting admin notifications:', error);
       throw new Error('Failed to get admin notifications');
+    }
+  }
+
+  static async getContentCreatorNotifications() {
+    console.log('📬 getContentCreatorNotifications called');
+    try {
+      const snapshot = await get(ref(db, 'notification/contentcreator'));
+      const result = snapshot.val();
+      console.log('📬 getContentCreatorNotifications result:', result ? Object.keys(result).length + ' notifications found' : 'No notifications found');
+      return result;
+    } catch (error) {
+      console.error('❌ Error getting content creator notifications:', error);
+      throw new Error('Failed to get content creator notifications');
     }
   }
 
@@ -717,6 +1063,130 @@ class FirebaseService {
       console.log('✅ Failed attempts cleared for:', username);
     } catch (error) {
       console.error('❌ Error clearing failed attempts:', error);
+    }
+  }
+
+  // ========================
+  // 8) SOCIAL MEDIA AUTO-POSTING
+  // ========================
+  
+  static async autoPostToSocialMedia(workflowId, workflow) {
+    console.log('📢 autoPostToSocialMedia called for workflow:', workflowId);
+    try {
+      // Check if workflow has content and design
+      const content = workflow.contentCreator?.content;
+      const designUrl = workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl;
+      const selectedPlatforms = workflow.selectedPlatforms || [];
+      
+      if (!content || !designUrl || selectedPlatforms.length === 0) {
+        console.log('⚠️ Skipping auto-post - missing content, design, or platforms');
+        return;
+      }
+      
+      // Prepare content for posting
+      const postContent = {
+        headline: content.headline,
+        caption: content.caption,
+        hashtag: content.hashtag,
+        imageUrl: designUrl
+      };
+      
+      console.log('📢 Auto-posting to platforms:', selectedPlatforms.map(p => p.name || p));
+      
+      // Import social media service dynamically
+      const { default: SocialMediaService } = await import('./socialMediaService.mjs');
+      
+      // Post to each selected platform
+      const results = [];
+      for (const platform of selectedPlatforms) {
+        const platformName = platform.name || platform;
+        
+        try {
+          let result;
+          
+          switch (platformName.toLowerCase()) {
+            case 'facebook':
+              console.log('📘 Facebook posting - checking credentials...');
+              if (!process.env.FACEBOOK_PAGE_ACCESS_TOKEN || !process.env.FACEBOOK_PAGE_ID) {
+                console.log('❌ Facebook credentials missing');
+                throw new Error('Facebook credentials not configured');
+              }
+              result = await SocialMediaService.postToFacebook(
+                postContent,
+                process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+                process.env.FACEBOOK_PAGE_ID
+              );
+              break;
+              
+            case 'facebook_profile':
+              console.log('👤 Facebook profile posting - checking credentials...');
+              if (!process.env.FACEBOOK_PAGE_ACCESS_TOKEN) {
+                console.log('❌ Facebook credentials missing');
+                throw new Error('Facebook credentials not configured');
+              }
+              result = await SocialMediaService.postToFacebookProfile(
+                postContent,
+                process.env.FACEBOOK_PAGE_ACCESS_TOKEN
+              );
+              break;
+              
+            case 'twitter':
+              console.log('🐦 Twitter posting - checking credentials...');
+              if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_ACCESS_TOKEN) {
+                console.log('❌ Twitter credentials missing');
+                throw new Error('Twitter credentials not configured');
+              }
+              result = await SocialMediaService.postToTwitter(postContent);
+              break;
+              
+            case 'instagram':
+              console.log('📷 Instagram posting - checking credentials...');
+              if (!process.env.INSTAGRAM_ACCESS_TOKEN || !process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID) {
+                console.log('❌ Instagram credentials missing');
+                throw new Error('Instagram credentials not configured');
+              }
+              result = await SocialMediaService.postToInstagram(
+                postContent,
+                process.env.INSTAGRAM_ACCESS_TOKEN,
+                process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
+              );
+              break;
+              
+            default:
+              console.log('⚠️ Unsupported platform:', platformName);
+              continue;
+          }
+          
+          results.push(result);
+          console.log(`✅ Posted to ${platformName}:`, result.postId);
+          
+        } catch (error) {
+          console.error(`❌ Failed to post to ${platformName}:`, error.message);
+          results.push({
+            success: false,
+            platform: platformName,
+            error: error.message
+          });
+        }
+      }
+      
+      // Update workflow with posting results
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const updatedWorkflow = {
+        ...workflow,
+        socialMediaPosts: {
+          postedAt: new Date().toISOString(),
+          results: results,
+          platforms: selectedPlatforms
+        },
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(workflowRef, updatedWorkflow);
+      console.log('📢 Auto-posting completed for workflow:', workflowId);
+      
+    } catch (error) {
+      console.error('❌ Error in auto-posting:', error);
     }
   }
 }

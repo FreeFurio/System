@@ -1,32 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
 import { FiEye, FiUser, FiCalendar, FiTarget, FiEdit3 } from 'react-icons/fi';
 
-// Inline design system styles
-const componentStyles = {
-  card: { background: '#ffffff', borderRadius: '16px', padding: '24px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb' },
-  button: { display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s ease', fontFamily: 'inherit' },
-  buttonPrimary: { background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: '#ffffff', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }
-};
-
-const TaskCard = ({ task }) => {
+const WorkflowCard = ({ workflow, onCreateDesign }) => {
   const [contentExpanded, setContentExpanded] = useState(false);
   
   const getStatusColor = (status) => {
     switch (status) {
-      case 'created': return '#3b82f6';
-      case 'design_creation': return '#f59e0b';
-      case 'completed': return '#10b981';
-      default: return '#6b7280';
-    }
-  };
-  
-  const getStatusBg = (status) => {
-    switch (status) {
-      case 'created': return '#eff6ff';
-      case 'design_creation': return '#fffbeb';
-      case 'completed': return '#f0fdf4';
-      default: return '#f8fafc';
+      case 'content_creation': return 'linear-gradient(135deg, #e53935, #c62828)';
+      case 'content_approval': return 'linear-gradient(135deg, #F6C544, #f57f17)';
+      case 'design_creation': return 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      case 'design_approval': return 'linear-gradient(135deg, #f57c00, #ef6c00)';
+      case 'posted': return 'linear-gradient(135deg, #388e3c, #2e7d32)';
+      default: return 'linear-gradient(135deg, #757575, #616161)';
     }
   };
 
@@ -39,326 +26,566 @@ const TaskCard = ({ task }) => {
     });
   };
 
+  const canCreateDesign = workflow.status === 'design_creation' && workflow.currentStage === 'graphicdesigner';
+  const hasSubmittedDesign = workflow.graphicDesigner && workflow.graphicDesigner.designs;
+  const hasDraftDesign = workflow.graphicDesigner && workflow.graphicDesigner.canvasData;
+
   return (
-    <div style={componentStyles.card}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div style={{
+      background: '#fff',
+      borderRadius: '16px',
+      padding: '24px',
+      marginBottom: '20px',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      border: '1px solid #e5e7eb',
+      transition: 'all 0.3s ease'
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+      e.currentTarget.style.transform = 'translateY(-2px)';
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+      e.currentTarget.style.transform = 'translateY(0)';
+    }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', background: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '40px', height: '40px',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
             background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-            borderRadius: '50%', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '18px'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
           }}>
             🎨
           </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>
+          <div style={{ background: '#fff' }}>
+            <h3 style={{ 
+              margin: '0 0 4px 0', 
+              color: '#1f2937', 
+              fontSize: '18px', 
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+              background: '#fff'
+            }}>
               Graphic Design Task
             </h3>
-            <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
-              Created {formatDate(task.createdAt)}
+            <p style={{
+              margin: 0,
+              color: '#6b7280',
+              fontSize: '14px',
+              fontWeight: '500',
+              background: '#fff'
+            }}>
+              {workflow.createdAt ? `Created ${formatDate(workflow.createdAt)}` : 'Recently created'}
             </p>
           </div>
         </div>
         <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          padding: '8px 16px', borderRadius: '20px', fontSize: '12px',
-          fontWeight: '700', color: getStatusColor(task.status),
-          background: getStatusBg(task.status), border: `1px solid ${getStatusColor(task.status)}`
+          background: getStatusColor(workflow.status),
+          color: '#fff',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: '700',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          {task.status?.replace('_', ' ').toUpperCase() || 'CREATED'}
+          🎨 {workflow.status?.replace('_', ' ') || 'CREATED'}
         </div>
       </div>
       
-      {/* Objectives */}
-      <div style={{
-        background: '#f8fafc', padding: '16px', borderRadius: '12px',
-        marginBottom: '20px', border: '1px solid #e2e8f0'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <FiTarget size={16} color="#3b82f6" />
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>Task Objectives</span>
+      <div style={{ marginBottom: '20px', background: '#fff' }}>
+        <div style={{ 
+          fontSize: '14px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#fff'
+        }}>
+          🎯 Task Information
         </div>
-        <p style={{ margin: 0, fontSize: '15px', color: '#374151', lineHeight: 1.6 }}>
-          {task.objectives}
-        </p>
-      </div>
-      
-      {/* Task Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FiUser size={16} color="#8b5cf6" />
-          <div>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Target Gender</div>
-            <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600' }}>{task.gender}</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FiTarget size={16} color="#10b981" />
-          <div>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Age Range</div>
-            <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600' }}>{task.minAge}-{task.maxAge} years</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FiCalendar size={16} color="#ef4444" />
-          <div>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Deadline</div>
-            <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600' }}>{formatDate(task.deadline)}</div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Debug - Show task data structure */}
-      <div style={{ background: '#f3f4f6', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '12px' }}>
-        <strong>Debug - Task Data:</strong>
-        <pre>{JSON.stringify(task, null, 2)}</pre>
-      </div>
-      
-      {/* Approved Content - Always Show for Testing */}
-      <div style={{
-        background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-        padding: '24px', borderRadius: '16px', marginBottom: '20px',
-        border: '2px solid #10b981', position: 'relative'
-      }}>
-        {/* Success Badge */}
         <div style={{
-          position: 'absolute', top: '-12px', left: '20px',
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-          color: '#ffffff', padding: '6px 16px', borderRadius: '20px',
-          fontSize: '12px', fontWeight: '700', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px',
+          padding: '16px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0'
         }}>
-          ✅ APPROVED CONTENT
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📋 Objectives</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.objectives}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>👤 Target Gender</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🎂 Age Range</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📅 Deadline</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🏢 Current Stage</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>Graphic Designer</div>
+          </div>
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', marginBottom: '20px' }}>
+      </div>
+      
+      {hasSubmittedDesign && (
+        <div style={{
+          background: 'linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%)',
+          padding: '20px',
+          borderRadius: '16px',
+          marginBottom: '20px',
+          border: '1px solid #81d4fa',
+          boxShadow: '0 2px 8px rgba(3, 169, 244, 0.1)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '20px' }}>🎨</span>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Design Submitted</div>
+                <div style={{ fontSize: '13px', color: '#1565c0' }}>Design ready for final approval</div>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{
+            marginTop: '16px',
+            background: '#ffffff',
+            padding: '16px',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          }}>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: '700', 
+              color: '#374151', 
+              marginBottom: '12px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px' 
+            }}>
+              <span>📋</span> DESIGN DETAILS
+            </div>
+            <div style={{
+              fontSize: '15px',
+              color: '#374151',
+              lineHeight: 1.6
+            }}>
+              Submitted on {new Date(workflow.graphicDesigner.submittedAt).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Approved Content */}
+      <div style={{
+        background: 'transparent',
+        padding: '20px',
+        borderRadius: '12px',
+        marginBottom: '20px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px' }}>✨</span>
-            <span style={{ fontSize: '18px', fontWeight: '700', color: '#065f46' }}>Content Ready for Design</span>
+            <span style={{ fontSize: '18px' }}>✨</span>
+            <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Content Ready for Design</span>
           </div>
           <button
             onClick={() => setContentExpanded(!contentExpanded)}
             style={{
-              background: 'none', border: 'none', color: '#059669',
-              cursor: 'pointer', display: 'flex', alignItems: 'center',
-              gap: '4px', fontSize: '14px', fontWeight: '600'
+              background: 'none',
+              border: 'none',
+              color: '#0ea5e9',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '14px',
+              fontWeight: '600'
             }}
           >
             <FiEye size={14} />
-            {contentExpanded ? 'Hide' : 'View'} Content
+            {contentExpanded ? 'Hide' : 'View'} Details
           </button>
         </div>
         
         {contentExpanded && (
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div>
-              <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📰</span> HEADLINE
-              </div>
-              <div style={{
-                fontSize: '16px', color: '#1e293b', fontWeight: '600',
-                background: '#ffffff', padding: '16px', borderRadius: '12px',
-                border: '1px solid #a7f3d0', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
+          <div style={{
+            marginTop: '0px',
+            padding: '0px',
+            background: 'transparent',
+            borderRadius: '0px',
+            border: 'none'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'flex-start',
+              marginBottom: '24px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid #e5e7eb'
+            }}>
+              <h4 style={{ 
+                margin: 0, 
+                color: '#374151', 
+                fontSize: '16px', 
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
-                {task.contentCreator?.content?.headline || task.content?.headline || 'No headline found'}
-              </div>
+                📝 Content Analysis
+              </h4>
             </div>
             
-            <div>
-              <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📝</span> CAPTION
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Headline Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  background: '#f8fafc'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                    {workflow.contentCreator?.content?.headline || workflow.content?.headline || 'No headline found'}
+                  </div>
+                </div>
+                
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline SEO</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '8px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
+                        height: '100%',
+                        backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease-in-out'
+                      }} />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div style={{
-                fontSize: '15px', color: '#374151', lineHeight: 1.6,
-                background: '#ffffff', padding: '16px', borderRadius: '12px',
-                border: '1px solid #a7f3d0', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
-              }}>
-                {task.contentCreator?.content?.caption || task.content?.caption || 'No caption found'}
+              
+              {/* Caption Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  background: '#f8fafc'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+                  <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                    {workflow.contentCreator?.content?.caption || workflow.content?.caption || 'No caption found'}
+                  </div>
+                </div>
+                
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption SEO</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '8px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
+                        height: '100%',
+                        backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease-in-out'
+                      }} />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🏷️</span> HASHTAGS
-              </div>
-              <div style={{
-                fontSize: '15px', color: '#3b82f6', fontWeight: '600',
-                background: '#ffffff', padding: '16px', borderRadius: '12px',
-                border: '1px solid #a7f3d0', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
-              }}>
-                {task.contentCreator?.content?.hashtag || task.content?.hashtag || 'No hashtags found'}
+              
+              {/* Hashtags Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  background: '#f8fafc'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+                  <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                    {workflow.contentCreator?.content?.hashtag || workflow.content?.hashtag || 'No hashtags found'}
+                  </div>
+                </div>
+                
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Overall SEO Score</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '8px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
+                        height: '100%',
+                        backgroundColor: (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease-in-out'
+                      }} />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
       
-      {/* Original Conditional Content - Keep for reference */}
-      {(task.contentCreator?.content || task.content) && false && (
-        <div style={{
-          background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-          padding: '24px', borderRadius: '16px', marginBottom: '20px',
-          border: '2px solid #10b981', position: 'relative'
-        }}>
-          {/* Success Badge */}
-          <div style={{
-            position: 'absolute', top: '-12px', left: '20px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: '#ffffff', padding: '6px 16px', borderRadius: '20px',
-            fontSize: '12px', fontWeight: '700', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-          }}>
-            ✅ APPROVED CONTENT
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '20px' }}>✨</span>
-              <span style={{ fontSize: '18px', fontWeight: '700', color: '#065f46' }}>Content Ready for Design</span>
-            </div>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+        {canCreateDesign && !hasSubmittedDesign && (
+          <>
+            {hasDraftDesign && (
+              <button
+                onClick={() => onCreateDesign(workflow, true)}
+                style={{
+                  padding: '12px 24px', 
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: 'white',
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  cursor: 'pointer', 
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+                }}
+                onMouseLeave={e => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                }}
+              >
+                ✏️ Edit Draft
+              </button>
+            )}
             <button
-              onClick={() => setContentExpanded(!contentExpanded)}
+              onClick={() => onCreateDesign(workflow)}
               style={{
-                background: 'none', border: 'none', color: '#059669',
-                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                gap: '4px', fontSize: '14px', fontWeight: '600'
+                padding: '12px 24px', 
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                color: 'white',
+                border: 'none', 
+                borderRadius: '12px', 
+                cursor: 'pointer', 
+                fontSize: '14px',
+                fontWeight: '700',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={e => {
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+              }}
+              onMouseLeave={e => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
               }}
             >
-              <FiEye size={14} />
-              {contentExpanded ? 'Hide' : 'View'} Content
+              🎨 {hasDraftDesign ? 'Start New Design' : 'Create Design'}
             </button>
-          </div>
-          
-          {contentExpanded && (
-            <div style={{ display: 'grid', gap: '16px' }}>
-              <div>
-                <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>📰</span> HEADLINE
-                </div>
-                <div style={{
-                  fontSize: '16px', color: '#1e293b', fontWeight: '600',
-                  background: '#ffffff', padding: '16px', borderRadius: '12px',
-                  border: '1px solid #a7f3d0', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
-                }}>
-                  {task.contentCreator?.content?.headline || task.content?.headline}
-                </div>
-              </div>
-              
-              <div>
-                <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>📝</span> CAPTION
-                </div>
-                <div style={{
-                  fontSize: '15px', color: '#374151', lineHeight: 1.6,
-                  background: '#ffffff', padding: '16px', borderRadius: '12px',
-                  border: '1px solid #a7f3d0', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
-                }}>
-                  {task.contentCreator?.content?.caption || task.content?.caption}
-                </div>
-              </div>
-              
-              <div>
-                <div style={{ fontSize: '12px', color: '#065f46', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🏷️</span> HASHTAGS
-                </div>
-                <div style={{
-                  fontSize: '15px', color: '#3b82f6', fontWeight: '600',
-                  background: '#ffffff', padding: '16px', borderRadius: '12px',
-                  border: '1px solid #a7f3d0', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
-                }}>
-                  {task.contentCreator?.content?.hashtag || task.content?.hashtag}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Action Button */}
-      {task.status === 'design_creation' && task.currentStage === 'graphicdesigner' && !task.graphicDesigner?.designs && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-          <button
-            onClick={() => window.location.href = `/graphic/creation?taskId=${task.id}`}
-            style={{
-              ...componentStyles.button,
-              ...componentStyles.buttonPrimary
-            }}
-            onMouseEnter={e => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.4)';
-            }}
-            onMouseLeave={e => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
-            }}
-          >
-            <FiEdit3 size={16} />
-            Create Design
-          </button>
-        </div>
-      )}
-      
-      {task.graphicDesigner?.designs && (
-        <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeaa7' }}>
-          <strong style={{ color: '#856404' }}>📋 Design Submitted:</strong>
-          <div style={{ fontSize: '14px', marginTop: '8px', color: '#856404' }}>
-            Submitted on {new Date(task.graphicDesigner.submittedAt).toLocaleDateString()}
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 };
 
 export default function Task() {
-  const [tasks, setTasks] = useState([]);
+  const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
+    console.log('🎨 Fetching workflows from:', `${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/graphicdesigner`);
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/graphicdesigner`)
-      .then(res => res.json())
+      .then(res => {
+        console.log('🎨 Response status:', res.status);
+        return res.json();
+      })
       .then(data => {
-        console.log("Graphic Designer workflows API response:", data);
-        setTasks(Array.isArray(data.data) ? data.data : []);
+        console.log("🎨 Graphic Designer workflows API response:", data);
+        if (data.status === 'success') {
+          setWorkflows(Array.isArray(data.data) ? data.data : []);
+        } else {
+          console.error('🎨 API returned error:', data.message);
+          setWorkflows([]);
+        }
         setLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching workflows:', err);
-        setTasks([]);
+        console.error('🎨 Error fetching workflows:', err);
+        setWorkflows([]);
         setLoading(false);
       });
 
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
-    socket.on("workflowUpdated", (data) => {
+    socket.on("newWorkflow", (data) => {
       if (data.currentStage === 'graphicdesigner') {
-        setTasks(prev => {
-          const existing = prev.find(t => t.id === data.id);
-          if (existing) {
-            return prev.map(t => t.id === data.id ? data : t);
-          } else {
-            return [data, ...prev];
-          }
-        });
+        setWorkflows(prev => [data, ...(Array.isArray(prev) ? prev : [])]);
       }
+    });
+    socket.on("workflowUpdated", (data) => {
+      setWorkflows(prev => prev.map(workflow => 
+        workflow.id === data.id ? data : workflow
+      ));
     });
     return () => socket.disconnect();
   }, []);
 
+  const handleCreateDesign = (workflow, editDraft = false) => {
+    console.log('🎨 Task Debug - Navigating with workflow.id:', workflow.id);
+    const url = editDraft ? 
+      `/graphic/creation?taskId=${workflow.id}&editDraft=true` : 
+      `/graphic/creation?taskId=${workflow.id}`;
+    navigate(url);
+  };
+
   return (
-    <div className="manage-accounts-page-container">
-      <div className="role-section">
-        <h2>Graphic Design Tasks</h2>
-        {loading ? "Loading..." : (
-          Array.isArray(tasks) && tasks.length === 0
-            ? <div style={{ marginBottom: 20 }}>No tasks available.</div>
-            : Array.isArray(tasks)
-              ? tasks.map(task => (
-                  <TaskCard key={task.id || task._id} task={task} />
+    <div style={{
+      padding: '24px',
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh',
+      fontFamily: 'Inter, sans-serif'
+    }}>
+        <div style={{
+          marginBottom: '32px',
+          padding: '24px',
+          background: '#fff',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h1 style={{
+            margin: 0,
+            color: '#111827',
+            fontSize: '32px',
+            fontWeight: '800',
+            letterSpacing: '-0.025em'
+          }}>Graphic Design Tasks</h1>
+          <p style={{
+            margin: '8px 0 0 0',
+            color: '#6b7280',
+            fontSize: '16px',
+            fontWeight: '400'
+          }}>Create visual designs for approved content workflows</p>
+        </div>
+        
+        {loading ? (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '60px',
+            background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #8b5cf6',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <span style={{ marginLeft: '16px', color: '#6c757d', fontSize: '16px' }}>Loading tasks...</span>
+          </div>
+        ) : (
+          Array.isArray(workflows) && workflows.length === 0
+            ? <div style={{
+                padding: '60px',
+                textAlign: 'center',
+                background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e0e0e0'
+              }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
+                <h3 style={{ color: '#6c757d', fontSize: '18px', fontWeight: '500', margin: '0 0 8px 0' }}>No Design Tasks Available</h3>
+                <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>New graphic design tasks will appear here when content is approved</p>
+              </div>
+            : Array.isArray(workflows)
+              ? workflows.map(workflow => (
+                  <WorkflowCard 
+                    key={workflow.id} 
+                    workflow={workflow} 
+                    onCreateDesign={handleCreateDesign}
+                  />
                 ))
-              : <div style={{ color: 'red' }}>Error: Tasks data is not an array.</div>
+              : <div style={{
+                  padding: '24px',
+                  textAlign: 'center',
+                  backgroundColor: '#fee',
+                  color: '#c53030',
+                  borderRadius: '12px',
+                  border: '1px solid #feb2b2'
+                }}>Error: Workflows data is not an array.</div>
         )}
-      </div>
+      
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
-} 
+}

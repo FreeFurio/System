@@ -96,7 +96,7 @@ export const config = {
       process.env.CORS_ORIGIN.split(',') : 
       ['http://localhost:5173', 'https://system-production-9942.up.railway.app'],
     rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
-    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
+    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000
   },
 
   logging: {

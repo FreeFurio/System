@@ -154,9 +154,15 @@ app.use('/api/v1/social', socialMediaRouter);
 app.use('/api/v1/drafts', draftRouter);
 
 // ========================
-// STATIC FILES - SIMPLE
+// STATIC FILES - WITH MIME TYPES
 // ========================
-app.use(express.static(path.join(__dirname, '../client/dist')));
+app.use(express.static(path.join(__dirname, '../client/dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
 });

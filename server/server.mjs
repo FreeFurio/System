@@ -143,21 +143,6 @@ app.get('/api/v1/health', (req, res) => {
 
 
 // ========================
-// STATIC FILES - BEFORE API ROUTES
-// ========================
-app.use(express.static(path.join(__dirname, '../client/dist'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    } else if (filePath.endsWith('.mjs')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    } else if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    }
-  }
-}));
-
-// ========================
 // API ROUTES
 // ========================
 app.use('/api/v1/auth', authRouter); 
@@ -169,26 +154,10 @@ app.use('/api/v1/social', socialMediaRouter);
 app.use('/api/v1/drafts', draftRouter);
 
 // ========================
-// API 404 HANDLER
+// STATIC FILES - SIMPLE
 // ========================
-app.all('/api/*', (req, res) => {
-  console.log(`❌ API 404: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    status: 'fail',
-    message: `API endpoint ${req.originalUrl} not found`,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// ========================
-// REACT APP CATCH-ALL
-// ========================
+app.use(express.static(path.join(__dirname, '../client/dist')));
 app.get('*', (req, res) => {
-  // Don't serve HTML for asset requests
-  if (req.url.startsWith('/assets/')) {
-    return res.status(404).send('Asset not found');
-  }
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
 });
 

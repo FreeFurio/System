@@ -143,7 +143,12 @@ app.get('/api/v1/health', (req, res) => {
 
 
 // ========================
-// API ROUTES - MUST BE FIRST
+// STATIC FILES - BEFORE API ROUTES
+// ========================
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// ========================
+// API ROUTES
 // ========================
 app.use('/api/v1/auth', authRouter); 
 app.use('/api/v1/notifications', notificationRouter);
@@ -154,7 +159,7 @@ app.use('/api/v1/social', socialMediaRouter);
 app.use('/api/v1/drafts', draftRouter);
 
 // ========================
-// API 404 HANDLER - BEFORE STATIC FILES
+// API 404 HANDLER
 // ========================
 app.all('/api/*', (req, res) => {
   console.log(`❌ API 404: ${req.method} ${req.originalUrl}`);
@@ -167,9 +172,8 @@ app.all('/api/*', (req, res) => {
 });
 
 // ========================
-// STATIC FILES - SIMPLE WORKING VERSION
+// REACT APP CATCH-ALL
 // ========================
-app.use(express.static(path.join(__dirname, '../client/dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
 });

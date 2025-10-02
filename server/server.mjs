@@ -42,8 +42,20 @@ app.use(cors({
 
 
 app.use(
-  helmet({
-    contentSecurityPolicy: false
+  helmet({  
+    contentSecurityPolicy: {
+      directives: {   
+        defaultSrc: ["'self'"], 
+        connectSrc: [          
+          "'self'",
+          "wss://*.firebasedatabase.app",
+          "https://*.firebasedatabase.app"
+        ],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"]
+      },
+    },
   })
 );
 const logLevel = process.env.LOG_LEVEL || 'info';

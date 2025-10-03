@@ -52,9 +52,10 @@ app.use(
           "wss://*.firebasedatabase.app",
           "https://*.firebasedatabase.app"
         ],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://*.firebasedatabase.app"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"]
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"]
       },
     },
   })

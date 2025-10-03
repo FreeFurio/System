@@ -24,6 +24,7 @@ import errorHandler from './utils/errorHandler.mjs';
 import schedulerService from './services/schedulerService.mjs';
 import { createServer } from 'http';
 import { Server as SocketIOServer} from 'socket.io';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url); 
 const __dirname = dirname(__filename);           
@@ -42,8 +43,20 @@ app.use(cors({
 
 
 app.use(
-  helmet({
-    contentSecurityPolicy: false
+  helmet({  
+    contentSecurityPolicy: {
+      directives: {   
+        defaultSrc: ["'self'"], 
+        connectSrc: [          
+          "'self'",
+          "wss://*.firebasedatabase.app",
+          "https://*.firebasedatabase.app"
+        ],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"]
+      },
+    },
   })
 );
 const logLevel = process.env.LOG_LEVEL || 'info';
@@ -178,6 +191,18 @@ app.use(errorHandler);
 const port = config.server.port || 3000;
 server.listen(port, () => {
   console.log(`App running on port ${port}...`);
+  
+  // DEBUG: Check if dist folder exists
+  const distPath = path.join(__dirname, '../client/dist');
+  console.log('🔍 Checking dist folder:', distPath);
+  console.log('🔍 Dist exists:', fs.existsSync(distPath));
+  if (fs.existsSync(distPath)) {
+    console.log('🔍 Dist contents:', fs.readdirSync(distPath));
+    const assetsPath = path.join(distPath, 'assets');
+    if (fs.existsSync(assetsPath)) {
+      console.log('🔍 Assets contents:', fs.readdirSync(assetsPath));
+    }
+  }
   
   // Initialize scheduler service
   console.log('📅 Initializing automated posting scheduler...');

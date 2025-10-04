@@ -19,6 +19,7 @@ import userRouter from './routes/user.routes.mjs';
 import aiRouter from './routes/aiRoutes.mjs';
 import socialMediaRouter from './routes/socialMediaRoutes.mjs';
 import draftRouter from './routes/draftRoutes.mjs';
+import adminRouter from './routes/admin.js';
 import { config } from './config/config.mjs';
 import errorHandler from './utils/errorHandler.mjs';
 import schedulerService from './services/schedulerService.mjs';
@@ -166,6 +167,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/ai', aiRouter);
 app.use('/api/v1/social', socialMediaRouter);
 app.use('/api/v1/drafts', draftRouter);
+app.use('/api/v1/admin', adminRouter);
 
 // ========================
 // STATIC FILES - WITH MIME TYPES

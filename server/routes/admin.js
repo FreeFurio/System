@@ -69,62 +69,7 @@ router.get('/engagement/instagram', async (req, res) => {
   }
 });
 
-router.get('/get-page-token', async (req, res) => {
-  try {
-    const userToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-    const targetPageId = process.env.FACEBOOK_PAGE_ID;
-    
-    console.log('🚀 Getting Page access token via API...');
-    
-    const response = await axios.get('https://graph.facebook.com/v18.0/me/accounts', {
-      params: {
-        access_token: userToken
-      }
-    });
-    
-    const pages = response.data.data;
-    const targetPage = pages.find(page => page.id === targetPageId);
-    
-    let html = `
-      <html>
-        <head><title>Facebook Page Token Generator</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-          <h1>Facebook Page Access Token</h1>
-          <h2>Target Page ID: ${targetPageId}</h2>
-    `;
-    
-    if (pages.length === 0) {
-      html += '<p style="color: red;">No pages found. User token may not have page admin permissions.</p>';
-    } else {
-      html += '<h3>Available Pages:</h3><ul>';
-      pages.forEach(page => {
-        const isTarget = page.id === targetPageId;
-        html += `<li style="${isTarget ? 'background: #e8f5e8; padding: 10px; margin: 5px;' : ''}">`;
-        html += `<strong>${page.name}</strong> (ID: ${page.id})`;
-        if (isTarget) {
-          html += '<br><strong style="color: green;">✅ TARGET PAGE FOUND!</strong>';
-          html += `<br><strong>Page Access Token:</strong><br><textarea style="width: 100%; height: 100px;">${page.access_token}</textarea>`;
-        }
-        html += '</li>';
-      });
-      html += '</ul>';
-    }
-    
-    if (targetPage) {
-      html += `
-        <h3>Update your .env file:</h3>
-        <pre style="background: #f0f0f0; padding: 10px;">FACEBOOK_PAGE_ACCESS_TOKEN=${targetPage.access_token}</pre>
-      `;
-    }
-    
-    html += '</body></html>';
-    
-    res.send(html);
-  } catch (error) {
-    console.error('❌ Page Token Error:', error.message);
-    res.send(`<html><body><h1>Error</h1><p>${error.message}</p></body></html>`);
-  }
-});
+
 
 router.get('/setup-facebook-tokens', async (req, res) => {
   try {
@@ -145,29 +90,7 @@ router.post('/get-all-page-tokens', async (req, res) => {
   }
 });
 
-router.get('/facebook-auth', async (req, res) => {
-  try {
-    const appId = process.env.FB_APP_ID;
-    const redirectUri = 'http://localhost:3000/api/v1/admin/facebook-callback';
-    const scopes = 'pages_manage_posts,pages_read_engagement,pages_show_list,manage_pages';
-    
-    const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes}&response_type=code`;
-    
-    res.send(`
-      <html>
-        <head><title>Facebook Authorization</title></head>
-        <body style="font-family: Arial; padding: 20px;">
-          <h1>Get Facebook Page Token</h1>
-          <p>Click the link below to authorize with Facebook and get page access:</p>
-          <a href="${authUrl}" style="background: #1877f2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Authorize Facebook</a>
-          <p style="margin-top: 20px; color: #666;">This will redirect you back with the proper page tokens.</p>
-        </body>
-      </html>
-    `);
-  } catch (error) {
-    res.send(`<html><body><h1>Error</h1><p>${error.message}</p></body></html>`);
-  }
-});
+
 
 router.get('/facebook-oauth-modal', async (req, res) => {
   try {

@@ -179,6 +179,11 @@ app.get('/privacy-policy', (req, res) => {
   res.sendFile(path.join(__dirname, '../privacy-policy.html'));
 });
 
+// Robots.txt for Facebook crawlers
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, '../robots.txt'));
+});
+
 
 
 // ========================

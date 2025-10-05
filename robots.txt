@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /privacy-policy
+Allow: /
+
+User-agent: facebookexternalhit/*
+Allow: /
+
+User-agent: Facebot
+Allow: /

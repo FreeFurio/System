@@ -200,6 +200,12 @@ app.use('/api/v1/social', socialMediaRouter);
 app.use('/api/v1/drafts', draftRouter);
 app.use('/api/v1/admin', adminRouter);
 
+// Middleware to catch any unhandled API routes
+app.use('/api/*', (req, res) => {
+  console.log(`⚠️ Unhandled API route: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 // ========================
 // STATIC FILES - WITH MIME TYPES
 // ========================
@@ -222,7 +228,15 @@ app.use('/assets', express.static(path.join(__dirname, '../client/assets')));
 
 // Serve ImageEditor components for production
 app.use('/components/ImageEditor', express.static(path.join(__dirname, '../client/components/ImageEditor')));
+
+// ========================
+// CATCH-ALL ROUTE (AFTER API ROUTES, BEFORE ERROR HANDLER)
+// ========================
 app.get('*', (req, res) => {
+  // Log non-API requests being handled by catch-all
+  if (!req.originalUrl.startsWith('/api/')) {
+    console.log(`📄 Serving React app for: ${req.originalUrl}`);
+  }
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
 });
 

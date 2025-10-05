@@ -5,10 +5,10 @@ const AccountInsightCard = ({ account, engagement }) => {
   const fbData = engagement?.facebook || {};
   const igData = engagement?.instagram;
   
-  const fbTotal = (fbData.totalLikes || 0) + (fbData.totalComments || 0) + (fbData.totalShares || 0);
+  const fbTotal = (fbData.totalReactions || 0) + (fbData.totalComments || 0) + (fbData.totalShares || 0);
   const igTotal = igData ? (igData.totalLikes || 0) + (igData.totalComments || 0) : 0;
   
-  const fbChartData = fbData.historicalData || [{ name: 'Current', total: fbTotal }];
+  const fbChartData = fbData.historicalData || [{ date: 'Current', total: fbTotal, time: 'Now' }];
   const igChartData = igData?.historicalData || (igData ? [{ name: 'Current', total: igTotal }] : null);
 
   return (
@@ -44,9 +44,17 @@ const AccountInsightCard = ({ account, engagement }) => {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={fbChartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis dataKey="date" />
               <YAxis domain={[0, 'dataMax + 10']} tickFormatter={(value) => Math.round(value)} />
-              <Tooltip />
+              <Tooltip 
+                formatter={(value, name) => [value, 'Total Engagement']}
+                labelFormatter={(label, payload) => {
+                  if (payload && payload[0] && payload[0].payload.time) {
+                    return `${label} at ${payload[0].payload.time}`;
+                  }
+                  return label;
+                }}
+              />
               <Line type="monotone" dataKey="total" stroke="#1877f2" strokeWidth={3} dot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -84,6 +92,67 @@ const AccountInsightCard = ({ account, engagement }) => {
         )}
       </div>
 
+      {/* Page Performance Section */}
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ margin: '0 0 15px 0', color: '#1877f2', fontSize: '14px' }}>Page Performance</h4>
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '15px',
+          textAlign: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1877f2' }}>{fbData.pageLikes || 0}</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Page Likes</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>{fbData.followers || 0}</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Followers</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545' }}>{fbData.recentEngagement || 0}</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Recent Engagement</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Facebook Reactions Section */}
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ margin: '0 0 15px 0', color: '#1877f2', fontSize: '14px' }}>Facebook Reactions</h4>
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(6, 1fr)',
+          gap: '10px',
+          textAlign: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.like || 0}</div>
+            <div style={{ fontSize: '10px', color: '#666' }}>Like</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.love || 0}</div>
+            <div style={{ fontSize: '10px', color: '#666' }}>Love</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.haha || 0}</div>
+            <div style={{ fontSize: '10px', color: '#666' }}>Haha</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.wow || 0}</div>
+            <div style={{ fontSize: '10px', color: '#666' }}>Wow</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.sad || 0}</div>
+            <div style={{ fontSize: '10px', color: '#666' }}>Sad</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.angry || 0}</div>
+            <div style={{ fontSize: '10px', color: '#666' }}>Angry</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Stats */}
       <div style={{ 
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
@@ -92,9 +161,8 @@ const AccountInsightCard = ({ account, engagement }) => {
         color: '#666',
         marginBottom: '10px'
       }}>
-        <span style={{ color: '#1877f2' }}>FB Likes: {fbData.totalLikes || 0}</span>
-        <span style={{ color: '#1877f2' }}>FB Comments: {fbData.totalComments || 0}</span>
-        <span style={{ color: '#1877f2' }}>FB Shares: {fbData.totalShares || 0}</span>
+        <span style={{ color: '#1877f2' }}>Comments: {fbData.totalComments || 0}</span>
+        <span style={{ color: '#1877f2' }}>Shares: {fbData.totalShares || 0}</span>
         {igData && <span style={{ color: '#e4405f' }}>IG Likes: {igData.totalLikes || 0}</span>}
         {igData && <span style={{ color: '#e4405f' }}>IG Comments: {igData.totalComments || 0}</span>}
       </div>

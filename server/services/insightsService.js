@@ -165,26 +165,26 @@ class InsightsService {
     try {
       const response = await axios.get(url, {
         params: {
-          fields: 'id,message,created_time,likes.summary(true),comments.summary(true),shares',
+          fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares',
           limit: 5,
           access_token: userToken
         }
       });
       
-      let totalLikes = 0;
+      let totalReactions = 0;
       let totalComments = 0;
       let totalShares = 0;
       
       if (response.data.data && response.data.data.length > 0) {
         response.data.data.forEach(post => {
-          totalLikes += post.likes?.summary?.total_count || 0;
+          totalReactions += post.reactions?.summary?.total_count || 0;
           totalComments += post.comments?.summary?.total_count || 0;
           totalShares += post.shares?.count || 0;
         });
       }
       
       return {
-        totalLikes,
+        totalReactions,
         totalComments,
         totalShares,
         postsCount: response.data.data?.length || 0
@@ -210,7 +210,7 @@ class InsightsService {
     try {
       const response = await axios.get(url, {
         params: {
-          fields: 'id,message,created_time,likes.summary(true),comments.summary(true),shares',
+          fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares',
           limit: 10,
           access_token: userToken
         }
@@ -221,14 +221,14 @@ class InsightsService {
       if (response.data.data && response.data.data.length > 0) {
         response.data.data.forEach(post => {
           const createdDate = new Date(post.created_time);
-          const totalEngagement = (post.likes?.summary?.total_count || 0) + 
+          const totalEngagement = (post.reactions?.summary?.total_count || 0) + 
                                  (post.comments?.summary?.total_count || 0) + 
                                  (post.shares?.count || 0);
           
           posts.push({
             date: createdDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             total: totalEngagement,
-            likes: post.likes?.summary?.total_count || 0,
+            reactions: post.reactions?.summary?.total_count || 0,
             comments: post.comments?.summary?.total_count || 0,
             shares: post.shares?.count || 0
           });
@@ -608,21 +608,143 @@ class InsightsService {
       const pageData = snapshot.val();
       const accessToken = pageData.accessToken;
       
-      // Get Facebook engagement
+      // Get Facebook posts with reactions
       const fbResponse = await axios.get(`https://graph.facebook.com/v23.0/${accountId}/posts`, {
         params: {
-          fields: 'likes.summary(true),comments.summary(true),shares',
+          fields: 'id,reactions.summary(true),comments.summary(true),shares',
           limit: 10,
           access_token: accessToken
         }
       });
       
       const fbPosts = fbResponse.data.data || [];
+      
+      // Get real page metrics
+      const pageMetricsResponse = await axios.get(`https://graph.facebook.com/v23.0/${accountId}`, {
+        params: {
+          fields: 'fan_count,followers_count,talking_about_count',
+          access_token: accessToken
+        }
+      });
+      
+      // Count total reactions, comments, and shares for engagement chart (Graph API)
+      let totalReactionsCount = 0, totalComments = 0, totalShares = 0;
+      
+      fbPosts.forEach(post => {
+        totalReactionsCount += post.reactions?.summary?.total_count || 0;
+        totalComments += post.comments?.summary?.total_count || 0;
+        totalShares += post.shares?.count || 0;
+      });
+      
+      // Get individual reaction counts using Insights API
+      let likeCount = 0, loveCount = 0, hahaCount = 0, wowCount = 0, sadCount = 0, angryCount = 0;
+      
+      for (const post of fbPosts) {
+        try {
+          const postInsights = await axios.get(`https://graph.facebook.com/v23.0/${post.id}/insights`, {
+            params: {
+              metric: 'post_reactions_like_total,post_reactions_love_total,post_reactions_wow_total,post_reactions_haha_total,post_reactions_sorry_total,post_reactions_anger_total',
+              period: 'lifetime',
+              access_token: accessToken
+            }
+          });
+          
+          postInsights.data.data.forEach(metric => {
+            const value = metric.values[0]?.value || 0;
+            switch (metric.name) {
+              case 'post_reactions_like_total': likeCount += value; break;
+              case 'post_reactions_love_total': loveCount += value; break;
+              case 'post_reactions_haha_total': hahaCount += value; break;
+              case 'post_reactions_wow_total': wowCount += value; break;
+              case 'post_reactions_sorry_total': sadCount += value; break;
+              case 'post_reactions_anger_total': angryCount += value; break;
+            }
+          });
+        } catch (insightError) {
+          console.log(`Could not get insights for post ${post.id}:`, insightError.message);
+        }
+      }
+      
+      const totalReactions = totalReactionsCount;
+      
+      // Get historical data from Firebase
+      let historicalData = [];
+      const currentTimestamp = new Date();
+      const currentDateKey = currentTimestamp.toDateString(); // "Mon Oct 05 2025"
+      
+      try {
+        const accountRef = ref(db, `connectedPages/admin/${accountId}`);
+        const accountSnapshot = await get(accountRef);
+        
+        // Get existing engagement history from account node
+        const existingHistory = accountSnapshot.val()?.engagementHistory || {};
+        historicalData = Object.values(existingHistory).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // historicalData already populated above
+        
+        // Check if we already have data for today
+        const todayExists = historicalData.some(point => 
+          new Date(point.timestamp).toDateString() === currentDateKey
+        );
+        
+        // Only add new data point if it's a new day
+        if (!todayExists) {
+          const newDataPoint = {
+            date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            time: '12:00 AM',
+            total: totalReactionsCount + totalComments + totalShares,
+            timestamp: currentTimestamp.toISOString(),
+            dateKey: currentDateKey
+          };
+          
+          historicalData.push(newDataPoint);
+          
+          // Keep only last 30 days of data
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          historicalData = historicalData.filter(point => new Date(point.timestamp) > thirtyDaysAgo);
+          
+          // Save updated history back to Firebase in account node
+          const { update } = await import('firebase/database');
+          const updatedHistory = {};
+          historicalData.forEach((point, index) => {
+            updatedHistory[index] = point;
+          });
+          await update(accountRef, { engagementHistory: updatedHistory });
+          
+          console.log('📊 New daily data point added for', currentDateKey);
+        } else {
+          console.log('📊 Data point already exists for today, skipping');
+        }
+        
+      } catch (historyError) {
+        console.log('Could not manage historical data:', historyError.message);
+        // Create initial data point for today
+        historicalData = [{
+          date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          time: '12:00 AM',
+          total: totalReactionsCount + totalComments + totalShares,
+          timestamp: currentTimestamp.toISOString(),
+          dateKey: currentDateKey
+        }];
+      }
+      
       const fbEngagement = {
-        totalLikes: fbPosts.reduce((sum, post) => sum + (post.likes?.summary?.total_count || 0), 0),
-        totalComments: fbPosts.reduce((sum, post) => sum + (post.comments?.summary?.total_count || 0), 0),
-        totalShares: fbPosts.reduce((sum, post) => sum + (post.shares?.count || 0), 0),
-        postsCount: fbPosts.length
+        totalReactions,
+        totalComments,
+        totalShares,
+        postsCount: fbPosts.length,
+        pageLikes: pageMetricsResponse.data.fan_count || 0,
+        followers: pageMetricsResponse.data.followers_count || 0,
+        recentEngagement: pageMetricsResponse.data.talking_about_count || 0,
+        historicalData: historicalData,
+        reactions: {
+          like: likeCount,
+          love: loveCount,
+          haha: hahaCount,
+          wow: wowCount,
+          sad: sadCount,
+          angry: angryCount
+        }
       };
       
       // Check for Instagram account

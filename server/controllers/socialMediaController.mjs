@@ -84,17 +84,44 @@ class SocialMediaController {
   // Generate content and post automatically
   async generateAndPost(req, res) {
     try {
-      const { topic, platforms, tokens, imageUrl } = req.body;
+      const { topic, platforms, imageUrl } = req.body;
 
-      if (!topic || !platforms || !tokens) {
+      if (!topic || !platforms) {
         return res.status(400).json({
-          error: 'Missing required fields: topic, platforms, tokens'
+          error: 'Missing required fields: topic, platforms'
+        });
+      }
+
+      // Get only active accounts for posting
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const connectedPagesRef = ref(db, 'connectedPages/admin');
+      const snapshot = await get(connectedPagesRef);
+      
+      if (!snapshot.exists()) {
+        return res.status(400).json({
+          error: 'No connected accounts found'
+        });
+      }
+      
+      const allPages = Object.values(snapshot.val());
+      const activePages = allPages.filter(page => page.active !== false);
+      
+      if (activePages.length === 0) {
+        return res.status(400).json({
+          error: 'No active accounts found for posting'
         });
       }
 
       const results = [];
 
-      // Generate content for each platform and post
+      // Generate content for each platform and post to all active accounts
       for (const platform of platforms) {
         try {
           // Generate AI content
@@ -108,43 +135,63 @@ class SocialMediaController {
             imageUrl: imageUrl || null
           };
 
-          // Post to platform
-          let postResult;
-          switch (platform.name) {
-            case 'facebook':
-              if (!tokens.facebook.pageId) {
-                throw new Error('Facebook page ID is required');
+          // Post to all active accounts for this platform
+          const platformResults = [];
+          
+          for (const activePage of activePages) {
+            try {
+              let postResult;
+              switch (platform.name) {
+                case 'facebook':
+                  postResult = await socialMediaService.postToFacebook(
+                    content, 
+                    activePage.id
+                  );
+                  break;
+
+                case 'instagram':
+                  postResult = await socialMediaService.postToInstagram(
+                    content, 
+                    activePage.id
+                  );
+                  break;
+
+                case 'twitter':
+                  postResult = await socialMediaService.postToTwitter(content);
+                  break;
               }
-              postResult = await socialMediaService.postToFacebook(
-                content, 
-                tokens.facebook.pageId
-              );
-              break;
-
-            case 'instagram':
-              postResult = await socialMediaService.postToInstagram(
-                content, 
-                tokens.facebook.pageId
-              );
-              break;
-
-            case 'twitter':
-              postResult = await socialMediaService.postToTwitter(content);
-              break;
+              
+              platformResults.push({
+                accountId: activePage.id,
+                accountName: activePage.name,
+                success: true,
+                postResult
+              });
+              
+            } catch (accountError) {
+              platformResults.push({
+                accountId: activePage.id,
+                accountName: activePage.name,
+                success: false,
+                error: accountError.message
+              });
+            }
           }
 
           results.push({
             platform: platform.name,
-            success: true,
+            success: platformResults.some(r => r.success),
             content: aiContent,
-            postResult
+            accounts: platformResults,
+            activeAccountsCount: activePages.length
           });
 
         } catch (error) {
           results.push({
             platform: platform.name,
             success: false,
-            error: error.message
+            error: error.message,
+            activeAccountsCount: activePages.length
           });
         }
       }
@@ -155,9 +202,11 @@ class SocialMediaController {
           topic,
           results,
           summary: {
-            total: platforms.length,
-            successful: results.filter(r => r.success).length,
-            failed: results.filter(r => !r.success).length
+            platforms: platforms.length,
+            activeAccounts: activePages.length,
+            successfulPlatforms: results.filter(r => r.success).length,
+            failedPlatforms: results.filter(r => !r.success).length,
+            totalPosts: results.reduce((sum, r) => sum + (r.accounts?.filter(a => a.success).length || 0), 0)
           }
         }
       });

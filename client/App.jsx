@@ -19,6 +19,7 @@ import ApprovalOfAccountsPage from './pages/Admin/ApprovalOfAccountsPage';
 import AdminRoute from './components/common/AdminRoute';
 import ManageAccountsPage from './pages/Admin/ManageAccountsPage';
 import AdminPostedContents from './pages/Admin/PostedContents';
+import DebugPage from './pages/Admin/DebugPage';
 import DashboardLayout from './components/common/DashboardLayout';
 import { UserProvider } from './components/common/UserContext';
 import './styles/darkmode.css';
@@ -108,7 +109,13 @@ function App() {
               <AdminPostedContents />
             </AdminRoute>
           } />
+          <Route path="debug" element={
+            <AdminRoute>
+              <DebugPage />
+            </AdminRoute>
+          } />
         </Route>
+        <Route path="/debug" element={<DebugPage />} />
         {/* Marketing Lead Routes */}
         <Route path="/marketing" element={<MarketingLeadLayout />}>
           <Route index element={<Dashboard />} />

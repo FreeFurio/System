@@ -89,6 +89,15 @@ class AdminService {
       throw new Error(`Failed to get connected pages: ${error.message}`);
     }
   }
+
+  async getAccountEngagement(accountId) {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/engagement/account/${accountId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch account engagement: ${error.message}`);
+    }
+  }
 }
 
 export default new AdminService();

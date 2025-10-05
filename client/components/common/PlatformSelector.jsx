@@ -5,19 +5,19 @@ const PlatformSelector = ({ selectedPlatforms, onPlatformChange, size = 'large' 
     { 
       id: 'facebook', 
       name: 'Facebook', 
-      logo: '/api/v1/proxy-icon/facebook',
+      logo: '/assets/facebook.svg',
       color: '#1877f2' 
     },
     { 
       id: 'instagram', 
       name: 'Instagram', 
-      logo: '/api/v1/proxy-icon/instagram',
+      logo: '/assets/instagram.svg',
       color: '#e4405f' 
     },
     { 
       id: 'twitter', 
       name: 'Twitter', 
-      logo: '/api/v1/proxy-icon/twitter',
+      logo: '/assets/twitter.svg',
       color: '#000000' 
     }
   ];

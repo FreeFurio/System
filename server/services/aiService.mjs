@@ -82,17 +82,17 @@ class AIService {
     const prompts = {
       facebook: {
         headline: `Create a high-quality, SEO-optimized Facebook headline for: ${topic}. Include relevant keywords naturally, make it conversational, shareable, and emotionally engaging. Ensure optimal length (40-60 characters) for maximum visibility.`,
-        caption: `Write a premium Facebook caption for: ${topic}. Keep under 300 characters. Include target keywords naturally, engaging questions, strong call-to-action, emotional hooks, and community-focused language. Structure for high engagement and shareability.`,
+        caption: `Write a premium Facebook caption for: ${topic}. Keep under 150 characters. Include target keywords naturally, engaging questions, strong call-to-action, emotional hooks, and community-focused language. Structure for high engagement and shareability.`,
         hashtag: `Generate exactly 5 Facebook hashtags for: ${topic}. Format as #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5. Include trending, niche, and branded hashtags that boost discoverability and engagement.`
       },
       instagram: {
         headline: `Create a viral-worthy, SEO-optimized Instagram headline for: ${topic}. Include trending keywords, make it visual, aesthetic, and highly shareable. Perfect length for Instagram algorithm optimization.`,
-        caption: `Write a premium Instagram caption for: ${topic}. Keep under 400 characters. Include relevant keywords naturally, inspiring storytelling, aesthetic language, strategic emojis, and strong engagement hooks. Optimize for Instagram algorithm and user engagement.`,
+        caption: `Write a premium Instagram caption for: ${topic}. Keep under 200 characters. Include relevant keywords naturally, inspiring storytelling, aesthetic language, strategic emojis, and strong engagement hooks. Optimize for Instagram algorithm and user engagement.`,
         hashtag: `Generate exactly 8 Instagram hashtags for: ${topic}. Format as #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5 #hashtag6 #hashtag7 #hashtag8. Mix viral trending hashtags, niche-specific tags, and community hashtags for maximum reach and engagement.`
       },
       twitter: {
         headline: `Create a viral-potential Twitter headline for: ${topic}. Include trending keywords, keep under 100 characters, make it punchy, shareable, and optimized for Twitter algorithm engagement.`,
-        caption: `Write a high-engagement Twitter post for: ${topic}. Keep under 200 characters. Include relevant keywords naturally, make it witty, engaging, and optimized for retweets and replies.`,
+        caption: `Write a high-engagement Twitter post for: ${topic}. Keep under 150 characters. Include relevant keywords naturally, make it witty, engaging, and optimized for retweets and replies.`,
         hashtag: `Generate exactly 3 Twitter hashtags for: ${topic}. Format as #hashtag1 #hashtag2 #hashtag3. Focus on viral potential, current conversations, and hashtags that boost visibility and engagement.`
       }
     };
@@ -181,16 +181,16 @@ class AIService {
   // SEO Score Analysis using AI
   async analyzeSEO(content, contentType = 'headline') {
     const prompt = `
-    Analyze the SEO quality of this ${contentType}: "${content}"
-    
-    Rate this content on SEO factors: keyword relevance, readability, engagement potential, length optimization, and social media best practices.
-    
-    Provide a precise score between 60-95 based on actual content quality.
-    
-    Return JSON format with only the score:
-    {
-      "score": number (precise score between 60-95)
-    }
+Analyze this ${contentType} for SEO quality: "${content}"
+
+Be critical and vary your scoring based on actual content quality:
+- Poor content (60-70): Generic, no keywords, bad structure, boring
+- Average content (71-80): Some keywords, decent structure, moderate engagement
+- Good content (81-90): Well-optimized, engaging, good keywords, strong structure
+- Excellent content (91-95): Perfect optimization, highly engaging, excellent keywords
+
+Score this specific content precisely based on its actual quality and flaws.
+Return only: {"score": number}
     `;
 
     try {
@@ -210,7 +210,7 @@ class AIService {
           messages: [
             {
               role: "system",
-              content: "You are an SEO expert analyzing AI-generated content. This content is already optimized and high-quality. Provide realistic scores (75-95) and focus on strengths while suggesting minor improvements. Always respond with valid JSON only."
+              content: "You are a critical SEO expert. Analyze content harshly and give varied scores based on actual quality. Don't be generous - most content has flaws. Score range 60-95. Respond with valid JSON only."
             },
             {
               role: "user",
@@ -222,7 +222,15 @@ class AIService {
         });
       });
 
-      const result = JSON.parse(response.choices[0].message.content);
+      // Strip markdown code blocks before parsing JSON
+      let responseText = response.choices[0].message.content.trim();
+      if (responseText.startsWith('```json')) {
+        responseText = responseText.replace(/```json\n?/, '').replace(/\n?```$/, '');
+      } else if (responseText.startsWith('```')) {
+        responseText = responseText.replace(/```\n?/, '').replace(/\n?```$/, '');
+      }
+      
+      const result = JSON.parse(responseText);
       
       // Validate score range
       const minScore = parseInt(process.env.SEO_MIN_SCORE) || 0;

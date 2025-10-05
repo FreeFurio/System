@@ -17,6 +17,8 @@ const SocialsAndInsights = () => {
   const [modalStep, setModalStep] = useState('connect'); // 'connect', 'loading', or 'select'
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState(null);
 
   // Move handleMessage outside useEffect and use useCallback
   const handleMessage = useCallback((event) => {
@@ -200,6 +202,37 @@ const SocialsAndInsights = () => {
     }
   };
 
+  const handleToggleActive = async (accountId, isActive) => {
+    try {
+      await adminService.toggleAccountActive(accountId, isActive);
+      fetchConnectedPages();
+      if (activeTab === 'insights') {
+        fetchInsights();
+      }
+    } catch (error) {
+      console.error('Error toggling account status:', error);
+    }
+  };
+
+  const handleDeleteAccount = (account) => {
+    setAccountToDelete(account);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await adminService.deleteAccount(accountToDelete.id);
+      setShowDeleteModal(false);
+      setAccountToDelete(null);
+      fetchConnectedPages();
+      if (activeTab === 'insights') {
+        fetchInsights();
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+    }
+  };
+
   const fetchInsights = async () => {
     setLoading(true);
     setError(null);
@@ -304,7 +337,9 @@ const SocialsAndInsights = () => {
                 status="Connected"
                 accountInfo={`Page: ${page.name}`}
                 color="#1877f2"
-                onManage={() => console.log('Manage', page.name)}
+                account={page}
+                onToggleActive={handleToggleActive}
+                onDelete={handleDeleteAccount}
               />
             ))}
             
@@ -597,6 +632,66 @@ const SocialsAndInsights = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && accountToDelete && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff',
+            padding: '30px',
+            borderRadius: '8px',
+            maxWidth: '400px',
+            width: '90%'
+          }}>
+            <h3 style={{ marginBottom: '15px', color: '#dc3545' }}>Delete Account</h3>
+            <p style={{ marginBottom: '20px', color: '#666' }}>
+              Are you sure you want to delete <strong>{accountToDelete.name}</strong>? 
+              This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setAccountToDelete(null);
+                }}
+                style={{
+                  background: '#6c757d',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{
+                  background: '#dc3545',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

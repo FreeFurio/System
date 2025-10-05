@@ -98,6 +98,26 @@ class AdminService {
       throw new Error(`Failed to fetch account engagement: ${error.message}`);
     }
   }
+
+  async toggleAccountActive(accountId, isActive) {
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/account/${accountId}/toggle-active`, {
+        active: isActive
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to toggle account status: ${error.message}`);
+    }
+  }
+
+  async deleteAccount(accountId) {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/account/${accountId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to delete account: ${error.message}`);
+    }
+  }
 }
 
 export default new AdminService();

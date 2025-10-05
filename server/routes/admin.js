@@ -142,7 +142,7 @@ router.get('/facebook-oauth-modal', async (req, res) => {
 router.get('/facebook-oauth', async (req, res) => {
   try {
     const appId = process.env.FB_APP_ID;
-    const redirectUri = 'http://localhost:3000/api/v1/admin/facebook-oauth-callback';
+    const redirectUri = process.env.FB_REDIRECT_URI || 'http://localhost:3000/api/v1/admin/facebook-oauth-callback';
     
     const scopes = [
       'pages_show_list',
@@ -189,7 +189,8 @@ router.get('/connected-pages', async (req, res) => {
         name: page.name,
         category: page.category,
         connectedAt: page.connectedAt,
-        status: page.status
+        status: page.status,
+        active: page.active !== false // Default to true if not set
       }))
     });
     
@@ -327,7 +328,7 @@ router.get('/facebook-oauth-callback', async (req, res) => {
     
     const appId = process.env.FB_APP_ID;
     const appSecret = process.env.FB_APP_SECRET;
-    const redirectUri = 'http://localhost:3000/api/v1/admin/facebook-oauth-callback';
+    const redirectUri = process.env.FB_REDIRECT_URI || 'http://localhost:3000/api/v1/admin/facebook-oauth-callback';
     
     const tokenResponse = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
       params: {
@@ -849,5 +850,59 @@ router.get('/debug-token', async (req, res) => {
 });
 
 
+
+// Account Management Routes
+router.patch('/account/:accountId/toggle-active', async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    const { active } = req.body;
+    
+    const { ref, update } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const accountRef = ref(db, `connectedPages/admin/${accountId}`);
+    await update(accountRef, { active });
+    
+    res.json({
+      success: true,
+      message: `Account ${active ? 'activated' : 'deactivated'} successfully`
+    });
+    
+  } catch (error) {
+    console.error('❌ Toggle Account Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.delete('/account/:accountId', async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    
+    const { ref, remove } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const accountRef = ref(db, `connectedPages/admin/${accountId}`);
+    await remove(accountRef);
+    
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Delete Account Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 export default router;

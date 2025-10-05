@@ -133,6 +133,14 @@ router.get(
 )
 
 router.get(
+    '/workflows/stage/marketinglead',
+    (req, res, next) => {
+        req.params.stage = 'marketinglead';
+        getWorkflowsByStage(req, res, next);
+    }
+)
+
+router.get(
     '/content-creator/task',
     (req, res, next) => {
         req.params.stage = 'contentcreator';

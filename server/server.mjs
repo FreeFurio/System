@@ -214,6 +214,33 @@ app.use(express.static(path.join(__dirname, '../client/dist'), {
     }
   }
 }));
+
+// Serve client assets directly
+app.use('/assets', express.static(path.join(__dirname, '../client/assets')));
+
+// Handle external asset proxying for social media icons
+app.get('/api/v1/proxy-icon/:platform', async (req, res) => {
+  const { platform } = req.params;
+  const iconUrls = {
+    facebook: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/facebook.svg',
+    instagram: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg',
+    twitter: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg'
+  };
+  
+  try {
+    const iconUrl = iconUrls[platform];
+    if (!iconUrl) {
+      return res.status(404).send('Icon not found');
+    }
+    
+    const response = await axios.get(iconUrl);
+    res.set('Content-Type', 'image/svg+xml');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send('Error fetching icon');
+  }
+});
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
 });

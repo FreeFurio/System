@@ -2,14 +2,14 @@ import socialMediaService from '../services/socialMediaService.mjs';
 import aiService from '../services/aiService.mjs';
 
 class SocialMediaController {
-  // Post to single platform
+  // Post to single platform using Firebase tokens
   async postToPlatform(req, res) {
     try {
-      const { platform, content, tokens } = req.body;
+      const { platform, content, pageId } = req.body;
 
-      if (!platform || !content || !tokens) {
+      if (!platform || !content || !pageId) {
         return res.status(400).json({
-          error: 'Missing required fields: platform, content, tokens'
+          error: 'Missing required fields: platform, content, pageId'
         });
       }
 
@@ -17,22 +17,11 @@ class SocialMediaController {
 
       switch (platform) {
         case 'facebook':
-          if (!tokens.pageId) {
-            throw new Error('Facebook page ID is required for posting');
-          }
-          result = await socialMediaService.postToFacebook(
-            content, 
-            tokens.accessToken, // This should be user access token
-            tokens.pageId
-          );
+          result = await socialMediaService.postToFacebook(content, pageId);
           break;
 
         case 'instagram':
-          result = await socialMediaService.postToInstagram(
-            content, 
-            tokens.accessToken, 
-            tokens.accountId
-          );
+          result = await socialMediaService.postToInstagram(content, pageId);
           break;
 
         case 'twitter':
@@ -57,14 +46,14 @@ class SocialMediaController {
     }
   }
 
-  // Post to multiple platforms
+  // Post to multiple platforms using Firebase tokens
   async postToMultiplePlatforms(req, res) {
     try {
-      const { content, platforms, tokens } = req.body;
+      const { content, platforms, pageId } = req.body;
 
-      if (!content || !platforms || !tokens) {
+      if (!content || !platforms || !pageId) {
         return res.status(400).json({
-          error: 'Missing required fields: content, platforms, tokens'
+          error: 'Missing required fields: content, platforms, pageId'
         });
       }
 
@@ -77,7 +66,7 @@ class SocialMediaController {
       const result = await socialMediaService.postToMultiplePlatforms(
         content, 
         platforms, 
-        tokens
+        pageId
       );
 
       res.json({
@@ -128,7 +117,6 @@ class SocialMediaController {
               }
               postResult = await socialMediaService.postToFacebook(
                 content, 
-                tokens.facebook.accessToken, // User access token
                 tokens.facebook.pageId
               );
               break;
@@ -136,8 +124,7 @@ class SocialMediaController {
             case 'instagram':
               postResult = await socialMediaService.postToInstagram(
                 content, 
-                tokens.instagram.accessToken, 
-                tokens.instagram.accountId
+                tokens.facebook.pageId
               );
               break;
 

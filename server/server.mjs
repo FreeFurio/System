@@ -155,6 +155,30 @@ app.get('/api/v1/health', (req, res) => {
   });
 });
 
+// Redirect debug to React frontend
+app.get('/debug', (req, res) => {
+  res.redirect('http://localhost:5173/debug');
+});
+
+// API endpoint for React debug component
+app.get('/api/v1/debug-data', async (req, res) => {
+  try {
+    const { default: insightsService } = await import('./services/insightsService.js');
+    const debugData = await insightsService.getDebugData();
+    res.json(debugData);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch debug data',
+      message: error.message
+    });
+  }
+});
+
+// Privacy policy endpoint for Facebook app review
+app.get('/privacy-policy', (req, res) => {
+  res.sendFile(path.join(__dirname, '../privacy-policy.html'));
+});
+
 
 
 // ========================

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import adminService from '../../services/adminService';
 import InsightsMetrics from '../../components/common/InsightsMetrics';
 import SocialAccountCard from '../../components/common/SocialAccountCard';
+import AccountInsightCard from '../../components/common/AccountInsightCard';
 
 const SocialsAndInsights = () => {
   const [activeTab, setActiveTab] = useState('socials');
@@ -203,33 +204,35 @@ const SocialsAndInsights = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('🔍 Fetching insights data...');
-      const [pageInsights, instagramInsights, facebookEngagement, instagramEngagement] = await Promise.allSettled([
-        adminService.getPageInsights(),
-        adminService.getInstagramInsights(),
-        adminService.getFacebookEngagement(),
-        adminService.getInstagramEngagement()
-      ]);
+      console.log('🔍 Fetching account insights data...');
       
-      const results = {
-        pageInsights: pageInsights.status === 'fulfilled' ? pageInsights.value.data : null,
-        instagramInsights: instagramInsights.status === 'fulfilled' ? instagramInsights.value.data : null,
-        facebookEngagement: facebookEngagement.status === 'fulfilled' ? facebookEngagement.value.data : null,
-        instagramEngagement: instagramEngagement.status === 'fulfilled' ? instagramEngagement.value.data : null
-      };
+      const accountInsights = await Promise.all(
+        connectedPages.map(async (account) => {
+          try {
+            const engagement = await adminService.getAccountEngagement(account.id);
+            return {
+              account,
+              engagement: engagement.data
+            };
+          } catch (error) {
+            console.error(`Failed to fetch engagement for ${account.name}:`, error);
+            return {
+              account,
+              engagement: {
+                facebook: {
+                  totalLikes: 0,
+                  totalComments: 0,
+                  totalShares: 0,
+                  postsCount: 0
+                },
+                instagram: null
+              }
+            };
+          }
+        })
+      );
       
-      setInsights(results);
-      
-      const failedRequests = [
-        pageInsights.status === 'rejected' ? 'Facebook Page' : null,
-        instagramInsights.status === 'rejected' ? 'Instagram' : null,
-        facebookEngagement.status === 'rejected' ? 'Facebook Engagement' : null,
-        instagramEngagement.status === 'rejected' ? 'Instagram Engagement' : null
-      ].filter(Boolean);
-      
-      if (failedRequests.length > 0) {
-        setError(`Some data failed to load: ${failedRequests.join(', ')}`);
-      }
+      setInsights(accountInsights);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -377,61 +380,21 @@ const SocialsAndInsights = () => {
             </div>
           )}
           
-          {insights && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-              {insights.pageInsights && (
-                <InsightsMetrics
-                  title="Facebook Insights"
-                  color="#1877f2"
-                  metrics={[
-                    { label: 'Page Name', value: insights.pageInsights.pageName || 'N/A' },
-                    { label: 'Total Fans', value: insights.pageInsights.fanCount || 0 },
-                    { label: 'Talking About', value: insights.pageInsights.talkingAbout || 0 }
-                  ]}
+          {insights && insights.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
+              {insights.map((accountData) => (
+                <AccountInsightCard
+                  key={accountData.account.id}
+                  account={accountData.account}
+                  engagement={accountData.engagement}
                 />
-              )}
-              
-              {insights.instagramInsights && (
-                <InsightsMetrics
-                  title="Instagram Insights"
-                  color="#e4405f"
-                  metrics={[
-                    { label: 'Account Name', value: insights.instagramInsights.accountName || 'N/A' },
-                    { label: 'Followers', value: insights.instagramInsights.followersCount || 0 },
-                    { label: 'Media Count', value: insights.instagramInsights.mediaCount || 0 }
-                  ]}
-                />
-              )}
-              
-              {insights.facebookEngagement && (
-                <InsightsMetrics
-                  title="Facebook Engagement"
-                  color="#1877f2"
-                  metrics={[
-                    { label: 'Total Likes', value: insights.facebookEngagement.totalLikes || 0 },
-                    { label: 'Total Comments', value: insights.facebookEngagement.totalComments || 0 },
-                    { label: 'Total Shares', value: insights.facebookEngagement.totalShares || 0 }
-                  ]}
-                />
-              )}
-              
-              {insights.instagramEngagement && (
-                <InsightsMetrics
-                  title="Instagram Engagement"
-                  color="#e4405f"
-                  metrics={[
-                    { label: 'Total Likes', value: insights.instagramEngagement.totalLikes || 0 },
-                    { label: 'Total Comments', value: insights.instagramEngagement.totalComments || 0 },
-                    { label: 'Recent Posts', value: insights.instagramEngagement.postsCount || 0 }
-                  ]}
-                />
-              )}
+              ))}
             </div>
           )}
           
-          {insights && !insights.pageInsights && !insights.instagramInsights && !insights.facebookEngagement && !insights.instagramEngagement && (
+          {insights && insights.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-              <p>No insights data available. Please check your social media API configuration.</p>
+              <p>No connected accounts found. Please connect your social media accounts first.</p>
             </div>
           )}
         </div>

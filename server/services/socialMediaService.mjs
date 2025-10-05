@@ -58,23 +58,31 @@ class SocialMediaService {
     }
   }
 
-  // Facebook posting with fixed implementation
-  async postToFacebook(content, userAccessToken, pageId) {
+  // Facebook posting using Firebase page tokens
+  async postToFacebook(content, pageId) {
     try {
-      console.log('📘 Facebook posting with fixed implementation...');
+      console.log('📘 Facebook posting using Firebase page tokens...');
       
-      // Use environment variables directly
-      const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-      const fbPageId = process.env.FACEBOOK_PAGE_ID;
-      const apiVersion = process.env.FB_API_VERSION || 'v18.0';
-
-      // Get page info with page-specific token
-      const pageInfoResponse = await axios.get(
-        `https://graph.facebook.com/${apiVersion}/${fbPageId}?fields=access_token&access_token=${token}`
-      );
+      // Get page token from Firebase like insights service
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
       
-      const pageAccessToken = pageInfoResponse.data.access_token;
-      const endpoint = `https://graph.facebook.com/${apiVersion}/${fbPageId}/feed`;
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+      const snapshot = await get(pageRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Page not found in Firebase');
+      }
+      
+      const pageData = snapshot.val();
+      const pageAccessToken = pageData.accessToken;
+      
+      const endpoint = `https://graph.facebook.com/v23.0/${pageId}/feed`;
 
       const postData = {
         message: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
@@ -133,29 +141,56 @@ class SocialMediaService {
     }
   }
 
-  // Instagram posting with enhanced error handling
-  async postToInstagram(content, accessToken, instagramAccountId) {
+  // Instagram posting using Firebase tokens with connectivity check
+  async postToInstagram(content, pageId) {
     try {
-      console.log('📷 Instagram posting with enhanced debugging...');
-      console.log('📷 Image URL:', content.imageUrl);
-
-      const token = process.env.INSTAGRAM_ACCESS_TOKEN;
-      const accountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID;
-      const apiVersion = process.env.FB_API_VERSION || 'v18.0';
-
-      console.log('📷 Using account ID:', accountId);
-      console.log('📷 Using API version:', apiVersion);
+      console.log('📷 Instagram posting using Firebase tokens...');
+      
+      // Get page token from Firebase
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+      const snapshot = await get(pageRef);
+      
+      if (!snapshot.exists()) {
+        throw new Error('Page not found in Firebase');
+      }
+      
+      const pageData = snapshot.val();
+      const pageAccessToken = pageData.accessToken;
+      
+      // Check if page has Instagram Business Account
+      const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${pageId}`, {
+        params: {
+          fields: 'instagram_business_account',
+          access_token: pageAccessToken
+        }
+      });
+      
+      const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
+      
+      if (!igAccountId) {
+        throw new Error('No Instagram Business Account connected to this Facebook page');
+      }
+      
+      console.log('📷 Using Instagram account ID:', igAccountId);
 
       // Step 1: Create media container
       const mediaData = {
         image_url: content.imageUrl,
         caption: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
-        access_token: token
+        access_token: pageAccessToken
       };
 
       console.log('📷 Creating media container...');
       const containerResponse = await axios.post(
-        `https://graph.facebook.com/${apiVersion}/${accountId}/media`,
+        `https://graph.facebook.com/v23.0/${igAccountId}/media`,
         mediaData
       );
 
@@ -169,10 +204,10 @@ class SocialMediaService {
       // Step 2: Publish the media
       console.log('📤 Publishing media...');
       const publishResponse = await axios.post(
-        `https://graph.facebook.com/${apiVersion}/${accountId}/media_publish`,
+        `https://graph.facebook.com/v23.0/${igAccountId}/media_publish`,
         {
           creation_id: creationId,
-          access_token: token
+          access_token: pageAccessToken
         }
       );
 
@@ -182,7 +217,8 @@ class SocialMediaService {
         platform: 'instagram',
         postId: publishResponse.data.id,
         message: 'Posted successfully to Instagram',
-        data: publishResponse.data
+        data: publishResponse.data,
+        instagramAccountId: igAccountId
       };
 
     } catch (error) {
@@ -393,8 +429,8 @@ class SocialMediaService {
     }
   }
 
-  // Post to multiple platforms
-  async postToMultiplePlatforms(content, platforms, tokens) {
+  // Post to multiple platforms using Firebase tokens
+  async postToMultiplePlatforms(content, platforms, pageId) {
     const results = [];
 
     for (const platform of platforms) {
@@ -403,28 +439,11 @@ class SocialMediaService {
 
         switch (platform.name) {
           case 'facebook':
-            // Use environment tokens if tokens parameter is empty
-            result = await this.postToFacebook(
-              content, 
-              tokens?.facebook?.accessToken || process.env.FACEBOOK_PAGE_ACCESS_TOKEN, 
-              tokens?.facebook?.pageId || process.env.FACEBOOK_PAGE_ID
-            );
-            break;
-
-          case 'facebook_profile':
-            result = await this.postToFacebookProfile(
-              content, 
-              tokens?.facebook?.accessToken || process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-            );
+            result = await this.postToFacebook(content, pageId);
             break;
 
           case 'instagram':
-            // Use environment tokens if tokens parameter is empty
-            result = await this.postToInstagram(
-              content, 
-              tokens?.instagram?.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN, 
-              tokens?.instagram?.accountId || process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
-            );
+            result = await this.postToInstagram(content, pageId);
             break;
 
           case 'twitter':

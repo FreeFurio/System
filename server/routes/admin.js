@@ -69,6 +69,30 @@ router.get('/engagement/instagram', async (req, res) => {
   }
 });
 
+router.get('/engagement/account/:accountId', async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    console.log('🚀 Admin API: Fetching engagement for account:', accountId);
+    
+    const engagement = await insightsService.getAccountSpecificEngagement(accountId);
+    res.json({ success: true, data: engagement });
+  } catch (error) {
+    console.error('❌ Admin API Error (Account Engagement):', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/debug-data', async (req, res) => {
+  try {
+    console.log('🚀 Admin API: Fetching debug data...');
+    const debugData = await insightsService.getDebugData();
+    res.json({ success: true, data: debugData });
+  } catch (error) {
+    console.error('❌ Admin API Error (Debug Data):', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 
 
 router.get('/setup-facebook-tokens', async (req, res) => {

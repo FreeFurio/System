@@ -585,4 +585,47 @@ router.get('/facebook/pages', async (req, res) => {
 // Get posting history/analytics
 router.get('/history', socialMediaController.getPostingHistory);
 
+// Simple Facebook posting test
+router.get('/test-facebook-post', async (req, res) => {
+  try {
+    const testContent = {
+      headline: 'Test Post',
+      caption: 'Testing Facebook posting from system! 🚀',
+      hashtag: '#test #facebook'
+    };
+    
+    // Get first available page from Firebase
+    const { getDatabase, ref, get } = await import('firebase/database');
+    const { config } = await import('../config/config.mjs');
+    const { initializeApp } = await import('firebase/app');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const pagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(pagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ error: 'No connected pages found in Firebase' });
+    }
+    
+    const pages = snapshot.val();
+    const firstPageId = Object.keys(pages)[0];
+    const pageData = pages[firstPageId];
+    
+    const result = await socialMediaService.postToFacebook(testContent, firstPageId);
+    
+    res.json({ 
+      success: true, 
+      result, 
+      pageUsed: {
+        id: firstPageId,
+        name: pageData.name
+      }
+    });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
 export default router;

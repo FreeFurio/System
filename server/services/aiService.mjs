@@ -82,18 +82,18 @@ class AIService {
     const prompts = {
       facebook: {
         headline: `Create a high-quality, SEO-optimized Facebook headline for: ${topic}. Include relevant keywords naturally, make it conversational, shareable, and emotionally engaging. Ensure optimal length (40-60 characters) for maximum visibility.`,
-        caption: `Write a premium Facebook caption for: ${topic}. Include target keywords naturally, engaging questions, strong call-to-action, emotional hooks, and community-focused language. Structure for high engagement and shareability.`,
-        hashtag: `Generate 5-8 high-performing Facebook hashtags for: ${topic}. Include trending, niche, and branded hashtags that boost discoverability and engagement.`
+        caption: `Write a premium Facebook caption for: ${topic}. Keep under 300 characters. Include target keywords naturally, engaging questions, strong call-to-action, emotional hooks, and community-focused language. Structure for high engagement and shareability.`,
+        hashtag: `Generate exactly 5 Facebook hashtags for: ${topic}. Format as #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5. Include trending, niche, and branded hashtags that boost discoverability and engagement.`
       },
       instagram: {
         headline: `Create a viral-worthy, SEO-optimized Instagram headline for: ${topic}. Include trending keywords, make it visual, aesthetic, and highly shareable. Perfect length for Instagram algorithm optimization.`,
-        caption: `Write a premium Instagram caption for: ${topic}. Include relevant keywords naturally, inspiring storytelling, aesthetic language, strategic emojis, and strong engagement hooks. Optimize for Instagram algorithm and user engagement.`,
-        hashtag: `Generate 10-15 high-performing Instagram hashtags for: ${topic}. Mix viral trending hashtags, niche-specific tags, and community hashtags for maximum reach and engagement.`
+        caption: `Write a premium Instagram caption for: ${topic}. Keep under 400 characters. Include relevant keywords naturally, inspiring storytelling, aesthetic language, strategic emojis, and strong engagement hooks. Optimize for Instagram algorithm and user engagement.`,
+        hashtag: `Generate exactly 8 Instagram hashtags for: ${topic}. Format as #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5 #hashtag6 #hashtag7 #hashtag8. Mix viral trending hashtags, niche-specific tags, and community hashtags for maximum reach and engagement.`
       },
       twitter: {
         headline: `Create a viral-potential Twitter headline for: ${topic}. Include trending keywords, keep under 100 characters, make it punchy, shareable, and optimized for Twitter algorithm engagement.`,
-        caption: `Write a high-engagement Twitter post for: ${topic}. Include relevant keywords naturally, keep under 280 characters, make it witty, engaging, and optimized for retweets and replies.`,
-        hashtag: `Generate 3-5 trending Twitter hashtags for: ${topic}. Focus on viral potential, current conversations, and hashtags that boost visibility and engagement.`
+        caption: `Write a high-engagement Twitter post for: ${topic}. Keep under 200 characters. Include relevant keywords naturally, make it witty, engaging, and optimized for retweets and replies.`,
+        hashtag: `Generate exactly 3 Twitter hashtags for: ${topic}. Format as #hashtag1 #hashtag2 #hashtag3. Focus on viral potential, current conversations, and hashtags that boost visibility and engagement.`
       }
     };
 
@@ -153,14 +153,14 @@ class AIService {
         this.generateContent(platform, topic, 'hashtag')
       ]);
 
-      // Generate simplified SEO analysis with only required scores
-      const headlineScore = Math.floor(Math.random() * 20) + 70;
-      const captionScore = Math.floor(Math.random() * 20) + 70;
-      const overallScore = Math.round((headlineScore + captionScore) / 2);
+      // Generate real SEO analysis using AI
+      const headlineAnalysis = await this.analyzeSEO(headline, 'headline');
+      const captionAnalysis = await this.analyzeSEO(caption, 'caption');
+      const overallScore = Math.round((headlineAnalysis.score + captionAnalysis.score) / 2);
       
       const seoAnalysis = {
-        headlineScore,
-        captionScore,
+        headlineScore: headlineAnalysis.score,
+        captionScore: captionAnalysis.score,
         overallScore
       };
 
@@ -183,11 +183,13 @@ class AIService {
     const prompt = `
     Analyze the SEO quality of this ${contentType}: "${content}"
     
-    Provide a realistic score from 75-95 for this content.
+    Rate this content on SEO factors: keyword relevance, readability, engagement potential, length optimization, and social media best practices.
+    
+    Provide a precise score between 60-95 based on actual content quality.
     
     Return JSON format with only the score:
     {
-      "score": number (75-95 range for AI-generated content)
+      "score": number (precise score between 60-95)
     }
     `;
 

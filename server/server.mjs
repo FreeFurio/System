@@ -51,6 +51,7 @@ app.use(
         defaultSrc: ["'self'"], 
         connectSrc: [          
           "'self'",
+          "data:",
           "wss://*.firebasedatabase.app",
           "https://*.firebasedatabase.app"
         ],

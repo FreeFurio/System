@@ -4,6 +4,10 @@ import InsightsMetrics from '../../components/common/InsightsMetrics';
 import SocialAccountCard from '../../components/common/SocialAccountCard';
 import AccountInsightCard from '../../components/common/AccountInsightCard';
 
+const API_BASE_URL = import.meta.env.PROD 
+  ? '/api/v1/admin' 
+  : 'http://localhost:3000/api/v1/admin';
+
 const SocialsAndInsights = () => {
   const [activeTab, setActiveTab] = useState('socials');
   const [insights, setInsights] = useState(null);
@@ -81,7 +85,7 @@ const SocialsAndInsights = () => {
       if (modalStep === 'loading' && currentSessionId) {
         console.log('🔥 MAIN: Polling API for session ID:', currentSessionId);
         try {
-          const response = await fetch(`http://localhost:3000/api/v1/admin/get-auth-result/${currentSessionId}`);
+          const response = await fetch(`${API_BASE_URL}/get-auth-result/${currentSessionId}`);
           const result = await response.json();
           
           console.log('🔥 MAIN: API response:', result);
@@ -153,7 +157,7 @@ const SocialsAndInsights = () => {
     window.facebookAuthParent = window;
     
     const popup = window.open(
-      `http://localhost:3000/api/v1/admin/facebook-oauth?sessionId=${sessionId}`,
+      `${API_BASE_URL}/facebook-oauth?sessionId=${sessionId}`,
       'facebook-auth',
       'width=600,height=700,scrollbars=yes,resizable=yes'
     );
@@ -185,7 +189,7 @@ const SocialsAndInsights = () => {
 
   const connectPage = async (pageId, sessionId) => {
     try {
-      const response = await fetch('http://localhost:3000/api/v1/admin/connect-selected-page', {
+      const response = await fetch(`${API_BASE_URL}/connect-selected-page`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pageId, sessionId })

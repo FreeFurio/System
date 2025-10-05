@@ -54,10 +54,11 @@ app.use(
           "wss://*.firebasedatabase.app",
           "https://*.firebasedatabase.app"
         ],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://*.firebasedatabase.app"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://*.firebasedatabase.app", "https://code.jquery.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"]
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        frameSrc: ["'self'", "https://app.templated.io"]
       },
     },
   })
@@ -218,6 +219,9 @@ app.use(express.static(path.join(__dirname, '../client/dist'), {
 
 // Serve client assets directly
 app.use('/assets', express.static(path.join(__dirname, '../client/assets')));
+
+// Serve ImageEditor components for production
+app.use('/components/ImageEditor', express.static(path.join(__dirname, '../client/components/ImageEditor')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); 
 });

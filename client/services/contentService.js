@@ -87,73 +87,80 @@ const generateMockSEOAnalysis = (content) => {
   };
 };
 
-// Create Content with Real AI Integration
+// Create Content with Multi-Platform AI Integration
 export async function createContent(data) {
   const { input, numContents = 1, taskId } = data;
   
   console.log('🔍 ContentService Debug - Received data:', { input, numContents, taskId });
   
-  // Step 1: Generate content using Real AI
-  console.log('🤖 Step 1: Generating content with Real AI...');
+  // Step 1: Generate multi-platform content using Real AI
+  console.log('🤖 Step 1: Generating multi-platform content with Real AI...');
   const contents = [];
   
   try {
-    // Call AI endpoint once to get base content
-    console.log('🤖 Calling AI service for base content...');
+    // Call AI endpoint to get multi-platform content
+    console.log('🤖 Calling AI service for multi-platform content...');
     const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3000';
     const response = await fetch(`${API_BASE_URL}/api/v1/tasks/generate-ai-content`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         topic: input,
-        numContents: numContents
+        numContents: numContents,
+        taskId: taskId
       })
     });
     
     const result = await response.json();
     
     if (result.status === 'success') {
-      // Process all real AI variations
+      // Process multi-platform AI variations
       result.data.variations.forEach((variation, index) => {
-        const aiContent = {
+        const multiPlatformContent = {
           id: variation.id,
-          headline: variation.headline,
-          caption: variation.caption,
-          hashtag: variation.hashtag,
-          seoAnalysis: {
-            headlineScore: variation.seoAnalysis.headlineScore,
-            captionScore: variation.seoAnalysis.captionScore,
-            overallScore: variation.seoAnalysis.overallScore,
-            // Add compatibility fields for OutputContent component
-            wordCount: variation.caption.split(' ').length,
-            powerWords: { count: 2, words: ['AI', 'automation'] },
-            emotionalWords: { count: 1, words: ['transform'] },
-            sentiment: { tone: 'Positive', polarity: '0.8', confidence: 85 },
-            readability: { complexity: 'Simple', gradeLevel: '7th Grade' }
-          }
+          topic: variation.topic,
+          platforms: variation.platforms,
+          targetPlatforms: result.data.targetPlatforms,
+          generatedAt: variation.generatedAt
         };
-        contents.push(aiContent);
-        console.log(`✅ Generated real AI variation ${index + 1} with SEO analysis`);
+        contents.push(multiPlatformContent);
+        console.log(`✅ Generated multi-platform AI variation ${index + 1} for platforms:`, result.data.targetPlatforms);
       });
     } else {
       throw new Error('AI service failed');
     }
   } catch (error) {
     console.error('❌ Error calling AI service, using mock data:', error);
-    // Fallback to all mock data if AI fails
+    // Fallback to mock data for single platform
     for (let i = 0; i < numContents; i++) {
       const generatedContent = generateMockContent(input, i);
-      contents.push(generatedContent);
+      // Convert to multi-platform format for consistency
+      const mockMultiPlatform = {
+        id: generatedContent.id,
+        topic: input,
+        platforms: {
+          facebook: {
+            platform: 'facebook',
+            topic: input,
+            headline: generatedContent.headline,
+            caption: generatedContent.caption,
+            hashtag: generatedContent.hashtag,
+            seoAnalysis: generatedContent.seoAnalysis,
+            generatedAt: new Date().toISOString()
+          }
+        },
+        targetPlatforms: ['facebook'],
+        generatedAt: new Date().toISOString()
+      };
+      contents.push(mockMultiPlatform);
     }
   }
   
-  // Content generated for selection only - no automatic submission
-  
-  console.log('🎯 Content generation and SEO analysis completed');
+  console.log('🎯 Multi-platform content generation completed');
   
   return {
     success: true,
-    message: `${numContents} content(s) created with SEO analysis!`,
+    message: `${numContents} multi-platform content(s) created!`,
     contents,
     taskId
   };

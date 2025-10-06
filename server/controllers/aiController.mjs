@@ -105,6 +105,45 @@ class AIController {
       });
     }
   }
+
+  // Generate content for multiple platforms
+  async generateMultiPlatformContent(req, res) {
+    try {
+      const { platforms, topic } = req.body;
+
+      if (!platforms || !Array.isArray(platforms) || platforms.length === 0) {
+        return res.status(400).json({
+          error: 'Platforms array is required and cannot be empty'
+        });
+      }
+
+      if (!topic) {
+        return res.status(400).json({
+          error: 'Topic is required'
+        });
+      }
+
+      const validPlatforms = ['facebook', 'instagram', 'twitter'];
+      const invalidPlatforms = platforms.filter(p => !validPlatforms.includes(p));
+      
+      if (invalidPlatforms.length > 0) {
+        return res.status(400).json({
+          error: `Invalid platforms: ${invalidPlatforms.join(', ')}. Use: facebook, instagram, twitter`
+        });
+      }
+
+      const content = await aiService.generateMultiPlatformContent(platforms, topic);
+
+      res.json({
+        success: true,
+        data: content
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
+      });
+    }
+  }
 }
 
 export default new AIController();

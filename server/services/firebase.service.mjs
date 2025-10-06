@@ -1083,14 +1083,6 @@ class FirebaseService {
         return;
       }
       
-      // Prepare content for posting
-      const postContent = {
-        headline: content.headline,
-        caption: content.caption,
-        hashtag: content.hashtag,
-        imageUrl: designUrl
-      };
-      
       console.log('📢 Auto-posting to platforms:', selectedPlatforms.map(p => p.name || p));
       
       // Import social media service dynamically
@@ -1102,54 +1094,70 @@ class FirebaseService {
         const platformName = platform.name || platform;
         
         try {
+          // Get platform-specific content from selectedContent structure
+          const platformContent = content.selectedContent?.[platformName.toLowerCase()];
+          
+          if (!platformContent) {
+            console.log(`⚠️ No content found for platform: ${platformName}`);
+            continue;
+          }
+          
+          // Prepare content for posting with platform-specific data
+          const postContent = {
+            headline: platformContent.headline,
+            caption: platformContent.caption,
+            hashtag: platformContent.hashtag,
+            imageUrl: designUrl
+          };
+          
+          console.log(`📝 Posting ${platformName} content:`, {
+            headline: postContent.headline?.substring(0, 50) + '...',
+            caption: postContent.caption?.substring(0, 50) + '...',
+            hashtag: postContent.hashtag?.substring(0, 30) + '...'
+          });
+          
           let result;
           
           switch (platformName.toLowerCase()) {
             case 'facebook':
               console.log('📘 Facebook posting - checking credentials...');
-              if (!process.env.FACEBOOK_PAGE_ACCESS_TOKEN || !process.env.FACEBOOK_PAGE_ID) {
-                console.log('❌ Facebook credentials missing');
-                throw new Error('Facebook credentials not configured');
+              // Get first active page ID from Firebase
+              const fbPagesRef = ref(db, 'connectedPages/admin');
+              const fbPagesSnapshot = await get(fbPagesRef);
+              if (fbPagesSnapshot.exists()) {
+                const pages = fbPagesSnapshot.val();
+                const activePage = Object.entries(pages).find(([id, data]) => data.active === true);
+                if (activePage) {
+                  result = await SocialMediaService.postToFacebook(postContent, activePage[0]);
+                } else {
+                  throw new Error('No active Facebook page found');
+                }
+              } else {
+                throw new Error('No connected Facebook pages found');
               }
-              result = await SocialMediaService.postToFacebook(
-                postContent,
-                process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-                process.env.FACEBOOK_PAGE_ID
-              );
-              break;
-              
-            case 'facebook_profile':
-              console.log('👤 Facebook profile posting - checking credentials...');
-              if (!process.env.FACEBOOK_PAGE_ACCESS_TOKEN) {
-                console.log('❌ Facebook credentials missing');
-                throw new Error('Facebook credentials not configured');
-              }
-              result = await SocialMediaService.postToFacebookProfile(
-                postContent,
-                process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-              );
               break;
               
             case 'twitter':
               console.log('🐦 Twitter posting - checking credentials...');
-              if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_ACCESS_TOKEN) {
-                console.log('❌ Twitter credentials missing');
-                throw new Error('Twitter credentials not configured');
-              }
               result = await SocialMediaService.postToTwitter(postContent);
               break;
               
             case 'instagram':
               console.log('📷 Instagram posting - checking credentials...');
-              if (!process.env.INSTAGRAM_ACCESS_TOKEN || !process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID) {
-                console.log('❌ Instagram credentials missing');
-                throw new Error('Instagram credentials not configured');
+              const pagesRef = ref(db, 'connectedPages/admin');
+              const pagesSnapshot = await get(pagesRef);
+              if (pagesSnapshot.exists()) {
+                const pages = pagesSnapshot.val();
+                // Only use active page for Instagram
+                const activePage = Object.entries(pages).find(([id, data]) => data.active === true);
+                if (activePage && activePage[1].instagramBusinessAccount) {
+                  result = await SocialMediaService.postToInstagram(postContent, activePage[0]);
+                } else {
+                  throw new Error('Active page does not have Instagram Business Account connected');
+                }
+              } else {
+                throw new Error('No connected pages found for Instagram');
               }
-              result = await SocialMediaService.postToInstagram(
-                postContent,
-                process.env.INSTAGRAM_ACCESS_TOKEN,
-                process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID
-              );
               break;
               
             default:

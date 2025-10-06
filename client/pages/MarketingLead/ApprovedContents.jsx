@@ -49,6 +49,159 @@ const SEOBar = ({ score, label, width = '100%' }) => {
   );
 };
 
+const MultiPlatformContentModal = ({ workflow }) => {
+  const [activeTab, setActiveTab] = useState('facebook');
+  
+  const getPlatformEmoji = (platform) => {
+    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
+    return emojis[platform] || '📱';
+  };
+  
+  const getPlatformDisplayName = (platform) => {
+    const names = { facebook: 'Facebook', instagram: 'Instagram', twitter: 'Twitter' };
+    return names[platform] || platform;
+  };
+  
+  const selectedContent = workflow.contentCreator?.content?.selectedContent || {};
+  const seoAnalysis = workflow.contentCreator?.content?.seoAnalysis || {};
+  const availablePlatforms = Object.keys(selectedContent);
+  
+  if (availablePlatforms.length === 0) {
+    return (
+      <div style={{
+        marginTop: '0px',
+        padding: '32px',
+        background: '#f8f9fa',
+        borderRadius: '8px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
+        <div style={{ fontSize: '16px', color: '#6b7280' }}>No content available</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      marginTop: '0px',
+      padding: '0px',
+      background: 'transparent',
+      borderRadius: '0px',
+      border: 'none'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start',
+        marginBottom: '24px',
+        paddingBottom: '12px',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#374151', 
+          fontSize: '16px', 
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          📝 Multi-Platform Content
+        </h4>
+      </div>
+      
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '8px', 
+        marginBottom: '20px'
+      }}>
+        {availablePlatforms.map(platform => (
+          <button
+            key={platform}
+            onClick={() => setActiveTab(platform)}
+            style={{
+              padding: '8px 16px',
+              background: activeTab === platform 
+                ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
+                : '#f8f9fa',
+              color: activeTab === platform ? '#fff' : '#6b7280',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+          </button>
+        ))}
+      </div>
+      
+      {selectedContent[activeTab] && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                {selectedContent[activeTab].headline}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                {selectedContent[activeTab].caption}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+              <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                {selectedContent[activeTab].hashtag}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ApprovedContentCard = ({ workflow, onSetTask }) => {
   const [expanded, setExpanded] = useState(false);
   const [showDesignModal, setShowDesignModal] = useState(false);
@@ -250,95 +403,7 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
             </button>
           </div>
           
-          {expanded && (
-            <div style={{
-              marginTop: '0px',
-              padding: '0px',
-              background: 'transparent',
-              borderRadius: '0px',
-              border: 'none'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                marginBottom: '24px',
-                paddingBottom: '12px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h4 style={{ 
-                  margin: 0, 
-                  color: '#374151', 
-                  fontSize: '16px', 
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  📝 Content Analysis
-                </h4>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Headline Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
-                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
-                      {workflow.contentCreator.content.headline}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <SEOBar score={workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0} label="Headline SEO" />
-                  </div>
-                </div>
-                
-                {/* Caption Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
-                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
-                      {workflow.contentCreator.content.caption}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <SEOBar score={workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0} label="Caption SEO" />
-                  </div>
-                </div>
-                
-                {/* Hashtags Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
-                    <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
-                      {workflow.contentCreator.content.hashtag}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <SEOBar score={workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0} label="Overall SEO Score" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {expanded && <MultiPlatformContentModal workflow={workflow} />}
         </div>
       )}
       
@@ -382,72 +447,121 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
 
       {/* Design Modal */}
       {showDesignModal && isDesignApproval && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0,0,0,0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDesignModal(false);
+            }
+          }}
+        >
           <div style={{
             background: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
+            borderRadius: '20px',
+            padding: '32px',
             maxWidth: '90vw',
             maxHeight: '90vh',
             overflow: 'auto',
-            position: 'relative'
+            position: 'relative',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            animation: 'modalSlideIn 0.3s ease-out'
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '16px'
+              marginBottom: '24px',
+              paddingBottom: '16px',
+              borderBottom: '2px solid #f1f5f9'
             }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Approved Design</h3>
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: '24px', 
+                fontWeight: '700',
+                color: '#1f2937',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                ✅ Approved Design
+              </h3>
               <button
                 onClick={() => setShowDesignModal(false)}
                 style={{
-                  background: '#ef4444',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.4)';
+                }}
+                onMouseLeave={e => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
                 }}
               >
                 ✕ Close
               </button>
             </div>
-            {(workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl) ? (
-              <img 
-                src={workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl} 
-                alt="Approved Design" 
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '70vh',
-                  borderRadius: '12px',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-                  border: '1px solid #e5e7eb'
-                }}
-              />
-            ) : (
-              <div style={{
-                padding: '40px',
-                textAlign: 'center',
-                color: '#6b7280',
-                fontSize: '16px'
-              }}>
-                No design image available
-              </div>
-            )}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '400px'
+            }}>
+              {(workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl) ? (
+                <img 
+                  src={workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl} 
+                  alt="Approved Design" 
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '70vh',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                    border: '2px solid #e5e7eb'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  padding: '60px',
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  fontSize: '18px',
+                  background: '#f8fafc',
+                  borderRadius: '16px',
+                  border: '2px dashed #d1d5db'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🖼️</div>
+                  <div style={{ fontWeight: '600', marginBottom: '8px' }}>No design image available</div>
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>The design file could not be loaded</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

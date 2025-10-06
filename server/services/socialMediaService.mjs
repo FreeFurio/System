@@ -79,47 +79,7 @@ class SocialMediaService {
       const snapshot = await get(pageRef);
       
       if (!snapshot.exists()) {
-        // Check if there are any pages at all
-        const allPagesRef = ref(db, 'connectedPages/admin');
-        const allPagesSnapshot = await get(allPagesRef);
-        
-        if (allPagesSnapshot.exists()) {
-          const allPages = allPagesSnapshot.val();
-          console.log('🔍 Available pages:', Object.keys(allPages));
-          
-          // Use the first available page as fallback
-          const firstPageId = Object.keys(allPages)[0];
-          const firstPageData = allPages[firstPageId];
-          console.log('🔄 Using fallback page:', firstPageId);
-          
-          const pageAccessToken = firstPageData.accessToken;
-          const actualPageId = firstPageData.id;
-          
-          const endpoint = `https://graph.facebook.com/v23.0/${actualPageId}/feed`;
-          
-          const postData = {
-            message: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
-            access_token: pageAccessToken
-          };
-          
-          if (content.imageUrl) {
-            postData.link = content.imageUrl;
-          }
-          
-          const response = await axios.post(endpoint, postData);
-          
-          return {
-            success: true,
-            platform: 'facebook',
-            postId: response.data.id,
-            message: `Posted successfully to Facebook page: ${firstPageData.name}`,
-            data: response.data,
-            postedAsPage: true,
-            usedFallbackPage: true
-          };
-        } else {
-          throw new Error('No Facebook pages connected. Please connect a Facebook page first.');
-        }
+        throw new Error('Specified Facebook page not found. Please check page configuration.');
       }
       
       const pageData = snapshot.val();
@@ -226,8 +186,10 @@ class SocialMediaService {
       console.log('📷 Using Instagram account ID:', igAccountId);
 
       // Step 1: Create media container
+      const imageUrl = content.imageUrl || 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1080&h=1080&fit=crop&crop=center';
+      
       const mediaData = {
-        image_url: content.imageUrl,
+        image_url: imageUrl,
         caption: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
         access_token: pageAccessToken
       };
@@ -313,9 +275,49 @@ class SocialMediaService {
     }
   }
 
-  // Twitter posting with media upload support
-  async postToTwitter(content) {
+  // Twitter posting using OAuth 2.0 user tokens from Firebase
+  async postToTwitter(content, accountId = null) {
     try {
+      console.log('🐦 Twitter posting using OAuth 2.0 user tokens from Firebase...');
+      
+      // Get Twitter account token from Firebase
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      let accessToken;
+      
+      if (accountId) {
+        // Use specific account
+        const accountRef = ref(db, `connectedAccounts/admin/twitter/${accountId}`);
+        const snapshot = await get(accountRef);
+        
+        if (!snapshot.exists()) {
+          throw new Error('Twitter account not found');
+        }
+        
+        accessToken = snapshot.val().accessToken;
+      } else {
+        // Use first available account
+        const accountsRef = ref(db, 'connectedAccounts/admin/twitter');
+        const snapshot = await get(accountsRef);
+        
+        if (!snapshot.exists()) {
+          throw new Error('No Twitter accounts connected. Please connect a Twitter account first.');
+        }
+        
+        const accounts = Object.values(snapshot.val());
+        accessToken = accounts[0].accessToken;
+      }
+      
+      if (!accessToken) {
+        throw new Error('No Twitter access token available');
+      }
+      
       const tweetText = content.caption.length <= 280 
         ? `${content.caption} ${content.hashtag}`
         : `${content.caption.substring(0, 240)}... ${content.hashtag}`;
@@ -324,50 +326,13 @@ class SocialMediaService {
         text: tweetText
       };
 
-      // Add media if provided
-      if (content.imageUrl) {
-        console.log('📷 Uploading media to Twitter...');
-        try {
-          const mediaId = await this.uploadTwitterMedia(content.imageUrl);
-          tweetData.media = { media_ids: [mediaId] };
-          console.log('✅ Media uploaded, ID:', mediaId);
-        } catch (mediaError) {
-          console.log('⚠️ Media upload failed, posting without image:', mediaError.message);
-        }
-      }
-
-      // Generate OAuth signature
-      const oauthParams = {
-        oauth_consumer_key: process.env.TWITTER_API_KEY,
-        oauth_token: process.env.TWITTER_ACCESS_TOKEN,
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-        oauth_nonce: crypto.randomBytes(16).toString('hex'),
-        oauth_version: '1.0'
-      };
-
-      const paramString = Object.keys(oauthParams)
-        .sort()
-        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(oauthParams[key])}`)
-        .join('&');
-
-      const signatureBaseString = `POST&${encodeURIComponent('https://api.twitter.com/2/tweets')}&${encodeURIComponent(paramString)}`;
-      const signingKey = `${encodeURIComponent(process.env.TWITTER_API_SECRET)}&${encodeURIComponent(process.env.TWITTER_ACCESS_TOKEN_SECRET)}`;
-      const signature = crypto.createHmac('sha1', signingKey).update(signatureBaseString).digest('base64');
-      
-      oauthParams.oauth_signature = signature;
-
-      const oauth = 'OAuth ' + Object.keys(oauthParams)
-        .map(key => `${encodeURIComponent(key)}="${encodeURIComponent(oauthParams[key])}"`)
-        .join(', ');
-
-      console.log('📡 Posting tweet...');
+      console.log('📡 Posting tweet with OAuth 2.0...');
       const response = await axios.post(
         'https://api.twitter.com/2/tweets',
         tweetData,
         {
           headers: {
-            'Authorization': oauth,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           }
         }
@@ -377,9 +342,8 @@ class SocialMediaService {
         success: true,
         platform: 'twitter',
         postId: response.data.data.id,
-        message: content.imageUrl ? 'Posted successfully to Twitter with media' : 'Posted successfully to Twitter',
-        data: response.data,
-        mediaIncluded: !!tweetData.media
+        message: 'Posted successfully to Twitter',
+        data: response.data
       };
 
     } catch (error) {
@@ -474,7 +438,7 @@ class SocialMediaService {
   }
 
   // Post to multiple platforms using Firebase tokens
-  async postToMultiplePlatforms(content, platforms, pageId) {
+  async postToMultiplePlatforms(content, platforms, pageId, twitterAccountId = null) {
     const results = [];
 
     for (const platform of platforms) {
@@ -491,7 +455,7 @@ class SocialMediaService {
             break;
 
           case 'twitter':
-            result = await this.postToTwitter(content);
+            result = await this.postToTwitter(content, twitterAccountId);
             break;
 
           default:

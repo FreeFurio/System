@@ -37,35 +37,60 @@ const SocialAccountCard = ({
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ flex: 1 }}>
-          <h4 style={{ color: color, marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
-            {platform}
-            <span style={{
-              marginLeft: '10px',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '12px',
-              fontWeight: 'normal',
-              background: isActive ? '#d4edda' : '#f8d7da',
-              color: isActive ? '#155724' : '#721c24'
-            }}>
-              {isActive ? 'Active for posting' : 'Inactive for posting'}
-            </span>
-          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+            {account?.profilePicture && (
+              <img 
+                src={account.profilePicture} 
+                alt={`${platform} profile`}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  marginRight: '10px',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+            <h4 style={{ color: color, margin: 0, display: 'flex', alignItems: 'center' }}>
+              {platform}
+              <span style={{
+                marginLeft: '10px',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 'normal',
+                background: isActive ? '#d4edda' : '#f8d7da',
+                color: isActive ? '#155724' : '#721c24'
+              }}>
+                {isActive ? 'Active for posting' : 'Inactive for posting'}
+              </span>
+            </h4>
+          </div>
           <p style={{ color: '#666', margin: '5px 0' }}>Status: {status}</p>
           <p style={{ color: '#666', margin: '5px 0' }}>{accountInfo}</p>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            border: account?.hasInstagram ? '1px solid #ffcccb' : '1px solid #d3d3d3',
-            color: '#666',
-            padding: '4px 8px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            fontWeight: '500',
-            marginTop: '8px'
-          }}>
-            {account?.hasInstagram ? 'Instagram Connected' : 'Instagram Not Connected'}
-          </div>
+          {platform === 'Facebook' && (
+            <div style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>
+              {account?.hasInstagram && account?.instagramAccount?.profilePicture && (
+                <img 
+                  src={account.instagramAccount.profilePicture} 
+                  alt="Instagram profile"
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    marginRight: '8px',
+                    objectFit: 'cover'
+                  }}
+                />
+              )}
+              <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>
+                {account?.hasInstagram && account?.instagramAccount 
+                  ? `@${account.instagramAccount.username} • ${account.instagramAccount.followersCount} followers`
+                  : 'Instagram not connected'
+                }
+              </p>
+            </div>
+          )}
         </div>
         
         <div style={{ position: 'relative' }}>

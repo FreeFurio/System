@@ -4,6 +4,191 @@ import { cachedFetch } from '../../utils/apiCache';
 import { FiTrash2, FiTarget, FiUser, FiCalendar, FiBarChart, FiSmartphone, FiClock, FiEdit3, FiStar, FiFileText, FiHash, FiTrendingUp, FiEye, FiCheckCircle, FiSend, FiClipboard } from 'react-icons/fi';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 
+const SEOBar = ({ score, label, width = '100%' }) => {
+  const getColor = (score) => {
+    if (score >= 85) return '#10b981';
+    if (score >= 75) return '#f59e0b';
+    return '#ef4444';
+  };
+  
+  return (
+    <div style={{ marginBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{label}</span>
+        <span style={{ fontSize: '14px', fontWeight: '700', color: getColor(score) }}>{score}/100</span>
+      </div>
+      <div style={{
+        width: width,
+        height: '8px',
+        backgroundColor: '#e5e7eb',
+        borderRadius: '4px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          width: `${score}%`,
+          height: '100%',
+          backgroundColor: getColor(score),
+          borderRadius: '4px',
+          transition: 'width 0.5s ease-in-out'
+        }} />
+      </div>
+    </div>
+  );
+};
+
+const MultiPlatformContentModal = ({ task }) => {
+  const [activeTab, setActiveTab] = useState('facebook');
+  
+  const getPlatformEmoji = (platform) => {
+    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
+    return emojis[platform] || '📱';
+  };
+  
+  const getPlatformDisplayName = (platform) => {
+    const names = { facebook: 'Facebook', instagram: 'Instagram', twitter: 'Twitter' };
+    return names[platform] || platform;
+  };
+  
+  const selectedContent = task.contentCreator?.content?.selectedContent || {};
+  const seoAnalysis = task.contentCreator?.content?.seoAnalysis || {};
+  const availablePlatforms = Object.keys(selectedContent);
+  
+  if (availablePlatforms.length === 0) {
+    return (
+      <div style={{
+        marginTop: '0px',
+        padding: '32px',
+        background: '#f8f9fa',
+        borderRadius: '8px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
+        <div style={{ fontSize: '16px', color: '#6b7280' }}>No content available</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      marginTop: '0px',
+      padding: '0px',
+      background: 'transparent',
+      borderRadius: '0px',
+      border: 'none'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start',
+        marginBottom: '24px',
+        paddingBottom: '12px',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#374151', 
+          fontSize: '16px', 
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          📝 Multi-Platform Content
+        </h4>
+      </div>
+      
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '8px', 
+        marginBottom: '20px'
+      }}>
+        {availablePlatforms.map(platform => (
+          <button
+            key={platform}
+            onClick={() => setActiveTab(platform)}
+            style={{
+              padding: '8px 16px',
+              background: activeTab === platform 
+                ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
+                : '#f8f9fa',
+              color: activeTab === platform ? '#fff' : '#6b7280',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+          </button>
+        ))}
+      </div>
+      
+      {selectedContent[activeTab] && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                {selectedContent[activeTab].headline}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                {selectedContent[activeTab].caption}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+              <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                {selectedContent[activeTab].hashtag}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const EditTaskModal = ({ task, type, onClose, onSave }) => {
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
@@ -583,155 +768,7 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
             </button>
           </div>
           
-          {contentExpanded && (
-            <div style={{
-              marginTop: '0px',
-              padding: '0px',
-              background: 'transparent',
-              borderRadius: '0px',
-              border: 'none'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                marginBottom: '24px',
-                paddingBottom: '12px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h4 style={{ 
-                  margin: 0, 
-                  color: '#374151', 
-                  fontSize: '16px', 
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  📝 Content Analysis
-                </h4>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Headline Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
-                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
-                      {task.contentCreator.content.headline}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Headline SEO</span>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.headlineScore || 0}/100</span>
-                      </div>
-                      <div style={{
-                        width: '100%',
-                        height: '8px',
-                        backgroundColor: '#e5e7eb',
-                        borderRadius: '4px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${task.contentCreator?.content?.seoAnalysis?.headlineScore || 0}%`,
-                          height: '100%',
-                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.headlineScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                          borderRadius: '4px',
-                          transition: 'width 0.5s ease-in-out'
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Caption Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
-                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
-                      {task.contentCreator.content.caption}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Caption SEO</span>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.captionScore || 0}/100</span>
-                      </div>
-                      <div style={{
-                        width: '100%',
-                        height: '8px',
-                        backgroundColor: '#e5e7eb',
-                        borderRadius: '4px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${task.contentCreator?.content?.seoAnalysis?.captionScore || 0}%`,
-                          height: '100%',
-                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.captionScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                          borderRadius: '4px',
-                          transition: 'width 0.5s ease-in-out'
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Hashtags Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
-                    <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
-                      {task.contentCreator.content.hashtag}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Overall SEO Score</span>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444' }}>{task.contentCreator?.content?.seoAnalysis?.overallScore || 0}/100</span>
-                      </div>
-                      <div style={{
-                        width: '100%',
-                        height: '8px',
-                        backgroundColor: '#e5e7eb',
-                        borderRadius: '4px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${task.contentCreator?.content?.seoAnalysis?.overallScore || 0}%`,
-                          height: '100%',
-                          backgroundColor: (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 85 ? '#10b981' : (task.contentCreator?.content?.seoAnalysis?.overallScore || 0) >= 75 ? '#f59e0b' : '#ef4444',
-                          borderRadius: '4px',
-                          transition: 'width 0.5s ease-in-out'
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {contentExpanded && <MultiPlatformContentModal task={task} />}
         </div>
       )}
       

@@ -135,46 +135,74 @@ class SocialMediaController {
             imageUrl: imageUrl || null
           };
 
-          // Post to all active accounts for this platform
+          // Post to platform-specific accounts
           const platformResults = [];
           
-          for (const activePage of activePages) {
-            try {
-              let postResult;
-              switch (platform.name) {
-                case 'facebook':
-                  postResult = await socialMediaService.postToFacebook(
-                    content, 
-                    activePage.id
-                  );
-                  break;
-
-                case 'instagram':
-                  postResult = await socialMediaService.postToInstagram(
-                    content, 
-                    activePage.id
-                  );
-                  break;
-
-                case 'twitter':
-                  postResult = await socialMediaService.postToTwitter(content);
-                  break;
+          if (platform.name === 'twitter') {
+            // Twitter: Use Twitter accounts, not Facebook pages
+            const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+            const twitterSnapshot = await get(twitterAccountsRef);
+            
+            if (twitterSnapshot.exists()) {
+              const twitterAccounts = Object.values(twitterSnapshot.val());
+              
+              for (const twitterAccount of twitterAccounts) {
+                try {
+                  const postResult = await socialMediaService.postToTwitter(content, twitterAccount.id);
+                  
+                  platformResults.push({
+                    accountId: twitterAccount.id,
+                    accountName: twitterAccount.name,
+                    success: true,
+                    postResult
+                  });
+                  
+                } catch (accountError) {
+                  platformResults.push({
+                    accountId: twitterAccount.id,
+                    accountName: twitterAccount.name,
+                    success: false,
+                    error: accountError.message
+                  });
+                }
               }
-              
-              platformResults.push({
-                accountId: activePage.id,
-                accountName: activePage.name,
-                success: true,
-                postResult
-              });
-              
-            } catch (accountError) {
-              platformResults.push({
-                accountId: activePage.id,
-                accountName: activePage.name,
-                success: false,
-                error: accountError.message
-              });
+            }
+          } else {
+            // Facebook/Instagram: Use Facebook pages
+            for (const activePage of activePages) {
+              try {
+                let postResult;
+                switch (platform.name) {
+                  case 'facebook':
+                    postResult = await socialMediaService.postToFacebook(
+                      content, 
+                      activePage.id
+                    );
+                    break;
+
+                  case 'instagram':
+                    postResult = await socialMediaService.postToInstagram(
+                      content, 
+                      activePage.id
+                    );
+                    break;
+                }
+                
+                platformResults.push({
+                  accountId: activePage.id,
+                  accountName: activePage.name,
+                  success: true,
+                  postResult
+                });
+                
+              } catch (accountError) {
+                platformResults.push({
+                  accountId: activePage.id,
+                  accountName: activePage.name,
+                  success: false,
+                  error: accountError.message
+                });
+              }
             }
           }
 

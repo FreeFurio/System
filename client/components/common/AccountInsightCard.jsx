@@ -4,12 +4,128 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const AccountInsightCard = ({ account, engagement }) => {
   const fbData = engagement?.facebook || {};
   const igData = engagement?.instagram;
+  const twitterData = engagement?.twitter;
   
   const fbTotal = (fbData.totalReactions || 0) + (fbData.totalComments || 0) + (fbData.totalShares || 0);
   const igTotal = igData ? (igData.totalViews || 0) : 0;
   
   const fbChartData = fbData.historicalData || [{ date: 'Current', total: fbTotal, time: 'Now' }];
   const igChartData = igData?.historicalData || (igData ? [{ name: 'Current', total: igTotal }] : null);
+  
+  // Twitter-specific rendering
+  if (account.platform === 'twitter') {
+    return (
+      <div style={{
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        padding: '20px',
+        background: '#fff',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {account.profilePicture && (
+            <img 
+              src={account.profilePicture} 
+              alt={account.name}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }}
+            />
+          )}
+          <div>
+            <h3 style={{ 
+              margin: '0 0 5px 0', 
+              color: '#1da1f2',
+              fontSize: '18px',
+              fontWeight: '600'
+            }}>
+              @{account.username}
+            </h3>
+            <p style={{ 
+              margin: 0, 
+              color: '#666', 
+              fontSize: '14px' 
+            }}>
+              {account.name} • {account.followersCount || 0} followers
+            </p>
+          </div>
+        </div>
+        
+        {twitterData ? (
+          <div>
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '15px',
+              textAlign: 'center',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1da1f2' }}>{twitterData.metrics?.totalTweets || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Recent Tweets</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>{twitterData.metrics?.totalEngagement || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Total Engagement</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545' }}>{twitterData.metrics?.avgEngagementPerTweet || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Avg per Tweet</div>
+              </div>
+            </div>
+            
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '15px',
+              textAlign: 'center',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{twitterData.metrics?.totalLikes || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4caf50' }}>{twitterData.metrics?.totalRetweets || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Retweets</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff9800' }}>{twitterData.metrics?.totalReplies || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Replies</div>
+              </div>
+            </div>
+            
+            <div style={{
+              background: '#f8f9fa',
+              padding: '12px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              color: '#666',
+              textAlign: 'center'
+            }}>
+              {twitterData.limitation}
+            </div>
+          </div>
+        ) : null}
+        
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          fontSize: '11px',
+          color: '#999',
+          borderTop: '1px solid #f0f0f0',
+          paddingTop: '10px',
+          marginTop: '20px'
+        }}>
+          <span>Platform: Twitter</span>
+          <span>Connected: {new Date(account.connectedAt).toLocaleDateString()}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -19,23 +135,36 @@ const AccountInsightCard = ({ account, engagement }) => {
       background: '#fff',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
     }}>
-      <div style={{ marginBottom: '15px' }}>
-        <h3 style={{ 
-          margin: '0 0 5px 0', 
-          color: '#333',
-          fontSize: '18px',
-          fontWeight: '600'
-        }}>
-          {account.name}
-        </h3>
-        <p style={{ 
-          margin: 0, 
-          color: '#666', 
-          fontSize: '14px' 
-        }}>
-          {account.category} • {account.fanCount || 0} followers
-          {igData && <span style={{ color: '#e4405f', marginLeft: '10px' }}>• Instagram Connected</span>}
-        </p>
+      <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {account.profilePicture && (
+          <img 
+            src={account.profilePicture} 
+            alt={account.name}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              objectFit: 'cover'
+            }}
+          />
+        )}
+        <div>
+          <h3 style={{ 
+            margin: '0 0 5px 0', 
+            color: '#333',
+            fontSize: '18px',
+            fontWeight: '600'
+          }}>
+            {account.name}
+          </h3>
+          <p style={{ 
+            margin: 0, 
+            color: '#666', 
+            fontSize: '14px' 
+          }}>
+            {account.category} • {account.fanCount || 0} followers
+          </p>
+        </div>
       </div>
 
       <div style={{ marginBottom: '20px' }}>

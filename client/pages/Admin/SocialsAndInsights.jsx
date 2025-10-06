@@ -23,6 +23,7 @@ const SocialsAndInsights = () => {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState(null);
+  const [connectedTwitterAccounts, setConnectedTwitterAccounts] = useState([]);
 
   // Move handleMessage outside useEffect and use useCallback
   const handleMessage = useCallback((event) => {
@@ -43,6 +44,7 @@ const SocialsAndInsights = () => {
 
   useEffect(() => {
     fetchConnectedPages();
+    fetchConnectedTwitterAccounts();
     
     window.addEventListener('message', handleMessage);
     
@@ -143,6 +145,16 @@ const SocialsAndInsights = () => {
     }
   };
 
+  const fetchConnectedTwitterAccounts = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/connected-twitter-accounts`);
+      const data = await response.json();
+      setConnectedTwitterAccounts(data.accounts || []);
+    } catch (err) {
+      console.error('Error fetching Twitter accounts:', err);
+    }
+  };
+
   const handleFacebookAuth = () => {
     console.log('Opening Facebook OAuth popup...');
     setIsAuthenticating(true);
@@ -223,12 +235,27 @@ const SocialsAndInsights = () => {
     setShowDeleteModal(true);
   };
 
+  const handleTwitterConnect = () => {
+    window.open(
+      `${API_BASE_URL}/twitter-oauth`,
+      'twitter-auth',
+      'width=600,height=700,scrollbars=yes,resizable=yes'
+    );
+  };
+
   const confirmDelete = async () => {
     try {
-      await adminService.deleteAccount(accountToDelete.id);
+      if (accountToDelete.platform === 'twitter') {
+        await fetch(`${API_BASE_URL}/twitter-account/${accountToDelete.id}`, {
+          method: 'DELETE'
+        });
+        fetchConnectedTwitterAccounts();
+      } else {
+        await adminService.deleteAccount(accountToDelete.id);
+        fetchConnectedPages();
+      }
       setShowDeleteModal(false);
       setAccountToDelete(null);
-      fetchConnectedPages();
       if (activeTab === 'insights') {
         fetchInsights();
       }
@@ -243,18 +270,19 @@ const SocialsAndInsights = () => {
     try {
       console.log('🔍 Fetching account insights data...');
       
-      const accountInsights = await Promise.all(
+      // Fetch Facebook/Instagram insights
+      const facebookInsights = await Promise.all(
         connectedPages.map(async (account) => {
           try {
             const engagement = await adminService.getAccountEngagement(account.id);
             return {
-              account,
+              account: { ...account, platform: 'facebook' },
               engagement: engagement.data
             };
           } catch (error) {
             console.error(`Failed to fetch engagement for ${account.name}:`, error);
             return {
-              account,
+              account: { ...account, platform: 'facebook' },
               engagement: {
                 facebook: {
                   totalLikes: 0,
@@ -268,6 +296,28 @@ const SocialsAndInsights = () => {
           }
         })
       );
+      
+      // Fetch Twitter insights
+      const twitterInsights = await Promise.all(
+        connectedTwitterAccounts.map(async (account) => {
+          try {
+            const response = await fetch(`${API_BASE_URL}/twitter-insights/${account.id}`);
+            const data = await response.json();
+            return {
+              account: { ...account, platform: 'twitter' },
+              engagement: { twitter: data.insights }
+            };
+          } catch (error) {
+            console.error(`Failed to fetch Twitter insights for ${account.username}:`, error);
+            return {
+              account: { ...account, platform: 'twitter' },
+              engagement: { twitter: null }
+            };
+          }
+        })
+      );
+      
+      const accountInsights = [...facebookInsights, ...twitterInsights];
       
       setInsights(accountInsights);
     } catch (err) {
@@ -319,7 +369,10 @@ const SocialsAndInsights = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ color: '#333', margin: 0 }}>Connected Accounts</h3>
             <button
-              onClick={fetchConnectedPages}
+              onClick={() => {
+                fetchConnectedPages();
+                fetchConnectedTwitterAccounts();
+              }}
               style={{
                 background: '#28a745',
                 color: '#fff',
@@ -333,47 +386,93 @@ const SocialsAndInsights = () => {
             </button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-            {connectedPages.map(page => (
-              <SocialAccountCard
-                key={page.id}
-                platform="Facebook"
-                status="Connected"
-                accountInfo={`Page: ${page.name}`}
-                color="#1877f2"
-                account={page}
-                onToggleActive={handleToggleActive}
-                onDelete={handleDeleteAccount}
-              />
-            ))}
-            
-            <div style={{
-              border: '1px solid #e0e0e0',
-              borderRadius: '8px',
-              padding: '20px',
-              background: '#f8f9fa',
-              textAlign: 'center'
-            }}>
-              <h4 style={{ color: '#1877f2', marginBottom: '10px' }}>Connect More Pages</h4>
-              <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
-              <button 
-                onClick={() => {
-                  setModalStep('connect');
-                  setShowFacebookModal(true);
-                }}
-                style={{
-                  background: '#1877f2',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Connect Facebook Pages
-              </button>
+          <div style={{ marginBottom: '30px' }}>
+            <h4 style={{ color: '#1877f2', marginBottom: '15px' }}>Facebook Pages</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+              {connectedPages.map(page => (
+                <SocialAccountCard
+                  key={page.id}
+                  platform="Facebook"
+                  status="Connected"
+                  accountInfo={`Page: ${page.name}`}
+                  color="#1877f2"
+                  account={page}
+                  onToggleActive={handleToggleActive}
+                  onDelete={handleDeleteAccount}
+                />
+              ))}
+              
+              <div style={{
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                padding: '20px',
+                background: '#f8f9fa',
+                textAlign: 'center'
+              }}>
+                <h4 style={{ color: '#1877f2', marginBottom: '10px' }}>Connect More Pages</h4>
+                <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
+                <button 
+                  onClick={() => {
+                    setModalStep('connect');
+                    setShowFacebookModal(true);
+                  }}
+                  style={{
+                    background: '#1877f2',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  Connect Facebook Pages
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 style={{ color: '#1da1f2', marginBottom: '15px' }}>Twitter Accounts</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+              {connectedTwitterAccounts.map(account => (
+                <SocialAccountCard
+                  key={account.id}
+                  platform="Twitter"
+                  status="Connected"
+                  accountInfo={`@${account.username} • ${account.followersCount} followers`}
+                  color="#1da1f2"
+                  account={{...account, platform: 'twitter'}}
+                  onDelete={handleDeleteAccount}
+                />
+              ))}
+              
+              <div style={{
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                padding: '20px',
+                background: '#f8f9fa',
+                textAlign: 'center'
+              }}>
+                <h4 style={{ color: '#1da1f2', marginBottom: '10px' }}>Connect Twitter Account</h4>
+                <p style={{ color: '#666', margin: '10px 0' }}>Add your Twitter account to the system</p>
+                <button 
+                  onClick={handleTwitterConnect}
+                  style={{
+                    background: '#1da1f2',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  Connect Twitter Account
+                </button>
+              </div>
             </div>
           </div>
         </div>

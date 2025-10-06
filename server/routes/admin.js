@@ -186,14 +186,38 @@ router.get('/connected-pages', async (req, res) => {
     const pagesWithInstagram = await Promise.all(
       pages.map(async (page) => {
         let hasInstagram = false;
+        let instagramAccount = null;
+        let facebookProfilePicture = null;
+        
         try {
           const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
             params: {
-              fields: 'instagram_business_account',
+              fields: 'instagram_business_account,picture{url}',
               access_token: page.accessToken
             }
           });
-          hasInstagram = !!response.data.instagram_business_account;
+          
+          facebookProfilePicture = response.data.picture?.data?.url || null;
+          
+          if (response.data.instagram_business_account) {
+            hasInstagram = true;
+            const igAccountId = response.data.instagram_business_account.id;
+            
+            const igResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}`, {
+              params: {
+                fields: 'name,username,followers_count,profile_picture_url',
+                access_token: page.accessToken
+              }
+            });
+            
+            instagramAccount = {
+              id: igAccountId,
+              name: igResponse.data.name,
+              username: igResponse.data.username,
+              followersCount: igResponse.data.followers_count || 0,
+              profilePicture: igResponse.data.profile_picture_url || null
+            };
+          }
         } catch (error) {
           console.log(`Could not check Instagram for page ${page.id}:`, error.message);
         }
@@ -205,7 +229,9 @@ router.get('/connected-pages', async (req, res) => {
           connectedAt: page.connectedAt,
           status: page.status,
           active: page.active !== false,
-          hasInstagram
+          hasInstagram,
+          instagramAccount,
+          profilePicture: facebookProfilePicture
         };
       })
     );
@@ -1566,7 +1592,7 @@ router.get('/twitter-oauth', async (req, res) => {
     const clientId = process.env.TWITTER_CLIENT_ID;
     const redirectUri = process.env.TWITTER_REDIRECT_URI;
     
-    const scopes = 'tweet.read users.read';
+    const scopes = 'tweet.read users.read tweet.write';
     const state = Date.now().toString();
     
     // Generate proper PKCE code challenge
@@ -1666,6 +1692,7 @@ router.get('/twitter-callback', async (req, res) => {
     
     const userInfo = userResponse.data.data;
     
+    // Save Twitter account to Firebase
     const twitterAccountRef = ref(db, `connectedAccounts/admin/twitter/${userInfo.id}`);
     await set(twitterAccountRef, {
       id: userInfo.id,
@@ -1685,7 +1712,7 @@ router.get('/twitter-callback', async (req, res) => {
       <html>
         <body>
           <h1>✅ Twitter Authorization Complete!</h1>
-          <p>You can now fetch Twitter posts.</p>
+          <p>Token saved to Firebase. You can now fetch Twitter posts.</p>
           <script>setTimeout(() => window.close(), 2000);</script>
         </body>
       </html>
@@ -1766,9 +1793,112 @@ router.delete('/twitter-account/:accountId', async (req, res) => {
   }
 });
 
+// Get Twitter insights with Free tier limitations
+router.get('/twitter-insights/:accountId', async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const accountRef = ref(db, `connectedAccounts/admin/twitter/${accountId}`);
+    const snapshot = await get(accountRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Twitter account not found' });
+    }
+    
+    const account = snapshot.val();
+    
+    // Get recent tweets with metrics (Free tier allows this)
+    const tweetsResponse = await axios.get(`https://api.twitter.com/2/users/${accountId}/tweets`, {
+      headers: { 'Authorization': `Bearer ${account.accessToken}` },
+      params: {
+        max_results: 10,
+        'tweet.fields': 'created_at,public_metrics'
+      }
+    });
+    
+    const tweets = tweetsResponse.data.data || [];
+    
+    // Calculate basic engagement metrics
+    const totalTweets = tweets.length;
+    const totalLikes = tweets.reduce((sum, tweet) => sum + (tweet.public_metrics?.like_count || 0), 0);
+    const totalRetweets = tweets.reduce((sum, tweet) => sum + (tweet.public_metrics?.retweet_count || 0), 0);
+    const totalReplies = tweets.reduce((sum, tweet) => sum + (tweet.public_metrics?.reply_count || 0), 0);
+    const totalEngagement = totalLikes + totalRetweets + totalReplies;
+    
+    const insights = {
+      account: {
+        name: account.name,
+        username: account.username,
+        followersCount: account.followersCount
+      },
+      metrics: {
+        totalTweets,
+        totalLikes,
+        totalRetweets, 
+        totalReplies,
+        totalEngagement,
+        avgEngagementPerTweet: totalTweets > 0 ? Math.round(totalEngagement / totalTweets) : 0
+      },
+      limitation: 'Twitter Free tier - Limited analytics available',
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Cache insights in Firebase
+    const insightsRef = ref(db, `twitterInsights/admin/${accountId}`);
+    await set(insightsRef, insights);
+    
+    res.json({ success: true, insights });
+    
+  } catch (error) {
+    console.error('Twitter insights error:', error.response?.data || error.message);
+    
+    // Try to get cached insights from Firebase
+    try {
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const cachedInsightsRef = ref(db, `twitterInsights/admin/${accountId}`);
+      const cachedSnapshot = await get(cachedInsightsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedInsights = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          insights: {
+            ...cachedInsights,
+            limitation: 'Cached data - Twitter API rate limited (1 req/15min)'
+          },
+          cached: true
+        });
+      }
+    } catch (cacheError) {
+      console.error('Error retrieving cached insights:', cacheError.message);
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: 'Twitter Free tier has limited analytics access',
+      details: error.message 
+    });
+  }
+});
+
 router.get('/twitter-posts', async (req, res) => {
   try {
-    const { ref, get } = await import('firebase/database');
+    const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
@@ -1790,6 +1920,7 @@ router.get('/twitter-posts', async (req, res) => {
     
     const accounts = Object.values(snapshot.val());
     const allPosts = [];
+    let hasApiError = false;
     
     for (const account of accounts) {
       try {
@@ -1816,16 +1947,132 @@ router.get('/twitter-posts', async (req, res) => {
         allPosts.push(...posts);
       } catch (error) {
         console.error(`Error fetching tweets for ${account.username}:`, error.response?.data || error.message);
+        hasApiError = true;
       }
     }
     
-    // Sort by creation time (newest first)
-    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    if (allPosts.length > 0) {
+      // Sort by creation time (newest first)
+      allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+      
+      // Save posts to Firebase
+      const postsRef = ref(db, 'twitterPosts/admin');
+      await set(postsRef, {
+        posts: allPosts,
+        lastUpdated: new Date().toISOString()
+      });
+      
+      return res.json({ success: true, posts: allPosts });
+    }
     
-    res.json({ success: true, posts: allPosts });
+    // If API failed, try to get cached posts
+    if (hasApiError) {
+      const cachedPostsRef = ref(db, 'twitterPosts/admin');
+      const cachedSnapshot = await get(cachedPostsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          posts: cachedData.posts || [],
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
+    
+    res.json({ success: true, posts: [] });
 
   } catch (error) {
     console.error('Twitter posts error:', error.message);
+    
+    // Try to get cached posts on error
+    try {
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const cachedPostsRef = ref(db, 'twitterPosts/admin');
+      const cachedSnapshot = await get(cachedPostsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          posts: cachedData.posts || [],
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    } catch (cacheError) {
+      console.error('Error retrieving cached posts:', cacheError.message);
+    }
+    
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Save current global Twitter token to Firebase
+router.post('/save-twitter-token', async (req, res) => {
+  try {
+    if (!global.twitterUserToken) {
+      return res.status(400).json({ success: false, error: 'No global Twitter token found' });
+    }
+    
+    const { ref, get, set: setData } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Get existing Twitter account
+    const accountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const snapshot = await get(accountsRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(400).json({ success: false, error: 'No Twitter accounts found in Firebase' });
+    }
+    
+    const accounts = Object.values(snapshot.val());
+    const firstAccount = accounts[0];
+    
+    // Update with current global token
+    const accountRef = ref(db, `connectedAccounts/admin/twitter/${firstAccount.id}`);
+    await setData(accountRef, {
+      ...firstAccount,
+      accessToken: global.twitterUserToken,
+      updatedAt: new Date().toISOString()
+    });
+    
+    res.json({ 
+      success: true, 
+      message: 'Twitter token saved to Firebase',
+      accountId: firstAccount.id,
+      username: firstAccount.username
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test Twitter posting with OAuth 2.0
+router.post('/test-twitter-post', async (req, res) => {
+  try {
+    const { content } = req.body;
+    
+    const socialMediaService = await import('../services/socialMediaService.mjs');
+    const result = await socialMediaService.default.postToTwitter(content);
+    
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error('Twitter test post error:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });

@@ -182,16 +182,37 @@ router.get('/connected-pages', async (req, res) => {
     
     const pages = snapshot.exists() ? Object.values(snapshot.val()) : [];
     
+    // Check Instagram connection for each page
+    const pagesWithInstagram = await Promise.all(
+      pages.map(async (page) => {
+        let hasInstagram = false;
+        try {
+          const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+            params: {
+              fields: 'instagram_business_account',
+              access_token: page.accessToken
+            }
+          });
+          hasInstagram = !!response.data.instagram_business_account;
+        } catch (error) {
+          console.log(`Could not check Instagram for page ${page.id}:`, error.message);
+        }
+        
+        return {
+          id: page.id,
+          name: page.name,
+          category: page.category,
+          connectedAt: page.connectedAt,
+          status: page.status,
+          active: page.active !== false,
+          hasInstagram
+        };
+      })
+    );
+    
     res.json({
       success: true,
-      pages: pages.map(page => ({
-        id: page.id,
-        name: page.name,
-        category: page.category,
-        connectedAt: page.connectedAt,
-        status: page.status,
-        active: page.active !== false // Default to true if not set
-      }))
+      pages: pagesWithInstagram
     });
     
   } catch (error) {
@@ -851,6 +872,77 @@ router.get('/debug-token', async (req, res) => {
 
 
 
+// Get Facebook posts with engagement data
+router.get('/facebook-posts', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ success: true, posts: [] });
+    }
+    
+    const pages = Object.values(snapshot.val());
+    const allPosts = [];
+    
+    for (const page of pages) {
+      try {
+        // Get page profile picture
+        const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+          params: {
+            fields: 'picture{url}',
+            access_token: page.accessToken
+          }
+        });
+        
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
+          params: {
+            fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares,full_picture,attachments{media,url}',
+            limit: 10,
+            access_token: page.accessToken
+          }
+        });
+        
+        const posts = response.data.data || [];
+        const profilePictureUrl = pageInfoResponse.data.picture?.data?.url || null;
+        
+        posts.forEach(post => {
+          allPosts.push({
+            id: post.id,
+            message: post.message || 'No message',
+            createdTime: post.created_time,
+            pageName: page.name,
+            pageId: page.id,
+            profilePicture: profilePictureUrl,
+            reactions: post.reactions?.summary?.total_count || 0,
+            comments: post.comments?.summary?.total_count || 0,
+            shares: post.shares?.count || 0,
+            image: post.full_picture || post.attachments?.data?.[0]?.media?.image?.src || null
+          });
+        });
+      } catch (error) {
+        console.error(`❌ Error fetching posts for page ${page.id}:`, error.response?.data || error.message);
+      }
+    }
+    
+    // Sort by creation time (newest first)
+    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    
+    res.json({ success: true, posts: allPosts });
+  } catch (error) {
+    console.error('Error fetching Facebook posts:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Account Management Routes
 router.patch('/account/:accountId/toggle-active', async (req, res) => {
   try {
@@ -901,6 +993,839 @@ router.delete('/account/:accountId', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Delete Account Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test Page Post Insights API Metrics
+router.get('/test-post-insights/:postId', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    
+    // Get access token from Firebase
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Extract page ID from post ID (format: pageId_postId)
+    const pageId = postId.split('_')[0];
+    const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+    const snapshot = await get(pageRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Page not found' });
+    }
+    
+    const pageData = snapshot.val();
+    const accessToken = pageData.accessToken;
+    
+    // Test all available Page Post Insights metrics
+    const metrics = [
+      // Post Reactions (Detailed)
+      'post_reactions_like_total',
+      'post_reactions_love_total', 
+      'post_reactions_wow_total',
+      'post_reactions_haha_total',
+      'post_reactions_sorry_total',
+      'post_reactions_anger_total',
+      'post_reactions_by_type_total',
+      
+      // Post Impressions
+      'post_impressions',
+      'post_impressions_unique',
+      'post_impressions_paid',
+      'post_impressions_organic',
+      
+      // Post Engagement
+      'post_clicks',
+      'post_clicks_by_type'
+    ];
+    
+    const results = {};
+    
+    for (const metric of metrics) {
+      try {
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${postId}/insights`, {
+          params: {
+            metric: metric,
+            period: 'lifetime',
+            access_token: accessToken
+          }
+        });
+        
+        results[metric] = {
+          success: true,
+          data: response.data.data[0]?.values[0]?.value || 0
+        };
+      } catch (error) {
+        results[metric] = {
+          success: false,
+          error: error.response?.data?.error?.message || error.message
+        };
+      }
+    }
+    
+    res.json({
+      success: true,
+      postId: postId,
+      metrics: results
+    });
+    
+  } catch (error) {
+    console.error('❌ Test Post Insights Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test all posts insights for a page
+router.get('/test-all-posts-insights/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    
+    // Get access token from Firebase
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+    const snapshot = await get(pageRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Page not found' });
+    }
+    
+    const pageData = snapshot.val();
+    const accessToken = pageData.accessToken;
+    
+    // Get recent posts
+    const postsResponse = await axios.get(`https://graph.facebook.com/v23.0/${pageId}/posts`, {
+      params: {
+        fields: 'id,message,created_time',
+        limit: 3,
+        access_token: accessToken
+      }
+    });
+    
+    const posts = postsResponse.data.data || [];
+    const postsWithInsights = [];
+    
+    for (const post of posts) {
+      try {
+        // Test key metrics for each post
+        const insightsResponse = await axios.get(`https://graph.facebook.com/v23.0/${post.id}/insights`, {
+          params: {
+            metric: 'post_reactions_like_total,post_reactions_love_total,post_impressions,post_impressions_unique',
+            period: 'lifetime',
+            access_token: accessToken
+          }
+        });
+        
+        const insights = {};
+        insightsResponse.data.data.forEach(metric => {
+          insights[metric.name] = metric.values[0]?.value || 0;
+        });
+        
+        postsWithInsights.push({
+          id: post.id,
+          message: post.message?.substring(0, 100) + '...' || 'No message',
+          createdTime: post.created_time,
+          insights: insights
+        });
+        
+      } catch (error) {
+        postsWithInsights.push({
+          id: post.id,
+          message: post.message?.substring(0, 100) + '...' || 'No message',
+          createdTime: post.created_time,
+          error: error.response?.data?.error?.message || error.message
+        });
+      }
+    }
+    
+    res.json({
+      success: true,
+      pageId: pageId,
+      pageName: pageData.name,
+      postsCount: posts.length,
+      posts: postsWithInsights
+    });
+    
+  } catch (error) {
+    console.error('❌ Test All Posts Insights Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test Page-level Insights with debugging
+router.get('/test-page-insights/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+    const snapshot = await get(pageRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Page not found' });
+    }
+    
+    const pageData = snapshot.val();
+    const accessToken = pageData.accessToken;
+    
+    const results = {};
+    
+    // Test page_post_engagements with different periods
+    try {
+      const response = await axios.get(`https://graph.facebook.com/v23.0/${pageId}/insights`, {
+        params: {
+          metric: 'page_post_engagements',
+          period: 'days_28',
+          access_token: accessToken
+        }
+      });
+      
+      results.page_post_engagements = {
+        success: true,
+        fullData: response.data
+      };
+    } catch (error) {
+      results.page_post_engagements = {
+        success: false,
+        error: error.response?.data?.error?.message || error.message,
+        code: error.response?.data?.error?.code
+      };
+    }
+    
+    // Test page_follows
+    try {
+      const response = await axios.get(`https://graph.facebook.com/v23.0/${pageId}/insights`, {
+        params: {
+          metric: 'page_follows',
+          period: 'day',
+          access_token: accessToken
+        }
+      });
+      
+      results.page_follows = {
+        success: true,
+        fullData: response.data
+      };
+    } catch (error) {
+      results.page_follows = {
+        success: false,
+        error: error.response?.data?.error?.message || error.message,
+        code: error.response?.data?.error?.code
+      };
+    }
+    
+    res.json({
+      success: true,
+      pageId: pageId,
+      pageName: pageData.name,
+      results: results
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Check page likes count
+router.get('/check-page-likes', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ success: true, pages: [] });
+    }
+    
+    const pages = Object.values(snapshot.val());
+    const pageStats = [];
+    
+    for (const page of pages) {
+      try {
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+          params: {
+            fields: 'name,fan_count,followers_count,talking_about_count',
+            access_token: page.accessToken
+          }
+        });
+        
+        pageStats.push({
+          id: page.id,
+          name: response.data.name,
+          fan_count: response.data.fan_count || 0,
+          followers_count: response.data.followers_count || 0,
+          talking_about_count: response.data.talking_about_count || 0,
+          insights_eligible: (response.data.fan_count || 0) >= 100
+        });
+      } catch (error) {
+        pageStats.push({
+          id: page.id,
+          name: page.name,
+          error: error.message
+        });
+      }
+    }
+    
+    res.json({ success: true, pages: pageStats });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test Instagram Insights API Metrics
+router.get('/test-instagram-insights/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+    const snapshot = await get(pageRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Page not found' });
+    }
+    
+    const pageData = snapshot.val();
+    const accessToken = pageData.accessToken;
+    
+    // Get Instagram account ID
+    const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${pageId}`, {
+      params: {
+        fields: 'instagram_business_account',
+        access_token: accessToken
+      }
+    });
+    
+    const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
+    
+    if (!igAccountId) {
+      return res.json({ success: false, error: 'No Instagram account connected' });
+    }
+    
+    // Test all available Instagram Insights metrics
+    const metrics = [
+      'accounts_engaged',
+      'reach', 
+      'views',
+      'likes',
+      'comments',
+      'shares',
+      'saves',
+      'total_interactions',
+      'follows_and_unfollows',
+      'profile_links_taps'
+    ];
+    
+    const results = {};
+    
+    for (const metric of metrics) {
+      try {
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/insights`, {
+          params: {
+            metric: metric,
+            period: 'day',
+            metric_type: 'total_value',
+            access_token: accessToken
+          }
+        });
+        
+        results[metric] = {
+          success: true,
+          data: response.data.data[0]?.total_value?.value || 0
+        };
+      } catch (error) {
+        results[metric] = {
+          success: false,
+          error: error.response?.data?.error?.message || error.message
+        };
+      }
+    }
+    
+    res.json({
+      success: true,
+      igAccountId: igAccountId,
+      pageName: pageData.name,
+      metrics: results
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get Instagram posts with engagement data
+router.get('/instagram-posts/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+    const snapshot = await get(pageRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Page not found' });
+    }
+    
+    const pageData = snapshot.val();
+    const accessToken = pageData.accessToken;
+    
+    // Get Instagram account ID
+    const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${pageId}`, {
+      params: {
+        fields: 'instagram_business_account',
+        access_token: accessToken
+      }
+    });
+    
+    const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
+    
+    if (!igAccountId) {
+      return res.json({ success: true, posts: [] });
+    }
+    
+    // Get Instagram account info
+    const igInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}`, {
+      params: {
+        fields: 'name,username,profile_picture_url',
+        access_token: accessToken
+      }
+    });
+    
+    const igName = igInfoResponse.data.name || igInfoResponse.data.username || 'Instagram Account';
+    const profilePictureUrl = igInfoResponse.data.profile_picture_url || null;
+    
+    // Get Instagram posts
+    const response = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
+      params: {
+        fields: 'id,caption,timestamp,media_type,media_url,thumbnail_url,permalink,like_count,comments_count',
+        limit: 10,
+        access_token: accessToken
+      }
+    });
+    
+    const posts = response.data.data || [];
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      caption: post.caption || 'No caption',
+      createdTime: post.timestamp,
+      mediaType: post.media_type,
+      mediaUrl: post.media_url,
+      thumbnailUrl: post.thumbnail_url,
+      permalink: post.permalink,
+      likes: post.like_count || 0,
+      comments: post.comments_count || 0,
+      pageName: igName,
+      pageId: pageId,
+      profilePicture: profilePictureUrl,
+      image: post.media_url
+    }));
+    
+    res.json({ success: true, posts: formattedPosts });
+    
+  } catch (error) {
+    console.error('Error fetching Instagram posts:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get Instagram posts from all connected pages
+router.get('/instagram-posts', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ success: true, posts: [] });
+    }
+    
+    const pages = Object.values(snapshot.val());
+    const allPosts = [];
+    
+    for (const page of pages) {
+      try {
+        // Get Instagram account ID
+        const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+          params: {
+            fields: 'instagram_business_account',
+            access_token: page.accessToken
+          }
+        });
+        
+        const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
+        
+        if (!igAccountId) {
+          continue;
+        }
+        
+        // Get Instagram account info
+        const igInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}`, {
+          params: {
+            fields: 'name,username,profile_picture_url',
+            access_token: page.accessToken
+          }
+        });
+        
+        const igName = igInfoResponse.data.name || igInfoResponse.data.username || 'Instagram Account';
+        const profilePictureUrl = igInfoResponse.data.profile_picture_url || null;
+        
+        // Get Instagram posts
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
+          params: {
+            fields: 'id,caption,timestamp,media_type,media_url,thumbnail_url,permalink,like_count,comments_count',
+            limit: 10,
+            access_token: page.accessToken
+          }
+        });
+        
+        const posts = response.data.data || [];
+        posts.forEach(post => {
+          allPosts.push({
+            id: post.id,
+            caption: post.caption || 'No caption',
+            createdTime: post.timestamp,
+            mediaType: post.media_type,
+            mediaUrl: post.media_url,
+            thumbnailUrl: post.thumbnail_url,
+            permalink: post.permalink,
+            likes: post.like_count || 0,
+            comments: post.comments_count || 0,
+            pageName: igName,
+            pageId: page.id,
+            profilePicture: profilePictureUrl,
+            image: post.media_url
+          });
+        });
+      } catch (error) {
+        console.error(`❌ Error fetching Instagram posts for page ${page.id}:`, error.response?.data || error.message);
+      }
+    }
+    
+    // Sort by creation time (newest first)
+    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    
+    res.json({ success: true, posts: allPosts });
+    
+  } catch (error) {
+    console.error('Error fetching Instagram posts:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Twitter OAuth 2.0 authorization
+router.get('/twitter-oauth', async (req, res) => {
+  try {
+    const clientId = process.env.TWITTER_CLIENT_ID;
+    const redirectUri = process.env.TWITTER_REDIRECT_URI;
+    
+    const scopes = 'tweet.read users.read';
+    const state = Date.now().toString();
+    
+    // Generate proper PKCE code challenge
+    const crypto = await import('crypto');
+    const codeVerifier = crypto.randomBytes(32).toString('base64url');
+    const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+    
+    // Store code verifier for callback
+    global.twitterCodeVerifier = codeVerifier;
+    
+    const authUrl = `https://twitter.com/i/oauth2/authorize?` +
+      `response_type=code&` +
+      `client_id=${clientId}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scopes)}&` +
+      `state=${state}&` +
+      `code_challenge=${codeChallenge}&` +
+      `code_challenge_method=S256`;
+    
+    res.redirect(authUrl);
+  } catch (error) {
+    res.status(500).send(`<html><body><h1>Error</h1><p>${error.message}</p></body></html>`);
+  }
+});
+
+router.get('/twitter-callback', async (req, res) => {
+  try {
+    const { code, state, error, error_description } = req.query;
+    
+    console.log('Twitter callback received:', { code: !!code, state, error, error_description });
+    
+    if (error) {
+      return res.send(`
+        <html>
+          <body>
+            <h1>❌ Twitter Authorization Failed</h1>
+            <p><strong>Error:</strong> ${error}</p>
+            <p><strong>Description:</strong> ${error_description || 'No description provided'}</p>
+            <p><strong>Solution:</strong> Add callback URL to Twitter app settings</p>
+            <a href="/api/v1/admin/twitter-oauth">Try Again</a>
+          </body>
+        </html>
+      `);
+    }
+    
+    if (!code) {
+      return res.send(`
+        <html>
+          <body>
+            <h1>❌ Authorization Code Missing</h1>
+            <p>Please add this callback URL to your Twitter app:</p>
+            <code>http://localhost:3000/api/v1/admin/twitter-callback</code>
+            <br><br>
+            <a href="https://developer.twitter.com/en/portal/dashboard">Twitter Developer Portal</a>
+          </body>
+        </html>
+      `);
+    }
+    
+    const clientId = process.env.TWITTER_CLIENT_ID;
+    const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+    const redirectUri = process.env.TWITTER_REDIRECT_URI;
+    
+    // Exchange code for access token (confidential client)
+    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    
+    const tokenResponse = await axios.post('https://api.twitter.com/2/oauth2/token', 
+      new URLSearchParams({
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+        code: code,
+        code_verifier: global.twitterCodeVerifier
+      }), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${credentials}`
+        }
+      }
+    );
+    
+    const accessToken = tokenResponse.data.access_token;
+    
+    // Store Twitter account in Firebase
+    const { ref, set } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Get user info with the new token
+    const userResponse = await axios.get('https://api.twitter.com/2/users/me', {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+      params: { 'user.fields': 'name,username,profile_image_url,public_metrics' }
+    });
+    
+    const userInfo = userResponse.data.data;
+    
+    const twitterAccountRef = ref(db, `connectedAccounts/admin/twitter/${userInfo.id}`);
+    await set(twitterAccountRef, {
+      id: userInfo.id,
+      name: userInfo.name,
+      username: userInfo.username,
+      profilePicture: userInfo.profile_image_url,
+      followersCount: userInfo.public_metrics?.followers_count || 0,
+      accessToken: accessToken,
+      connectedAt: new Date().toISOString(),
+      status: 'active',
+      platform: 'twitter'
+    });
+    
+    global.twitterUserToken = accessToken;
+    
+    res.send(`
+      <html>
+        <body>
+          <h1>✅ Twitter Authorization Complete!</h1>
+          <p>You can now fetch Twitter posts.</p>
+          <script>setTimeout(() => window.close(), 2000);</script>
+        </body>
+      </html>
+    `);
+    
+  } catch (error) {
+    console.error('Twitter callback error:', error.response?.data || error.message);
+    res.send(`
+      <html>
+        <body>
+          <h1>❌ Twitter Authorization Failed</h1>
+          <p>${error.response?.data?.error_description || error.message}</p>
+          <p>Check server logs for details.</p>
+        </body>
+      </html>
+    `);
+  }
+});
+
+// Get connected Twitter accounts
+router.get('/connected-twitter-accounts', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const snapshot = await get(twitterAccountsRef);
+    
+    const accounts = snapshot.exists() ? Object.values(snapshot.val()) : [];
+    
+    res.json({
+      success: true,
+      accounts: accounts.map(account => ({
+        id: account.id,
+        name: account.name,
+        username: account.username,
+        profilePicture: account.profilePicture,
+        followersCount: account.followersCount,
+        connectedAt: account.connectedAt,
+        status: account.status,
+        platform: 'twitter'
+      }))
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete Twitter account
+router.delete('/twitter-account/:accountId', async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    
+    const { ref, remove } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const accountRef = ref(db, `connectedAccounts/admin/twitter/${accountId}`);
+    await remove(accountRef);
+    
+    res.json({
+      success: true,
+      message: 'Twitter account disconnected successfully'
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/twitter-posts', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const snapshot = await get(twitterAccountsRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ 
+        success: true, 
+        posts: [],
+        message: 'No Twitter accounts connected.',
+        authUrl: '/api/v1/admin/twitter-oauth'
+      });
+    }
+    
+    const accounts = Object.values(snapshot.val());
+    const allPosts = [];
+    
+    for (const account of accounts) {
+      try {
+        const tweetsResponse = await axios.get(`https://api.twitter.com/2/users/${account.id}/tweets`, {
+          headers: { 'Authorization': `Bearer ${account.accessToken}` },
+          params: {
+            max_results: 10,
+            'tweet.fields': 'created_at,public_metrics'
+          }
+        });
+
+        const posts = tweetsResponse.data.data?.map(tweet => ({
+          id: tweet.id,
+          message: tweet.text,
+          createdTime: tweet.created_at,
+          pageName: account.name,
+          pageId: account.id,
+          profilePicture: account.profilePicture,
+          likes: tweet.public_metrics?.like_count || 0,
+          retweets: tweet.public_metrics?.retweet_count || 0,
+          replies: tweet.public_metrics?.reply_count || 0
+        })) || [];
+        
+        allPosts.push(...posts);
+      } catch (error) {
+        console.error(`Error fetching tweets for ${account.username}:`, error.response?.data || error.message);
+      }
+    }
+    
+    // Sort by creation time (newest first)
+    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    
+    res.json({ success: true, posts: allPosts });
+
+  } catch (error) {
+    console.error('Twitter posts error:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });

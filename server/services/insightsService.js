@@ -627,45 +627,89 @@ class InsightsService {
         }
       });
       
-      // Count total reactions, comments, and shares for engagement chart (Graph API)
-      let totalReactionsCount = 0, totalComments = 0, totalShares = 0;
+      // Get page views data from Page Insights API
+      let pageViewsData = 0;
+      let totalComments = 0, totalShares = 0;
       
+      // Calculate comments and shares for the fbEngagement object
       fbPosts.forEach(post => {
-        totalReactionsCount += post.reactions?.summary?.total_count || 0;
         totalComments += post.comments?.summary?.total_count || 0;
         totalShares += post.shares?.count || 0;
       });
       
-      // Get individual reaction counts using Insights API
-      let likeCount = 0, loveCount = 0, hahaCount = 0, wowCount = 0, sadCount = 0, angryCount = 0;
+      try {
+        const pageViewsResponse = await axios.get(`https://graph.facebook.com/v23.0/${accountId}/insights`, {
+          params: {
+            metric: 'page_views_total',
+            period: 'days_28',
+            access_token: accessToken
+          }
+        });
+        
+        // Get the 28-day total page views
+        const viewsData = pageViewsResponse.data.data[0];
+        if (viewsData && viewsData.values && viewsData.values.length > 0) {
+          pageViewsData = viewsData.values[viewsData.values.length - 1].value || 0;
+        }
+        
+        console.log('📊 Page Views (28 days):', pageViewsData);
+      } catch (pageViewsError) {
+        console.log('Could not get page views:', pageViewsError.message);
+      }
       
-      for (const post of fbPosts) {
+      // Get most recent post with detailed reaction breakdown
+      let recentPost = null;
+      if (fbPosts.length > 0) {
+        const mostRecentPost = fbPosts[0]; // Posts are ordered by created_time desc
         try {
-          const postInsights = await axios.get(`https://graph.facebook.com/v23.0/${post.id}/insights`, {
+          const postInfo = await axios.get(`https://graph.facebook.com/v23.0/${mostRecentPost.id}`, {
             params: {
-              metric: 'post_reactions_like_total,post_reactions_love_total,post_reactions_wow_total,post_reactions_haha_total,post_reactions_sorry_total,post_reactions_anger_total',
-              period: 'lifetime',
+              fields: 'message,created_time',
               access_token: accessToken
             }
           });
           
-          postInsights.data.data.forEach(metric => {
-            const value = metric.values[0]?.value || 0;
-            switch (metric.name) {
-              case 'post_reactions_like_total': likeCount += value; break;
-              case 'post_reactions_love_total': loveCount += value; break;
-              case 'post_reactions_haha_total': hahaCount += value; break;
-              case 'post_reactions_wow_total': wowCount += value; break;
-              case 'post_reactions_sorry_total': sadCount += value; break;
-              case 'post_reactions_anger_total': angryCount += value; break;
-            }
-          });
-        } catch (insightError) {
-          console.log(`Could not get insights for post ${post.id}:`, insightError.message);
+          // Get detailed reaction breakdown from Page Post Insights API
+          let detailedReactions = {};
+          try {
+            const reactionInsights = await axios.get(`https://graph.facebook.com/v23.0/${mostRecentPost.id}/insights`, {
+              params: {
+                metric: 'post_reactions_like_total,post_reactions_love_total,post_reactions_wow_total,post_reactions_haha_total,post_reactions_sorry_total,post_reactions_anger_total',
+                period: 'lifetime',
+                access_token: accessToken
+              }
+            });
+            
+            reactionInsights.data.data.forEach(metric => {
+              const value = metric.values[0]?.value || 0;
+              switch (metric.name) {
+                case 'post_reactions_like_total': detailedReactions.like = value; break;
+                case 'post_reactions_love_total': detailedReactions.love = value; break;
+                case 'post_reactions_haha_total': detailedReactions.haha = value; break;
+                case 'post_reactions_wow_total': detailedReactions.wow = value; break;
+                case 'post_reactions_sorry_total': detailedReactions.sad = value; break;
+                case 'post_reactions_anger_total': detailedReactions.angry = value; break;
+              }
+            });
+          } catch (detailedError) {
+            console.log('Could not get detailed reactions:', detailedError.message);
+          }
+          
+          recentPost = {
+            id: mostRecentPost.id,
+            message: postInfo.data.message || 'No message',
+            createdTime: postInfo.data.created_time,
+            reactions: mostRecentPost.reactions?.summary?.total_count || 0,
+            comments: mostRecentPost.comments?.summary?.total_count || 0,
+            shares: mostRecentPost.shares?.count || 0,
+            detailedReactions: detailedReactions
+          };
+        } catch (recentPostError) {
+          console.log(`Could not get recent post info:`, recentPostError.message);
         }
       }
       
-      const totalReactions = totalReactionsCount;
+      const totalReactions = pageViewsData; // Now represents page views instead of reactions
       
       // Get historical data from Firebase
       let historicalData = [];
@@ -673,12 +717,29 @@ class InsightsService {
       const currentDateKey = currentTimestamp.toDateString(); // "Mon Oct 05 2025"
       
       try {
+        const { set } = await import('firebase/database');
         const accountRef = ref(db, `connectedPages/admin/${accountId}`);
         const accountSnapshot = await get(accountRef);
         
         // Get existing engagement history from account node
         const existingHistory = accountSnapshot.val()?.engagementHistory || {};
-        historicalData = Object.values(existingHistory).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // Clean up old indexed structure (0, 1, 2...) and convert to dateKey structure
+        const cleanHistory = {};
+        Object.values(existingHistory).forEach(point => {
+          if (point && point.dateKey) {
+            cleanHistory[point.dateKey] = point;
+          }
+        });
+        
+        // If we cleaned up old structure, save it immediately
+        if (Object.keys(cleanHistory).length > 0 && Object.keys(cleanHistory).length !== Object.keys(existingHistory).length) {
+          const historyRef = ref(db, `connectedPages/admin/${accountId}/engagementHistory`);
+          await set(historyRef, cleanHistory);
+          console.log('🧹 Cleaned up old indexed structure');
+        }
+        
+        historicalData = Object.values(cleanHistory).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         
         // historicalData already populated above
         
@@ -692,7 +753,7 @@ class InsightsService {
           const newDataPoint = {
             date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             time: '12:00 AM',
-            total: totalReactionsCount + totalComments + totalShares,
+            total: pageViewsData, // Using page views for historical data
             timestamp: currentTimestamp.toISOString(),
             dateKey: currentDateKey
           };
@@ -704,12 +765,15 @@ class InsightsService {
           historicalData = historicalData.filter(point => new Date(point.timestamp) > thirtyDaysAgo);
           
           // Save updated history back to Firebase in account node
-          const { update } = await import('firebase/database');
+          const { update, set } = await import('firebase/database');
           const updatedHistory = {};
-          historicalData.forEach((point, index) => {
-            updatedHistory[index] = point;
+          historicalData.forEach((point) => {
+            updatedHistory[point.dateKey] = point;
           });
-          await update(accountRef, { engagementHistory: updatedHistory });
+          
+          // Force clean migration by replacing entire engagementHistory
+          const historyRef = ref(db, `connectedPages/admin/${accountId}/engagementHistory`);
+          await set(historyRef, updatedHistory);
           
           console.log('📊 New daily data point added for', currentDateKey);
         } else {
@@ -718,14 +782,16 @@ class InsightsService {
         
       } catch (historyError) {
         console.log('Could not manage historical data:', historyError.message);
-        // Create initial data point for today
-        historicalData = [{
-          date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          time: '12:00 AM',
-          total: totalReactionsCount + totalComments + totalShares,
-          timestamp: currentTimestamp.toISOString(),
-          dateKey: currentDateKey
-        }];
+        // Only create initial data if historicalData is empty
+        if (historicalData.length === 0) {
+          historicalData = [{
+            date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            time: '12:00 AM',
+            total: pageViewsData, // Using page views for fallback data
+            timestamp: currentTimestamp.toISOString(),
+            dateKey: currentDateKey
+          }];
+        }
       }
       
       const fbEngagement = {
@@ -737,14 +803,7 @@ class InsightsService {
         followers: pageMetricsResponse.data.followers_count || 0,
         recentEngagement: pageMetricsResponse.data.talking_about_count || 0,
         historicalData: historicalData,
-        reactions: {
-          like: likeCount,
-          love: loveCount,
-          haha: hahaCount,
-          wow: wowCount,
-          sad: sadCount,
-          angry: angryCount
-        }
+        recentPost: recentPost
       };
       
       // Check for Instagram account
@@ -760,6 +819,25 @@ class InsightsService {
         const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
         
         if (igAccountId) {
+          // Get Instagram Views from Insights API
+          let igViews = 0;
+          try {
+            const igInsightsResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/insights`, {
+              params: {
+                metric: 'views',
+                period: 'day',
+                metric_type: 'total_value',
+                access_token: accessToken
+              }
+            });
+            
+            igViews = igInsightsResponse.data.data[0]?.total_value?.value || 0;
+            console.log('📊 Instagram Views:', igViews);
+          } catch (viewsError) {
+            console.log('Could not get Instagram views:', viewsError.message);
+          }
+          
+          // Get basic media data for additional stats
           const igResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
             params: {
               fields: 'like_count,comments_count,media_type',
@@ -770,6 +848,7 @@ class InsightsService {
           
           const igPosts = igResponse.data.data || [];
           igEngagement = {
+            totalViews: igViews, // Using Instagram Insights API views
             totalLikes: igPosts.reduce((sum, post) => sum + (post.like_count || 0), 0),
             totalComments: igPosts.reduce((sum, post) => sum + (post.comments_count || 0), 0),
             postsCount: igPosts.length

@@ -53,6 +53,19 @@ const SocialAccountCard = ({
           </h4>
           <p style={{ color: '#666', margin: '5px 0' }}>Status: {status}</p>
           <p style={{ color: '#666', margin: '5px 0' }}>{accountInfo}</p>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            border: account?.hasInstagram ? '1px solid #ffcccb' : '1px solid #d3d3d3',
+            color: '#666',
+            padding: '4px 8px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: '500',
+            marginTop: '8px'
+          }}>
+            {account?.hasInstagram ? 'Instagram Connected' : 'Instagram Not Connected'}
+          </div>
         </div>
         
         <div style={{ position: 'relative' }}>

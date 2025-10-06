@@ -6,7 +6,7 @@ const AccountInsightCard = ({ account, engagement }) => {
   const igData = engagement?.instagram;
   
   const fbTotal = (fbData.totalReactions || 0) + (fbData.totalComments || 0) + (fbData.totalShares || 0);
-  const igTotal = igData ? (igData.totalLikes || 0) + (igData.totalComments || 0) : 0;
+  const igTotal = igData ? (igData.totalViews || 0) : 0;
   
   const fbChartData = fbData.historicalData || [{ date: 'Current', total: fbTotal, time: 'Now' }];
   const igChartData = igData?.historicalData || (igData ? [{ name: 'Current', total: igTotal }] : null);
@@ -116,56 +116,90 @@ const AccountInsightCard = ({ account, engagement }) => {
         </div>
       </div>
 
-      {/* Facebook Reactions Section */}
+      {/* Recent Post Section */}
       <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ margin: '0 0 15px 0', color: '#1877f2', fontSize: '14px' }}>Facebook Reactions</h4>
-        <div style={{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
-          gap: '10px',
-          textAlign: 'center'
-        }}>
+        <h4 style={{ margin: '0 0 15px 0', color: '#1877f2', fontSize: '14px' }}>Recent Post</h4>
+        {fbData.recentPost ? (
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.like || 0}</div>
-            <div style={{ fontSize: '10px', color: '#666' }}>Like</div>
+            <div style={{ 
+              background: '#f8f9fa',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '10px',
+              fontSize: '12px',
+              color: '#666'
+            }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                {new Date(fbData.recentPost.createdTime).toLocaleDateString()}
+              </div>
+              <div>{fbData.recentPost.message.substring(0, 100)}{fbData.recentPost.message.length > 100 ? '...' : ''}</div>
+            </div>
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '15px',
+              textAlign: 'center'
+            }}>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1877f2' }}>{fbData.recentPost.reactions || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Reactions</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#28a745' }}>{fbData.recentPost.comments || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Comments</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#dc3545' }}>{fbData.recentPost.shares || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Shares</div>
+              </div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.love || 0}</div>
-            <div style={{ fontSize: '10px', color: '#666' }}>Love</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.haha || 0}</div>
-            <div style={{ fontSize: '10px', color: '#666' }}>Haha</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.wow || 0}</div>
-            <div style={{ fontSize: '10px', color: '#666' }}>Wow</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.sad || 0}</div>
-            <div style={{ fontSize: '10px', color: '#666' }}>Sad</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.reactions?.angry || 0}</div>
-            <div style={{ fontSize: '10px', color: '#666' }}>Angry</div>
-          </div>
-        </div>
+        ) : (
+          <div style={{ color: '#666', fontSize: '14px' }}>No recent posts found</div>
+        )}
       </div>
 
-      {/* Additional Stats */}
-      <div style={{ 
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-        gap: '10px',
-        fontSize: '12px',
-        color: '#666',
-        marginBottom: '10px'
-      }}>
-        <span style={{ color: '#1877f2' }}>Comments: {fbData.totalComments || 0}</span>
-        <span style={{ color: '#1877f2' }}>Shares: {fbData.totalShares || 0}</span>
-        {igData && <span style={{ color: '#e4405f' }}>IG Likes: {igData.totalLikes || 0}</span>}
-        {igData && <span style={{ color: '#e4405f' }}>IG Comments: {igData.totalComments || 0}</span>}
+      {/* Total Reactions Section */}
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ margin: '0 0 15px 0', color: '#1877f2', fontSize: '14px' }}>Total Reactions</h4>
+        {fbData.recentPost ? (
+          <div style={{ 
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, 1fr)',
+            gap: '10px',
+            textAlign: 'center'
+          }}>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.recentPost.detailedReactions?.like || 0}</div>
+              <div style={{ fontSize: '10px', color: '#666' }}>Like</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.recentPost.detailedReactions?.love || 0}</div>
+              <div style={{ fontSize: '10px', color: '#666' }}>Love</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.recentPost.detailedReactions?.haha || 0}</div>
+              <div style={{ fontSize: '10px', color: '#666' }}>Haha</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.recentPost.detailedReactions?.wow || 0}</div>
+              <div style={{ fontSize: '10px', color: '#666' }}>Wow</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.recentPost.detailedReactions?.sad || 0}</div>
+              <div style={{ fontSize: '10px', color: '#666' }}>Sad</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{fbData.recentPost.detailedReactions?.angry || 0}</div>
+              <div style={{ fontSize: '10px', color: '#666' }}>Angry</div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ color: '#666', fontSize: '14px' }}>No reaction data available</div>
+        )}
       </div>
+
+
       
       <div style={{ 
         display: 'flex', 

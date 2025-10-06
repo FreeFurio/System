@@ -303,6 +303,22 @@ router.post('/connect-selected-page', async (req, res) => {
       status: 'active'
     };
     
+    // Check for Instagram Business Account
+    try {
+      const igResponse = await axios.get(`https://graph.facebook.com/v23.0/${selectedPage.id}`, {
+        params: {
+          fields: 'instagram_business_account',
+          access_token: selectedPage.access_token
+        }
+      });
+      
+      if (igResponse.data.instagram_business_account) {
+        pageData.instagramBusinessAccount = igResponse.data.instagram_business_account;
+      }
+    } catch (error) {
+      console.log('Could not check Instagram for page:', error.message);
+    }
+    
     await set(pageRef, pageData);
     
     res.json({

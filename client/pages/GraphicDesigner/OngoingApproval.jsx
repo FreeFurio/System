@@ -34,6 +34,159 @@ const SEOBar = ({ score, label, width = '100%' }) => {
   );
 };
 
+const MultiPlatformContentModal = ({ workflow }) => {
+  const [activeTab, setActiveTab] = useState('facebook');
+  
+  const getPlatformEmoji = (platform) => {
+    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
+    return emojis[platform] || '📱';
+  };
+  
+  const getPlatformDisplayName = (platform) => {
+    const names = { facebook: 'Facebook', instagram: 'Instagram', twitter: 'Twitter' };
+    return names[platform] || platform;
+  };
+  
+  const selectedContent = workflow.contentCreator?.content?.selectedContent || {};
+  const seoAnalysis = workflow.contentCreator?.content?.seoAnalysis || {};
+  const availablePlatforms = Object.keys(selectedContent);
+  
+  if (availablePlatforms.length === 0) {
+    return (
+      <div style={{
+        marginTop: '0px',
+        padding: '32px',
+        background: '#f8f9fa',
+        borderRadius: '8px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
+        <div style={{ fontSize: '16px', color: '#6b7280' }}>No content available</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      marginTop: '0px',
+      padding: '0px',
+      background: 'transparent',
+      borderRadius: '0px',
+      border: 'none'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start',
+        marginBottom: '24px',
+        paddingBottom: '12px',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#374151', 
+          fontSize: '16px', 
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          📝 Multi-Platform Content
+        </h4>
+      </div>
+      
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '8px', 
+        marginBottom: '20px'
+      }}>
+        {availablePlatforms.map(platform => (
+          <button
+            key={platform}
+            onClick={() => setActiveTab(platform)}
+            style={{
+              padding: '8px 16px',
+              background: activeTab === platform 
+                ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' 
+                : '#f8f9fa',
+              color: activeTab === platform ? '#fff' : '#6b7280',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+          </button>
+        ))}
+      </div>
+      
+      {selectedContent[activeTab] && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                {selectedContent[activeTab].headline}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                {selectedContent[activeTab].caption}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+              <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                {selectedContent[activeTab].hashtag}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ApprovalCard = ({ workflow }) => {
   const [expanded, setExpanded] = useState(false);
   const [showDesignModal, setShowDesignModal] = useState(false);
@@ -58,23 +211,14 @@ const ApprovalCard = ({ workflow }) => {
 
   return (
     <div style={{
-      background: '#fff',
+      background: '#ffffff',
       borderRadius: '16px',
       padding: '24px',
       marginBottom: '20px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
       border: '1px solid #e5e7eb',
-      transition: 'all 0.3s ease'
-    }}
-    onMouseEnter={e => {
-      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
-      e.currentTarget.style.transform = 'translateY(-2px)';
-    }}
-    onMouseLeave={e => {
-      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
-      e.currentTarget.style.transform = 'translateY(0)';
-    }}
-    >
+      transition: 'all 0.2s ease'
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', background: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
@@ -318,95 +462,7 @@ const ApprovalCard = ({ workflow }) => {
             </button>
           </div>
           
-          {expanded && (
-            <div style={{
-              marginTop: '0px',
-              padding: '0px',
-              background: 'transparent',
-              borderRadius: '0px',
-              border: 'none'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                marginBottom: '24px',
-                paddingBottom: '12px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h4 style={{ 
-                  margin: 0, 
-                  color: '#374151', 
-                  fontSize: '16px', 
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  📝 Content Analysis
-                </h4>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Headline Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
-                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
-                      {workflow.contentCreator.content.headline}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <SEOBar score={workflow.contentCreator?.content?.seoAnalysis?.headlineScore || 0} label="Headline SEO" />
-                  </div>
-                </div>
-                
-                {/* Caption Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
-                    <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
-                      {workflow.contentCreator.content.caption}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <SEOBar score={workflow.contentCreator?.content?.seoAnalysis?.captionScore || 0} label="Caption SEO" />
-                  </div>
-                </div>
-                
-                {/* Hashtags Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    background: '#f8fafc'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
-                    <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
-                      {workflow.contentCreator.content.hashtag}
-                    </div>
-                  </div>
-                  
-                  <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <SEOBar score={workflow.contentCreator?.content?.seoAnalysis?.overallScore || 0} label="Overall SEO Score" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {expanded && <MultiPlatformContentModal workflow={workflow} />}
         </div>
       )}
 
@@ -578,12 +634,11 @@ export default function OngoingApproval() {
     );
   }
 
+  const allWorkflows = [...rejectedWorkflows, ...pendingWorkflows];
+
   return (
-    <div style={{ 
-      maxWidth: '100%', 
-      margin: '0 auto',
-      width: '100%'
-    }}>
+    <div style={{ padding: '0', maxWidth: '100%', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+      {/* Header */}
       <div style={{
         marginBottom: '32px',
         padding: '24px',
@@ -607,88 +662,54 @@ export default function OngoingApproval() {
           margin: '8px 0 0 0',
           fontWeight: '400'
         }}>
-          Track the approval status of your submitted designs
+          Track the approval status of your submitted designs ({allWorkflows.length} items)
         </p>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '40px',
-        alignItems: 'start'
-      }}>
-        {/* Rejected Designs Section */}
-        {rejectedWorkflows.length > 0 ? (
-          <div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            marginBottom: '20px', padding: '16px 20px',
-            background: 'linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)',
-            borderRadius: '12px', border: '1px solid #fca5a5'
-          }}>
-            <FiXCircle size={24} color="#dc2626" />
-            <h2 style={{
-              fontSize: '20px', fontWeight: '700', color: '#dc2626',
-              margin: 0
-            }}>
-              Rejected Designs ({rejectedWorkflows.length})
-            </h2>
-          </div>
-          {rejectedWorkflows.map(workflow => (
-            <ApprovalCard key={workflow.id} workflow={workflow} />
-          ))}
-          </div>
-        ) : (
-          <div></div>
-        )}
-
-        {/* Pending Approval Section */}
-        {pendingWorkflows.length > 0 ? (
-          <div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            marginBottom: '20px', padding: '16px 20px',
-            background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-            borderRadius: '12px', border: '1px solid #a5b4fc'
-          }}>
-            <FiClock size={24} color="#3730a3" />
-            <h2 style={{
-              fontSize: '20px', fontWeight: '700', color: '#3730a3',
-              margin: 0
-            }}>
-              Pending Approval ({pendingWorkflows.length})
-            </h2>
-          </div>
-          {pendingWorkflows.map(workflow => (
-            <ApprovalCard key={workflow.id} workflow={workflow} />
-          ))}
-          </div>
-        ) : (
-          <div></div>
-        )}
-
-
-      </div>
-
-      {/* Empty State */}
-      {rejectedWorkflows.length === 0 && pendingWorkflows.length === 0 && (
+      {/* Content List */}
+      {allWorkflows.length === 0 ? (
         <div style={{
-          textAlign: 'center',
-          padding: '80px 40px',
-          background: '#fff',
+          background: '#ffffff',
           borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-          border: '1px solid #e5e7eb',
-          maxWidth: '600px',
-          margin: '0 auto'
+          padding: '60px 40px',
+          textAlign: 'center',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb'
         }}>
-          <FiCheckCircle size={48} color="#8b5cf6" style={{ marginBottom: '16px' }} />
-          <h3 style={{ color: '#6b7280', fontSize: '18px', margin: '0 0 8px 0' }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: '#f1f5f9',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            fontSize: '32px'
+          }}>
+            ✅
+          </div>
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#1e293b',
+            margin: '0 0 8px 0'
+          }}>
             All Designs Processed
           </h3>
-          <p style={{ color: '#9ca3af', margin: 0 }}>
+          <p style={{
+            color: '#64748b',
+            fontSize: '16px',
+            margin: 0
+          }}>
             No designs currently awaiting approval or revision
           </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+          {allWorkflows.map(workflow => (
+            <ApprovalCard key={workflow.id} workflow={workflow} />
+          ))}
         </div>
       )}
     </div>

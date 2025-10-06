@@ -144,56 +144,83 @@ const getTaskGraphicDesigner = async (req, res, next) => {
 const generateAIContent = async (req, res, next) => {
     console.log('🤖 generateAIContent called with body:', req.body);
     try {
-        const { topic, numContents = 1 } = req.body;
+        const { topic, numContents = 1, taskId, platforms } = req.body;
         
         if (!topic) {
             return next(new AppError('Topic is required', 400));
         }
         
-        console.log(`🤖 Generating ${numContents} real AI variations for topic:`, topic);
+        let targetPlatforms = platforms;
+        
+        // If taskId provided, get platforms from task configuration
+        if (taskId && !platforms) {
+            try {
+                const workflow = await FirebaseService.getWorkflowById(taskId);
+                if (workflow && workflow.selectedPlatforms && workflow.selectedPlatforms.length > 0) {
+                    targetPlatforms = workflow.selectedPlatforms.map(p => p.name || p).filter(Boolean);
+                    console.log(`🎯 Using platforms from task ${taskId}:`, targetPlatforms);
+                } else {
+                    targetPlatforms = ['facebook']; // Default fallback
+                    console.log('⚠️ No platforms found in task, using Facebook as default');
+                }
+            } catch (error) {
+                console.warn('⚠️ Could not fetch task platforms, using Facebook as default:', error.message);
+                targetPlatforms = ['facebook'];
+            }
+        } else if (!targetPlatforms) {
+            targetPlatforms = ['facebook']; // Default fallback
+        }
+        
+        console.log(`🤖 Generating ${numContents} variations per platform for:`, targetPlatforms);
+        
         const aiVariations = [];
         
+        // Different creative angles for variety
+        const angles = [
+            'emotional and heartwarming',
+            'funny and humorous', 
+            'urgent and action-oriented',
+            'question-based and curious',
+            'benefit-focused and practical',
+            'story-driven and narrative',
+            'trendy and modern',
+            'nostalgic and memorable'
+        ];
+        
+        // Generate numContents variations for EACH platform
         for (let i = 0; i < numContents; i++) {
-            console.log(`🤖 Step 1.${i + 1}: Generating AI content variation ${i + 1}...`);
-            // Generate content only (no SEO analysis yet)
-            const generatedContent = await AIService.generateContent('facebook', topic, 'headline');
-            const generatedCaption = await AIService.generateContent('facebook', topic, 'caption');
-            const generatedHashtag = await AIService.generateContent('facebook', topic, 'hashtag');
-            
-            console.log(`🔍 Step 2.${i + 1}: Analyzing variation ${i + 1} for SEO scores...`);
-            // Analyze the generated content for SEO scores
-            const headlineAnalysis = await AIService.analyzeSEO(generatedContent, 'headline');
-            const captionAnalysis = await AIService.analyzeSEO(generatedCaption, 'caption');
-            
-            console.log(`📊 Step 3.${i + 1}: Computing overall score for variation ${i + 1}...`);
-            // Backend computes overall score from headline and caption scores
-            const overallScore = Math.round((headlineAnalysis.score + captionAnalysis.score) / 2);
-            
-            const aiContent = {
+            const variation = {
                 id: Date.now() + i,
-                platform: 'generic',
                 topic,
-                headline: generatedContent,
-                caption: generatedCaption,
-                hashtag: generatedHashtag,
-                seoAnalysis: {
-                    headlineScore: headlineAnalysis.score,
-                    captionScore: captionAnalysis.score,
-                    overallScore: overallScore
-                },
+                platforms: {},
                 generatedAt: new Date().toISOString()
             };
             
-            aiVariations.push(aiContent);
+            // Use random angle for each variation
+            const randomIndex = Math.floor(Math.random() * angles.length);
+            const angle = angles[randomIndex];
+            const modifiedTopic = `${topic} (use ${angle} approach)`;
+            
+            // Generate unique content for each platform in this variation
+            for (const platform of targetPlatforms) {
+                const platformContent = await AIService.generateAllContent(platform, modifiedTopic);
+                variation.platforms[platform] = platformContent;
+            }
+            
+            aiVariations.push(variation);
         }
+        
+        const totalContentPieces = numContents * targetPlatforms.length;
         
         res.status(200).json({
             status: 'success',
-            message: `${numContents} AI content variations generated and analyzed successfully`,
+            message: `${numContents} variations per platform generated (${totalContentPieces} total content pieces)`,
             data: {
                 variations: aiVariations,
                 totalCount: numContents,
-                topic: topic
+                totalContentPieces: totalContentPieces,
+                topic: topic,
+                targetPlatforms: targetPlatforms
             }
         });
     } catch (error) {
@@ -206,29 +233,45 @@ const submitContent = async (req, res, next) => {
     console.log('📤 submitContent called with body:', req.body);
     try {
         const { workflowId } = req.params;
-        const { headline, caption, hashtag, seoAnalysis } = req.body;
+        const { selectedContent, seoAnalysis } = req.body;
         
-        if (!headline || !caption || !hashtag) {
-            return next(new AppError('Headline, caption, and hashtag are required', 400));
+        // Handle both old format (headline, caption, hashtag) and new format (selectedContent)
+        let contentData;
+        if (selectedContent) {
+            // New multi-platform format
+            contentData = {
+                selectedContent,
+                seoAnalysis: seoAnalysis || null,
+                submittedAt: new Date().toISOString()
+            };
+        } else {
+            // Legacy single-platform format
+            const { headline, caption, hashtag } = req.body;
+            if (!headline || !caption || !hashtag) {
+                return next(new AppError('Content is required for submission', 400));
+            }
+            contentData = {
+                headline,
+                caption,
+                hashtag,
+                seoAnalysis: seoAnalysis || null,
+                submittedAt: new Date().toISOString()
+            };
         }
         
         console.log('📊 SEO analysis data received:', seoAnalysis ? 'Present' : 'Missing');
+        console.log('💾 Saving content for approval to database...');
         
-        const contentData = { 
-            headline, 
-            caption, 
-            hashtag, 
-            seoAnalysis: seoAnalysis || null,
-            submittedAt: new Date().toISOString()
-        };
-        
-        console.log('💾 Saving content with full SEO analysis to database...');
         const updatedWorkflow = await FirebaseService.submitContent(workflowId, contentData);
         
         // Create notification for Marketing Lead
+        const notificationMessage = selectedContent 
+            ? 'Multi-platform content submitted for approval'
+            : `Content submitted for approval: ${contentData.headline}`;
+            
         await FirebaseService.createMarketingNotification({
             type: 'content_submitted',
-            message: `Content submitted for approval: ${contentData.headline}`,
+            message: notificationMessage,
             user: 'Content Creator'
         });
         
@@ -236,7 +279,7 @@ const submitContent = async (req, res, next) => {
         
         res.status(200).json({
             status: 'success',
-            message: 'Content submitted for approval with SEO analysis',
+            message: 'Content submitted for approval',
             data: updatedWorkflow
         });
     } catch (error) {

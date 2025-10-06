@@ -79,47 +79,7 @@ class SocialMediaService {
       const snapshot = await get(pageRef);
       
       if (!snapshot.exists()) {
-        // Check if there are any pages at all
-        const allPagesRef = ref(db, 'connectedPages/admin');
-        const allPagesSnapshot = await get(allPagesRef);
-        
-        if (allPagesSnapshot.exists()) {
-          const allPages = allPagesSnapshot.val();
-          console.log('🔍 Available pages:', Object.keys(allPages));
-          
-          // Use the first available page as fallback
-          const firstPageId = Object.keys(allPages)[0];
-          const firstPageData = allPages[firstPageId];
-          console.log('🔄 Using fallback page:', firstPageId);
-          
-          const pageAccessToken = firstPageData.accessToken;
-          const actualPageId = firstPageData.id;
-          
-          const endpoint = `https://graph.facebook.com/v23.0/${actualPageId}/feed`;
-          
-          const postData = {
-            message: `${content.headline}\n\n${content.caption}\n\n${content.hashtag}`,
-            access_token: pageAccessToken
-          };
-          
-          if (content.imageUrl) {
-            postData.link = content.imageUrl;
-          }
-          
-          const response = await axios.post(endpoint, postData);
-          
-          return {
-            success: true,
-            platform: 'facebook',
-            postId: response.data.id,
-            message: `Posted successfully to Facebook page: ${firstPageData.name}`,
-            data: response.data,
-            postedAsPage: true,
-            usedFallbackPage: true
-          };
-        } else {
-          throw new Error('No Facebook pages connected. Please connect a Facebook page first.');
-        }
+        throw new Error('Specified Facebook page not found. Please check page configuration.');
       }
       
       const pageData = snapshot.val();

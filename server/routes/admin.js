@@ -2077,4 +2077,69 @@ router.post('/test-twitter-post', async (req, res) => {
   }
 });
 
+// Check platform availability for task creation
+router.get('/platform-availability', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Check Facebook pages
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const pagesSnapshot = await get(connectedPagesRef);
+    
+    let facebookAvailable = false;
+    let instagramAvailable = false;
+    
+    if (pagesSnapshot.exists()) {
+      const pages = Object.values(pagesSnapshot.val());
+      const activePages = pages.filter(page => page.active === true);
+      
+      if (activePages.length > 0) {
+        facebookAvailable = true;
+        
+        // Check if ANY active page has Instagram
+        for (const activePage of activePages) {
+          try {
+            const response = await axios.get(`https://graph.facebook.com/v23.0/${activePage.id}`, {
+              params: {
+                fields: 'instagram_business_account',
+                access_token: activePage.accessToken
+              }
+            });
+            
+            if (response.data.instagram_business_account) {
+              instagramAvailable = true;
+              break; // Found one with Instagram, that's enough
+            }
+          } catch (error) {
+            console.log(`Error checking Instagram for page ${activePage.id}:`, error.message);
+          }
+        }
+      }
+    }
+    
+    // Check Twitter accounts
+    const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const twitterSnapshot = await get(twitterAccountsRef);
+    const twitterAvailable = twitterSnapshot.exists();
+    
+    res.json({
+      success: true,
+      platforms: {
+        facebook: facebookAvailable,
+        instagram: instagramAvailable,
+        twitter: twitterAvailable
+      }
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

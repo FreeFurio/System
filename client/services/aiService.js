@@ -81,6 +81,32 @@ class AIService {
       throw new Error(`SEO analysis failed: ${error.message}`);
     }
   }
+
+  // Generate content for multiple platforms
+  async generateMultiPlatformContent(platforms, topic) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/generate-multi-platform`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          platforms,
+          topic
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate multi-platform content');
+      }
+
+      return data.data;
+    } catch (error) {
+      throw new Error(`Multi-platform content generation failed: ${error.message}`);
+    }
+  }
 }
 
 export default new AIService();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { io } from "socket.io-client";
-import { FiClock, FiUser, FiCalendar, FiTarget, FiCheckCircle, FiEye } from 'react-icons/fi';
+import { FiClock, FiUser, FiCalendar, FiTarget, FiCheckCircle, FiEye, FiSmartphone, FiCheck, FiX } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 // Temporary inline styles until design system is properly imported
 const componentStyles = {
   pageContainer: { padding: '0', maxWidth: '100%', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' },
@@ -231,17 +232,14 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
           <div style={{
             width: '48px',
             height: '48px',
-            borderRadius: '50%',
+            borderRadius: '12px',
             background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: '600',
-            overflow: 'hidden'
+            fontSize: '20px'
           }}>
-            📝
+            <FiEye size={20} color="#fff" />
           </div>
           <div style={{ background: '#fff' }}>
             <h3 style={{ 
@@ -252,7 +250,7 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
               letterSpacing: '-0.025em',
               background: '#fff'
             }}>
-              {workflow.objectives}
+              {isDesignApproval ? 'Design Approval Required' : 'Content Approval Required'}
             </h3>
             <p style={{
               margin: 0,
@@ -262,7 +260,7 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
               background: '#fff'
             }}>
               {isDesignApproval ? 
-                `Design submitted ${formatDate(workflow.graphicDesigner?.submittedAt)}` :
+                `Submitted ${formatDate(workflow.graphicDesigner?.submittedAt)}` :
                 `Submitted ${formatDate(workflow.contentCreator?.submittedAt)}`
               }
             </p>
@@ -282,7 +280,6 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
           PENDING APPROVAL
         </span>
       </div>
-      {/* Task Information */}
       <div style={{ marginBottom: '20px', background: '#fff' }}>
         <div style={{ 
           fontSize: '14px', 
@@ -294,41 +291,55 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
           gap: '8px',
           background: '#fff'
         }}>
-          🎯 Task Information
+          <FiTarget size={16} color="#3b82f6" /> Task Objectives
         </div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-          padding: '16px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0'
+        <div style={{ 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500',
+          background: '#fff'
         }}>
+          {workflow.objectives}
+        </div>
+      </div>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiUser size={16} color="#3b82f6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📋 Objectives</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.objectives}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiCalendar size={16} color="#10b981" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>👤 Target Gender</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiClock size={16} color="#ef4444" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🎂 Age Range</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={16} color="#8b5cf6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📅 Deadline</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🏢 Current Stage</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>
-              {workflow.currentStage === 'contentcreator' ? 'Content Creator' : 
-               workflow.currentStage === 'marketinglead' ? 'Marketing Lead' : 
-               workflow.currentStage === 'graphicdesigner' ? 'Graphic Designer' : 
-               workflow.currentStage}
-            </div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={workflow.selectedPlatforms || []} size="small" />
           </div>
         </div>
       </div>
@@ -411,60 +422,62 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
         <button
           onClick={() => onReject(workflow.id)}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 20px',
-            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            background: '#ef4444',
             color: '#fff',
             border: 'none',
+            padding: '8px 16px',
             borderRadius: '12px',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: '600',
             cursor: 'pointer',
+            height: '36px',
             transition: 'all 0.2s ease',
-            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
           onMouseEnter={e => {
             e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+            e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
           }}
           onMouseLeave={e => {
             e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
+            e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
           }}
         >
-          <span style={{ fontSize: '16px' }}>❌</span>
-          Reject Content
+          <FiX size={14} />
+          Reject
         </button>
         <button
           onClick={() => onApprove(workflow.id)}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 20px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            background: '#10b981',
             color: '#fff',
             border: 'none',
+            padding: '8px 16px',
             borderRadius: '12px',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: '600',
             cursor: 'pointer',
+            height: '36px',
             transition: 'all 0.2s ease',
-            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
           onMouseEnter={e => {
             e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+            e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
           }}
           onMouseLeave={e => {
             e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+            e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
           }}
         >
-          <span style={{ fontSize: '16px' }}>✅</span>
-          {isDesignApproval ? 'Approve Design' : 'Approve Content'}
+          <FiCheck size={14} />
+          {isDesignApproval ? 'Approve' : 'Approve'}
         </button>
       </div>
 
@@ -683,105 +696,87 @@ export default function ApprovalOfContents() {
       </div>
 
       {/* Content Creator Approvals */}
-      <div style={{ marginBottom: '32px' }}>
+      <div style={{ marginBottom: '40px' }}>
         <div style={{
-          marginBottom: '32px',
-          padding: '24px',
           background: '#fff',
           borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           border: '1px solid #e5e7eb'
         }}>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#111827',
-            margin: 0,
-            letterSpacing: '-0.025em'
-          }}>Content Creator Approvals</h2>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '16px',
-            margin: '8px 0 0 0',
-            fontWeight: '400'
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
           }}>
-            Content submissions pending approval ({workflows.filter(w => w.status === 'content_approval').length} items)
-          </p>
-        </div>
+            Content Creator Approvals
+          </h2>
 
-        {workflows.filter(w => w.status === 'content_approval').length === 0 ? (
-          <div style={componentStyles.emptyState}>
-            <div style={componentStyles.emptyStateIcon}>📝</div>
-            <h3 style={componentStyles.emptyStateTitle}>
-              No Content Pending Approval
-            </h3>
-            <p style={componentStyles.emptyStateText}>
-              Content creator submissions will appear here for approval.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            {workflows.filter(w => w.status === 'content_approval').map(workflow => (
+          {workflows.filter(w => w.status === 'content_approval').length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No content pending approval.
+            </div>
+          ) : (
+            workflows.filter(w => w.status === 'content_approval').map(workflow => (
               <ContentApprovalCard 
                 key={workflow.id} 
                 workflow={workflow} 
                 onApprove={handleApprove}
                 onReject={handleReject}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       {/* Graphics Designer Approvals */}
       <div>
         <div style={{
-          marginBottom: '32px',
-          padding: '24px',
           background: '#fff',
           borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           border: '1px solid #e5e7eb'
         }}>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#111827',
-            margin: 0,
-            letterSpacing: '-0.025em'
-          }}>Graphics Designer Approvals</h2>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '16px',
-            margin: '8px 0 0 0',
-            fontWeight: '400'
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
           }}>
-            Design submissions pending approval ({workflows.filter(w => w.status === 'design_approval').length} items)
-          </p>
-        </div>
+            Graphic Designer Approvals
+          </h2>
 
-        {workflows.filter(w => w.status === 'design_approval').length === 0 ? (
-          <div style={componentStyles.emptyState}>
-            <div style={componentStyles.emptyStateIcon}>🎨</div>
-            <h3 style={componentStyles.emptyStateTitle}>
-              No Designs Pending Approval
-            </h3>
-            <p style={componentStyles.emptyStateText}>
-              Graphics designer submissions will appear here for approval.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            {workflows.filter(w => w.status === 'design_approval').map(workflow => (
+          {workflows.filter(w => w.status === 'design_approval').length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No designs pending approval.
+            </div>
+          ) : (
+            workflows.filter(w => w.status === 'design_approval').map(workflow => (
               <ContentApprovalCard 
                 key={workflow.id} 
                 workflow={workflow} 
                 onApprove={handleApprove}
                 onReject={handleReject}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
       
       {/* Rejection Modal */}

@@ -59,7 +59,7 @@ class SocialMediaService {
   }
 
   // Facebook posting using Firebase page tokens
-  async postToFacebook(content, pageId) {
+  async postToFacebook(content, pageId = null) {
     try {
       console.log('📘 Facebook posting using Firebase page tokens...');
       
@@ -72,19 +72,44 @@ class SocialMediaService {
       const app = initializeApp(config.firebase);
       const db = getDatabase(app, config.firebase.databaseURL);
       
-      console.log('🔍 Looking for pageId:', pageId);
-      console.log('🔍 Firebase path:', `connectedPages/admin/${pageId}`);
+      let pageData, actualPageId, pageAccessToken;
       
-      const pageRef = ref(db, `connectedPages/admin/${pageId}`);
-      const snapshot = await get(pageRef);
-      
-      if (!snapshot.exists()) {
-        throw new Error('Specified Facebook page not found. Please check page configuration.');
+      if (pageId) {
+        // Use specific page
+        console.log('🔍 Looking for pageId:', pageId);
+        console.log('🔍 Firebase path:', `connectedPages/admin/${pageId}`);
+        
+        const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+        const snapshot = await get(pageRef);
+        
+        if (!snapshot.exists()) {
+          throw new Error('Specified Facebook page not found. Please check page configuration.');
+        }
+        
+        pageData = snapshot.val();
+        pageAccessToken = pageData.accessToken;
+        actualPageId = pageData.id;
+      } else {
+        // Find first active page
+        const pagesRef = ref(db, 'connectedPages/admin');
+        const pagesSnapshot = await get(pagesRef);
+        
+        if (!pagesSnapshot.exists()) {
+          throw new Error('No Facebook pages connected');
+        }
+        
+        const pages = pagesSnapshot.val();
+        const activePage = Object.entries(pages).find(([id, data]) => data.active === true);
+        
+        if (!activePage) {
+          throw new Error('No active Facebook pages found');
+        }
+        
+        pageData = activePage[1];
+        pageAccessToken = pageData.accessToken;
+        actualPageId = pageData.id;
+        console.log('🔍 Using active page:', pageData.name, 'ID:', actualPageId);
       }
-      
-      const pageData = snapshot.val();
-      const pageAccessToken = pageData.accessToken;
-      const actualPageId = pageData.id;
       
       const endpoint = `https://graph.facebook.com/v23.0/${actualPageId}/feed`;
 
@@ -146,7 +171,7 @@ class SocialMediaService {
   }
 
   // Instagram posting using Firebase tokens with connectivity check
-  async postToInstagram(content, pageId) {
+  async postToInstagram(content, pageId = null) {
     try {
       console.log('📷 Instagram posting using Firebase tokens...');
       
@@ -159,18 +184,46 @@ class SocialMediaService {
       const app = initializeApp(config.firebase);
       const db = getDatabase(app, config.firebase.databaseURL);
       
-      const pageRef = ref(db, `connectedPages/admin/${pageId}`);
-      const snapshot = await get(pageRef);
+      let pageData, pageAccessToken, actualPageId;
       
-      if (!snapshot.exists()) {
-        throw new Error('Page not found in Firebase');
+      if (pageId) {
+        // Use specific page
+        const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+        const snapshot = await get(pageRef);
+        
+        if (!snapshot.exists()) {
+          throw new Error('Page not found in Firebase');
+        }
+        
+        pageData = snapshot.val();
+        pageAccessToken = pageData.accessToken;
+        actualPageId = pageData.id;
+      } else {
+        // Find first active page with Instagram Business Account
+        const pagesRef = ref(db, 'connectedPages/admin');
+        const pagesSnapshot = await get(pagesRef);
+        
+        if (!pagesSnapshot.exists()) {
+          throw new Error('No Facebook pages connected');
+        }
+        
+        const pages = pagesSnapshot.val();
+        const pageWithInstagram = Object.entries(pages).find(([id, data]) => 
+          data.active === true && data.instagramBusinessAccount
+        );
+        
+        if (!pageWithInstagram) {
+          throw new Error('No active pages with Instagram Business Account found');
+        }
+        
+        pageData = pageWithInstagram[1];
+        pageAccessToken = pageData.accessToken;
+        actualPageId = pageData.id;
+        console.log('🔍 Using page with Instagram:', pageData.name, 'ID:', actualPageId);
       }
       
-      const pageData = snapshot.val();
-      const pageAccessToken = pageData.accessToken;
-      
       // Check if page has Instagram Business Account
-      const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${pageId}`, {
+      const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${actualPageId}`, {
         params: {
           fields: 'instagram_business_account',
           access_token: pageAccessToken
@@ -180,7 +233,7 @@ class SocialMediaService {
       const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
       
       if (!igAccountId) {
-        throw new Error('No Instagram Business Account connected to this Facebook page');
+        throw new Error('Active page does not have Instagram Business Account connected');
       }
       
       console.log('📷 Using Instagram account ID:', igAccountId);

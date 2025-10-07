@@ -1287,6 +1287,332 @@ router.get('/test-page-insights/:pageId', async (req, res) => {
   }
 });
 
+// Debug Facebook posts and reactions structure
+router.get('/debug-facebook-posts', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.send('<h1>No pages connected</h1>');
+    }
+    
+    const pages = Object.values(snapshot.val());
+    let html = `
+      <html>
+        <head><title>Facebook Posts Debug</title></head>
+        <body style="font-family: Arial; padding: 20px;">
+          <h1>🔍 Facebook Posts & Reactions Debug</h1>
+    `;
+    
+    for (const page of pages) {
+      html += `<h2>📄 Page: ${page.name}</h2>`;
+      
+      try {
+        // Get posts with basic reactions
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
+          params: {
+            fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares',
+            limit: 5,
+            access_token: page.accessToken
+          }
+        });
+        
+        const posts = response.data.data || [];
+        html += `<p><strong>Found ${posts.length} posts</strong></p>`;
+        
+        if (posts.length === 0) {
+          html += '<p style="color: red;">❌ No posts found on this page</p>';
+        } else {
+          posts.forEach((post, index) => {
+            const reactions = post.reactions?.summary?.total_count || 0;
+            const comments = post.comments?.summary?.total_count || 0;
+            const shares = post.shares?.count || 0;
+            
+            html += `
+              <div style="border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                <h3>Post ${index + 1}</h3>
+                <p><strong>ID:</strong> ${post.id}</p>
+                <p><strong>Message:</strong> ${post.message?.substring(0, 100) || 'No message'}...</p>
+                <p><strong>Created:</strong> ${post.created_time}</p>
+                <p><strong>Reactions:</strong> ${reactions}</p>
+                <p><strong>Comments:</strong> ${comments}</p>
+                <p><strong>Shares:</strong> ${shares}</p>
+                <p><strong>Raw Reactions Data:</strong></p>
+                <pre style="background: #f0f0f0; padding: 10px; font-size: 12px;">${JSON.stringify(post.reactions, null, 2)}</pre>
+              </div>
+            `;
+          });
+        }
+        
+      } catch (error) {
+        html += `<p style="color: red;">❌ Error: ${error.response?.data?.error?.message || error.message}</p>`;
+      }
+    }
+    
+    html += `
+          <hr>
+          <h2>📊 Summary</h2>
+          <p>If all posts show 0 reactions, it means:</p>
+          <ul>
+            <li>Posts are very new (no one reacted yet)</li>
+            <li>Page has low engagement</li>
+            <li>Posts are not visible to public</li>
+          </ul>
+          <p><strong>Solution:</strong> React to some posts manually to test the system</p>
+        </body>
+      </html>
+    `;
+    
+    res.send(html);
+    
+  } catch (error) {
+    res.send(`<h1>Error: ${error.message}</h1>`);
+  }
+});
+
+// Get detailed Facebook reactions from posts (fallback method)
+router.get('/facebook-reactions-from-posts', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ success: true, reactions: {} });
+    }
+    
+    const pages = Object.values(snapshot.val());
+    const pageResults = [];
+    
+    for (const page of pages) {
+      try {
+        console.log(`🔍 Getting posts with detailed reactions for: ${page.name}`);
+        
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
+          params: {
+            fields: 'id,message,reactions.summary(true)',
+            limit: 25,
+            access_token: page.accessToken
+          }
+        });
+        
+        // Get detailed reactions for each post separately
+        const postsWithDetailedReactions = [];
+        for (const post of (response.data.data || [])) {
+          try {
+            const reactionTypes = ['LIKE', 'LOVE', 'WOW', 'HAHA', 'ANGRY', 'SAD'];
+            const detailedReactions = {};
+            
+            for (const type of reactionTypes) {
+              try {
+                const reactionResponse = await axios.get(`https://graph.facebook.com/v23.0/${post.id}/reactions`, {
+                  params: {
+                    type: type,
+                    limit: 0,
+                    summary: true,
+                    access_token: page.accessToken
+                  }
+                });
+                detailedReactions[type.toLowerCase()] = reactionResponse.data.summary?.total_count || 0;
+              } catch (err) {
+                detailedReactions[type.toLowerCase()] = 0;
+              }
+            }
+            
+            postsWithDetailedReactions.push({ ...post, detailedReactions });
+          } catch (err) {
+            postsWithDetailedReactions.push({ ...post, detailedReactions: {} });
+          }
+        }
+        
+        console.log(`📊 Found ${postsWithDetailedReactions.length} posts for ${page.name}`);
+        
+        const pageReactions = {
+          like: 0,
+          love: 0,
+          wow: 0,
+          haha: 0,
+          angry: 0,
+          sad: 0
+        };
+        
+        postsWithDetailedReactions.forEach(post => {
+          if (post.detailedReactions) {
+            pageReactions.like += post.detailedReactions.like || 0;
+            pageReactions.love += post.detailedReactions.love || 0;
+            pageReactions.wow += post.detailedReactions.wow || 0;
+            pageReactions.haha += post.detailedReactions.haha || 0;
+            pageReactions.angry += post.detailedReactions.angry || 0;
+            pageReactions.sad += post.detailedReactions.sad || 0;
+          }
+        });
+        
+        const totalReactions = Object.values(pageReactions).reduce((sum, count) => sum + count, 0);
+        
+        pageResults.push({
+          pageId: page.id,
+          pageName: page.name,
+          postsCount: postsWithDetailedReactions.length,
+          reactions: pageReactions,
+          totalReactions
+        });
+        
+        console.log(`✅ Reactions for ${page.name}:`, pageReactions);
+        
+      } catch (error) {
+        console.error(`❌ Error fetching posts for page ${page.id}:`, error.response?.data || error.message);
+      }
+    }
+    
+    const grandTotal = pageResults.reduce((sum, page) => sum + page.totalReactions, 0);
+    
+    res.json({
+      success: true,
+      method: 'Post-level reactions',
+      period: 'All recent posts',
+      pages: pageResults,
+      grandTotal
+    });
+    
+  } catch (error) {
+    console.error('Error fetching Facebook reactions from posts:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get detailed Facebook reactions breakdown (using working post-level method)
+router.get('/facebook-reactions-breakdown', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ success: true, pages: [] });
+    }
+    
+    const pages = Object.values(snapshot.val());
+    const pageResults = [];
+    
+    for (const page of pages) {
+      try {
+        console.log(`🔍 Getting posts with detailed reactions for: ${page.name}`);
+        
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
+          params: {
+            fields: 'id,message,reactions.summary(true)',
+            limit: 25,
+            access_token: page.accessToken
+          }
+        });
+        
+        // Get detailed reactions for each post separately
+        const postsWithDetailedReactions = [];
+        for (const post of (response.data.data || [])) {
+          try {
+            const reactionTypes = ['LIKE', 'LOVE', 'WOW', 'HAHA', 'ANGRY', 'SAD'];
+            const detailedReactions = {};
+            
+            for (const type of reactionTypes) {
+              try {
+                const reactionResponse = await axios.get(`https://graph.facebook.com/v23.0/${post.id}/reactions`, {
+                  params: {
+                    type: type,
+                    limit: 0,
+                    summary: true,
+                    access_token: page.accessToken
+                  }
+                });
+                detailedReactions[type.toLowerCase()] = reactionResponse.data.summary?.total_count || 0;
+              } catch (err) {
+                detailedReactions[type.toLowerCase()] = 0;
+              }
+            }
+            
+            postsWithDetailedReactions.push({ ...post, detailedReactions });
+          } catch (err) {
+            postsWithDetailedReactions.push({ ...post, detailedReactions: {} });
+          }
+        }
+        
+        console.log(`📊 Found ${postsWithDetailedReactions.length} posts for ${page.name}`);
+        
+        const pageReactions = {
+          like: 0,
+          love: 0,
+          wow: 0,
+          haha: 0,
+          angry: 0,
+          sad: 0
+        };
+        
+        postsWithDetailedReactions.forEach(post => {
+          if (post.detailedReactions) {
+            pageReactions.like += post.detailedReactions.like || 0;
+            pageReactions.love += post.detailedReactions.love || 0;
+            pageReactions.wow += post.detailedReactions.wow || 0;
+            pageReactions.haha += post.detailedReactions.haha || 0;
+            pageReactions.angry += post.detailedReactions.angry || 0;
+            pageReactions.sad += post.detailedReactions.sad || 0;
+          }
+        });
+        
+        const totalReactions = Object.values(pageReactions).reduce((sum, count) => sum + count, 0);
+        
+        pageResults.push({
+          pageId: page.id,
+          pageName: page.name,
+          postsCount: postsWithDetailedReactions.length,
+          reactions: pageReactions,
+          totalReactions
+        });
+        
+        console.log(`✅ Reactions for ${page.name}:`, pageReactions);
+        
+      } catch (error) {
+        console.error(`❌ Error fetching posts for page ${page.id}:`, error.response?.data || error.message);
+      }
+    }
+    
+    const grandTotal = pageResults.reduce((sum, page) => sum + page.totalReactions, 0);
+    
+    res.json({
+      success: true,
+      method: 'Post-level reactions',
+      period: 'All recent posts',
+      pages: pageResults,
+      grandTotal
+    });
+    
+  } catch (error) {
+    console.error('Error fetching Facebook reactions breakdown:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Check page likes count
 router.get('/check-page-likes', async (req, res) => {
   try {
@@ -1708,7 +2034,7 @@ router.get('/twitter-callback', async (req, res) => {
     
     const userInfo = userResponse.data.data;
     
-    // Save Twitter account to Firebase
+    // Save Twitter account to Firebase with token timestamp
     const twitterAccountRef = ref(db, `connectedAccounts/admin/twitter/${userInfo.id}`);
     await set(twitterAccountRef, {
       id: userInfo.id,
@@ -1717,6 +2043,7 @@ router.get('/twitter-callback', async (req, res) => {
       profilePicture: userInfo.profile_image_url,
       followersCount: userInfo.public_metrics?.followers_count || 0,
       accessToken: accessToken,
+      tokenTimestamp: Date.now(),
       connectedAt: new Date().toISOString(),
       status: 'active',
       platform: 'twitter'
@@ -1774,7 +2101,8 @@ router.get('/connected-twitter-accounts', async (req, res) => {
         followersCount: account.followersCount,
         connectedAt: account.connectedAt,
         status: account.status,
-        platform: 'twitter'
+        platform: 'twitter',
+        tokenTimestamp: account.tokenTimestamp
       }))
     });
     
@@ -1868,6 +2196,7 @@ router.get('/twitter-insights/:accountId', async (req, res) => {
     };
     
     // Cache insights in Firebase
+    const { set } = await import('firebase/database');
     const insightsRef = ref(db, `twitterInsights/admin/${accountId}`);
     await set(insightsRef, insights);
     
@@ -1878,6 +2207,7 @@ router.get('/twitter-insights/:accountId', async (req, res) => {
     
     // Try to get cached insights from Firebase
     try {
+      const { accountId } = req.params;
       const { ref, get } = await import('firebase/database');
       const { getDatabase } = await import('firebase/database');
       const { initializeApp } = await import('firebase/app');
@@ -1904,10 +2234,11 @@ router.get('/twitter-insights/:accountId', async (req, res) => {
       console.error('Error retrieving cached insights:', cacheError.message);
     }
     
-    res.status(500).json({ 
+    res.json({ 
       success: false, 
-      error: 'Twitter Free tier has limited analytics access',
-      details: error.message 
+      error: 'Twitter API rate limited. No cached data available.',
+      rateLimited: true,
+      retryAfter: '15 minutes'
     });
   }
 });
@@ -1931,6 +2262,37 @@ router.get('/twitter-posts', async (req, res) => {
         posts: [],
         message: 'No Twitter accounts connected.',
         authUrl: '/api/v1/admin/twitter-oauth'
+      });
+    }
+    
+    // Check Twitter rate limiting (15-minute cooldown)
+    const twitterAllowed = insightsService.isTwitterCallAllowed();
+    
+    if (!twitterAllowed) {
+      // Return cached data when rate limited
+      const cachedPostsRef = ref(db, 'twitterPosts/admin');
+      const cachedSnapshot = await get(cachedPostsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        const timeRemaining = 15 - ((new Date() - insightsService.twitterRateLimit?.lastCall || new Date()) / (1000 * 60));
+        
+        return res.json({ 
+          success: true, 
+          posts: cachedData.posts || [],
+          cached: true,
+          rateLimited: true,
+          timeRemaining: Math.ceil(timeRemaining),
+          lastUpdated: cachedData.lastUpdated,
+          message: `Twitter rate limited. Showing cached data. Next refresh in ${Math.ceil(timeRemaining)} minutes.`
+        });
+      }
+      
+      return res.json({ 
+        success: true, 
+        posts: [],
+        rateLimited: true,
+        message: 'Twitter rate limited and no cached data available.'
       });
     }
     
@@ -1977,6 +2339,9 @@ router.get('/twitter-posts', async (req, res) => {
         posts: allPosts,
         lastUpdated: new Date().toISOString()
       });
+      
+      // Update rate limit timestamp after successful API call
+      insightsService.updateTwitterRateLimit();
       
       return res.json({ success: true, posts: allPosts });
     }
@@ -2058,11 +2423,12 @@ router.post('/save-twitter-token', async (req, res) => {
     const accounts = Object.values(snapshot.val());
     const firstAccount = accounts[0];
     
-    // Update with current global token
+    // Update with current global token and new timestamp
     const accountRef = ref(db, `connectedAccounts/admin/twitter/${firstAccount.id}`);
     await setData(accountRef, {
       ...firstAccount,
       accessToken: global.twitterUserToken,
+      tokenTimestamp: Date.now(),
       updatedAt: new Date().toISOString()
     });
     
@@ -2093,6 +2459,303 @@ router.post('/test-twitter-post', async (req, res) => {
   }
 });
 
+// Test endpoint to simulate token expiration
+router.post('/test-token-expiration/:accountId', async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    
+    const { ref, update } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Set token timestamp to 3 hours ago (expired)
+    const threeHoursAgo = Date.now() - (3 * 60 * 60 * 1000);
+    
+    const accountRef = ref(db, `connectedAccounts/admin/twitter/${accountId}`);
+    await update(accountRef, { tokenTimestamp: threeHoursAgo });
+    
+    res.json({ 
+      success: true, 
+      message: 'Token timestamp set to 3 hours ago (expired)',
+      tokenTimestamp: threeHoursAgo
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test Facebook permissions and reactions breakdown
+router.get('/test-facebook-permissions', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const connectedPagesRef = ref(db, 'connectedPages/admin');
+    const snapshot = await get(connectedPagesRef);
+    
+    if (!snapshot.exists()) {
+      return res.send(`
+        <html>
+          <body style="font-family: Arial; padding: 20px;">
+            <h1>❌ No Facebook Pages Connected</h1>
+            <p>Please connect Facebook pages first.</p>
+            <a href="/api/v1/admin/facebook-oauth">Connect Facebook Page</a>
+          </body>
+        </html>
+      `);
+    }
+    
+    const pages = Object.values(snapshot.val());
+    let html = `
+      <html>
+        <head><title>Facebook Permissions Test</title></head>
+        <body style="font-family: Arial; padding: 20px;">
+          <h1>🔍 Facebook Permissions & Reactions Test</h1>
+          <p><strong>Found ${pages.length} connected pages</strong></p>
+    `;
+    
+    for (const page of pages) {
+      html += `<h2>📄 Testing Page: ${page.name}</h2>`;
+      
+      // Test 1: Basic page info
+      try {
+        const pageInfo = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+          params: {
+            fields: 'id,name,fan_count,followers_count',
+            access_token: page.accessToken
+          }
+        });
+        
+        html += `
+          <div style="background: #e8f5e8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3>✅ Basic Info Access</h3>
+            <p><strong>Name:</strong> ${pageInfo.data.name}</p>
+            <p><strong>Fan Count:</strong> ${pageInfo.data.fan_count || 0}</p>
+            <p><strong>Followers:</strong> ${pageInfo.data.followers_count || 0}</p>
+            <p><strong>Insights Eligible:</strong> ${(pageInfo.data.fan_count || 0) >= 100 ? 'YES' : 'NO (Need 100+ followers)'}</p>
+          </div>
+        `;
+      } catch (error) {
+        html += `
+          <div style="background: #ffe8e8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3>❌ Basic Info Failed</h3>
+            <p><strong>Error:</strong> ${error.response?.data?.error?.message || error.message}</p>
+          </div>
+        `;
+      }
+      
+      // Test 2: Posts access
+      try {
+        const posts = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
+          params: {
+            fields: 'id,message,reactions.summary(true)',
+            limit: 3,
+            access_token: page.accessToken
+          }
+        });
+        
+        const postsData = posts.data.data || [];
+        const totalReactions = postsData.reduce((sum, post) => sum + (post.reactions?.summary?.total_count || 0), 0);
+        
+        html += `
+          <div style="background: #e8f5e8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3>✅ Posts Access</h3>
+            <p><strong>Recent Posts:</strong> ${postsData.length}</p>
+            <p><strong>Total Reactions:</strong> ${totalReactions}</p>
+          </div>
+        `;
+      } catch (error) {
+        html += `
+          <div style="background: #ffe8e8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3>❌ Posts Access Failed</h3>
+            <p><strong>Error:</strong> ${error.response?.data?.error?.message || error.message}</p>
+          </div>
+        `;
+      }
+      
+      // Test 3: Insights access
+      try {
+        const insights = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/insights`, {
+          params: {
+            metric: 'page_actions_post_reactions_like_total',
+            period: 'days_28',
+            access_token: page.accessToken
+          }
+        });
+        
+        const value = insights.data.data[0]?.values[0]?.value || 0;
+        
+        html += `
+          <div style="background: #e8f5e8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3>✅ Insights Access</h3>
+            <p><strong>Like Reactions (28 days):</strong> ${value}</p>
+            <p><strong>Raw Response:</strong></p>
+            <pre style="background: #f0f0f0; padding: 10px; font-size: 12px;">${JSON.stringify(insights.data, null, 2)}</pre>
+          </div>
+        `;
+      } catch (error) {
+        html += `
+          <div style="background: #ffe8e8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3>❌ Insights Access Failed</h3>
+            <p><strong>Error:</strong> ${error.response?.data?.error?.message || error.message}</p>
+            <p><strong>Code:</strong> ${error.response?.data?.error?.code}</p>
+            <p><strong>Type:</strong> ${error.response?.data?.error?.type}</p>
+          </div>
+        `;
+      }
+    }
+    
+    html += `
+          <hr>
+          <h2>🧪 Test Reactions Breakdown Endpoint</h2>
+          <p><a href="/api/v1/admin/facebook-reactions-breakdown" target="_blank" style="background: #007cba; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Test Reactions Breakdown</a></p>
+          
+          <h2>📋 Required Permissions</h2>
+          <ul>
+            <li>pages_show_list</li>
+            <li>pages_read_engagement</li>
+            <li>pages_read_user_content</li>
+          </ul>
+        </body>
+      </html>
+    `;
+    
+    res.send(html);
+    
+  } catch (error) {
+    res.send(`
+      <html>
+        <body style="font-family: Arial; padding: 20px;">
+          <h1>❌ Test Failed</h1>
+          <p>${error.message}</p>
+        </body>
+      </html>
+    `);
+  }
+});
+
+// Refresh data with Twitter rate limiting (15-minute polling)
+router.post('/refresh-insights', async (req, res) => {
+  try {
+    const { accountId } = req.body;
+    
+    if (!accountId) {
+      return res.status(400).json({ success: false, error: 'Account ID required' });
+    }
+    
+    console.log('🔄 Refreshing insights for account:', accountId);
+    
+    // Check if Twitter rate limit allows refresh
+    const twitterAllowed = insightsService.isTwitterCallAllowed();
+    const refreshResults = {
+      facebook: null,
+      instagram: null,
+      twitter: null,
+      twitterSkipped: false
+    };
+    
+    try {
+      // Always refresh Facebook and Instagram (no rate limits)
+      const engagement = await insightsService.getAccountSpecificEngagement(accountId);
+      refreshResults.facebook = engagement.facebook;
+      refreshResults.instagram = engagement.instagram;
+      
+      console.log('✅ Facebook/Instagram data refreshed');
+    } catch (error) {
+      console.error('❌ Facebook/Instagram refresh failed:', error.message);
+      refreshResults.facebook = { error: error.message };
+    }
+    
+    // Handle Twitter with rate limiting
+    if (twitterAllowed) {
+      try {
+        // Get Twitter data from Firebase (since we don't have Twitter in getAccountSpecificEngagement)
+        const { ref, get } = await import('firebase/database');
+        const { getDatabase } = await import('firebase/database');
+        const { initializeApp } = await import('firebase/app');
+        const { config } = await import('../config/config.mjs');
+        
+        const app = initializeApp(config.firebase);
+        const db = getDatabase(app, config.firebase.databaseURL);
+        
+        const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+        const snapshot = await get(twitterAccountsRef);
+        
+        if (snapshot.exists()) {
+          const accounts = Object.values(snapshot.val());
+          
+          // Try to refresh Twitter data for the first account
+          if (accounts.length > 0) {
+            const account = accounts[0];
+            
+            const tweetsResponse = await axios.get(`https://api.twitter.com/2/users/${account.id}/tweets`, {
+              headers: { 'Authorization': `Bearer ${account.accessToken}` },
+              params: {
+                max_results: 10,
+                'tweet.fields': 'created_at,public_metrics'
+              }
+            });
+            
+            const tweets = tweetsResponse.data.data || [];
+            const totalEngagement = tweets.reduce((sum, tweet) => {
+              return sum + (tweet.public_metrics?.like_count || 0) + 
+                         (tweet.public_metrics?.retweet_count || 0) + 
+                         (tweet.public_metrics?.reply_count || 0);
+            }, 0);
+            
+            refreshResults.twitter = {
+              totalTweets: tweets.length,
+              totalEngagement,
+              lastRefreshed: new Date().toISOString()
+            };
+            
+            // Update rate limit timestamp
+            insightsService.updateTwitterRateLimit();
+            console.log('✅ Twitter data refreshed');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Twitter refresh failed:', error.message);
+        refreshResults.twitter = { error: error.message };
+      }
+    } else {
+      refreshResults.twitterSkipped = true;
+      const timeRemaining = twitterRateLimit.cooldownMinutes - 
+        ((new Date() - twitterRateLimit.lastCall) / (1000 * 60));
+      
+      refreshResults.twitter = {
+        skipped: true,
+        reason: 'Rate limited - Twitter allows 1 request per 15 minutes',
+        timeRemaining: Math.ceil(timeRemaining),
+        nextAllowedTime: new Date(twitterRateLimit.lastCall.getTime() + (twitterRateLimit.cooldownMinutes * 60 * 1000)).toISOString()
+      };
+      
+      console.log(`⏳ Twitter refresh skipped - ${Math.ceil(timeRemaining)} minutes remaining`);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Insights refresh completed',
+      results: refreshResults,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Refresh insights error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Check platform availability for task creation
 router.get('/platform-availability', async (req, res) => {
   try {
@@ -2113,27 +2776,21 @@ router.get('/platform-availability', async (req, res) => {
     
     if (pagesSnapshot.exists()) {
       const pages = Object.values(pagesSnapshot.val());
+      console.log('🔍 All pages:', pages.map(p => ({ id: p.id, name: p.name, active: p.active, hasInstagram: !!p.instagramBusinessAccount })));
+      
       const activePages = pages.filter(page => page.active === true);
+      console.log('✅ Active pages:', activePages.map(p => ({ id: p.id, name: p.name, hasInstagram: !!p.instagramBusinessAccount })));
       
       if (activePages.length > 0) {
         facebookAvailable = true;
         
-        // Check if ANY active page has Instagram
+        // Check if ANY active page has Instagram in Firebase data
         for (const activePage of activePages) {
-          try {
-            const response = await axios.get(`https://graph.facebook.com/v23.0/${activePage.id}`, {
-              params: {
-                fields: 'instagram_business_account',
-                access_token: activePage.accessToken
-              }
-            });
-            
-            if (response.data.instagram_business_account) {
-              instagramAvailable = true;
-              break; // Found one with Instagram, that's enough
-            }
-          } catch (error) {
-            console.log(`Error checking Instagram for page ${activePage.id}:`, error.message);
+          console.log(`📱 Checking page ${activePage.name}: instagramBusinessAccount =`, activePage.instagramBusinessAccount);
+          if (activePage.instagramBusinessAccount) {
+            instagramAvailable = true;
+            console.log('✅ Instagram available via page:', activePage.name);
+            break; // Found one with Instagram, that's enough
           }
         }
       }
@@ -2143,6 +2800,12 @@ router.get('/platform-availability', async (req, res) => {
     const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
     const twitterSnapshot = await get(twitterAccountsRef);
     const twitterAvailable = twitterSnapshot.exists();
+    
+    console.log('📊 Final platform availability:', {
+      facebook: facebookAvailable,
+      instagram: instagramAvailable,
+      twitter: twitterAvailable
+    });
     
     res.json({
       success: true,

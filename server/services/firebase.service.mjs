@@ -1121,43 +1121,54 @@ class FirebaseService {
           switch (platformName.toLowerCase()) {
             case 'facebook':
               console.log('📘 Facebook posting - checking credentials...');
-              // Get first active page ID from Firebase
-              const fbPagesRef = ref(db, 'connectedPages/admin');
-              const fbPagesSnapshot = await get(fbPagesRef);
-              if (fbPagesSnapshot.exists()) {
-                const pages = fbPagesSnapshot.val();
-                const activePage = Object.entries(pages).find(([id, data]) => data.active === true);
-                if (activePage) {
-                  result = await SocialMediaService.postToFacebook(postContent, activePage[0]);
-                } else {
-                  throw new Error('No active Facebook page found');
+              console.log('📘 Facebook posting using Firebase page tokens...');
+              
+              // Get all active Facebook pages and post to each
+              const { ref: fbRef, get: fbGet } = await import('firebase/database');
+              const { getDatabase: fbGetDb } = await import('firebase/database');
+              const { initializeApp: fbInitApp } = await import('firebase/app');
+              const { config: fbConfig } = await import('../config/config.mjs');
+              
+              const fbApp = fbInitApp(fbConfig.firebase);
+              const fbDb = fbGetDb(fbApp, fbConfig.firebase.databaseURL);
+              
+              const pagesRef = fbRef(fbDb, 'connectedPages/admin');
+              const pagesSnapshot = await fbGet(pagesRef);
+              
+              if (pagesSnapshot.exists()) {
+                const pages = Object.values(pagesSnapshot.val());
+                const activePages = pages.filter(page => page.active === true);
+                
+                console.log(`📘 Posting to ${activePages.length} active Facebook pages`);
+                
+                for (const page of activePages) {
+                  try {
+                    console.log(`📘 Facebook posting using Firebase page tokens...`);
+                    console.log(`🔍 Using active page: ${page.name} ID: ${page.id}`);
+                    const fbResult = await SocialMediaService.postToFacebook(postContent, page.id);
+                    console.log(`✅ Posted to facebook: ${fbResult.postId}`);
+                  } catch (fbError) {
+                    console.error(`❌ Failed to post to Facebook page ${page.name}:`, fbError.message);
+                  }
                 }
+                
+                result = { success: true, platform: 'facebook', message: `Posted to ${activePages.length} Facebook pages` };
               } else {
-                throw new Error('No connected Facebook pages found');
+                result = await SocialMediaService.postToFacebook(postContent);
               }
               break;
               
             case 'twitter':
               console.log('🐦 Twitter posting - checking credentials...');
+              console.log('🐦 Twitter posting using OAuth 2.0 user tokens from Firebase...');
               result = await SocialMediaService.postToTwitter(postContent);
               break;
               
             case 'instagram':
               console.log('📷 Instagram posting - checking credentials...');
-              const pagesRef = ref(db, 'connectedPages/admin');
-              const pagesSnapshot = await get(pagesRef);
-              if (pagesSnapshot.exists()) {
-                const pages = pagesSnapshot.val();
-                // Only use active page for Instagram
-                const activePage = Object.entries(pages).find(([id, data]) => data.active === true);
-                if (activePage && activePage[1].instagramBusinessAccount) {
-                  result = await SocialMediaService.postToInstagram(postContent, activePage[0]);
-                } else {
-                  throw new Error('Active page does not have Instagram Business Account connected');
-                }
-              } else {
-                throw new Error('No connected pages found for Instagram');
-              }
+              console.log('📷 Instagram posting using Firebase page tokens...');
+              console.log('📷 Instagram posting using Firebase tokens...');
+              result = await SocialMediaService.postToInstagram(postContent);
               break;
               
             default:

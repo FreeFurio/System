@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './AccountCard.css';
 import UserDetailsModal from './UserDetailsModal';
-import { FiMail, FiUser, FiCalendar, FiCheck, FiX, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiMail, FiUser, FiCalendar, FiCheck, FiX, FiEdit, FiTrash2, FiPhone, FiMapPin, FiGlobe } from 'react-icons/fi';
 import { hoverEffects } from '../../styles/designSystem';
 
 const formatRole = (role) => role.replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -93,19 +93,20 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
                 fontWeight: '500',
                 background: '#fff'
               }}>
-                {formatRole(account.role)}
+                {isApproved ? 'Member since:' : 'Created:'} {new Date().toLocaleDateString()}
               </div>
             </div>
           </div>
           <span style={{
-            background: isApproved ? '#d1fae5' : '#fed7aa',
-            color: isApproved ? '#065f46' : '#9a3412',
-            padding: '4px 8px',
-            borderRadius: '6px',
+            background: '#fed7aa',
+            color: '#9a3412',
+            padding: '6px 12px',
+            borderRadius: '20px',
             fontSize: '11px',
             fontWeight: '600',
             textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            border: '1px solid transparent'
           }}>
             {isApproved ? 'APPROVED' : 'PENDING'}
           </span>
@@ -117,9 +118,12 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
             fontWeight: '600', 
             color: '#374151', 
             marginBottom: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             background: '#fff'
           }}>
-            Account Details:
+            <FiMail size={16} color="#3b82f6" /> Account Details
           </div>
           <div style={{ 
             fontSize: '16px', 
@@ -142,24 +146,40 @@ const AccountCard = ({ account, onAccept, onReject, onDelete, onModify, isApprov
           borderRadius: '12px',
           border: '1px solid #e2e8f0'
         }}>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>
-              {isApproved ? 'Member since:' : 'Created:'}
-            </div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-              {new Date().toLocaleDateString()}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Role:</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-              {formatRole(account.role)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiUser size={16} color="#3b82f6" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Role</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+                {formatRole(account.role)}
+              </div>
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Status:</div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
-              {isApproved ? 'Active' : 'Pending'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiPhone size={16} color="#10b981" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Contact</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+                {account.contactNumber || 'Not provided'}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiGlobe size={16} color="#f59e0b" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Country</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+                {account.country || 'Not provided'}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiMapPin size={16} color="#ef4444" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>City</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>
+                {account.city || 'Not provided'}
+              </div>
             </div>
           </div>
         </div>

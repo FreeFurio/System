@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { io } from "socket.io-client";
-import { FiCheckCircle, FiUser, FiCalendar, FiTarget, FiSettings, FiEye } from 'react-icons/fi';
+import { FiCheckCircle, FiUser, FiCalendar, FiTarget, FiSettings, FiEye, FiClock, FiSmartphone } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 // Temporary inline styles until design system is properly imported
 const componentStyles = {
   pageContainer: { padding: '0', maxWidth: '100%', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' },
@@ -231,17 +232,14 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
           <div style={{
             width: '48px',
             height: '48px',
-            borderRadius: '50%',
+            borderRadius: '12px',
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: '600',
-            overflow: 'hidden'
+            fontSize: '20px'
           }}>
-            ✓
+            <FiCheckCircle size={20} color="#fff" />
           </div>
           <div style={{ background: '#fff' }}>
             <h3 style={{ 
@@ -252,7 +250,7 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
               letterSpacing: '-0.025em',
               background: '#fff'
             }}>
-              {workflow.objectives}
+              {isDesignApproval ? 'Design Approved Successfully' : 'Content Approved Successfully'}
             </h3>
             <p style={{
               margin: 0,
@@ -262,8 +260,8 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
               background: '#fff'
             }}>
               {isDesignApproval ? 
-                `Design approved ${formatDate(workflow.finalApproval?.approvedAt)}` :
-                `Content approved ${formatDate(workflow.marketingApproval?.approvedAt)}`
+                `Approved ${formatDate(workflow.finalApproval?.approvedAt)}` :
+                `Approved ${formatDate(workflow.marketingApproval?.approvedAt)}`
               }
             </p>
           </div>
@@ -282,7 +280,6 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
           {isDesignApproval ? 'DESIGN APPROVED' : 'CONTENT APPROVED'}
         </span>
       </div>
-      {/* Task Information */}
       <div style={{ marginBottom: '20px', background: '#fff' }}>
         <div style={{ 
           fontSize: '14px', 
@@ -294,41 +291,55 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
           gap: '8px',
           background: '#fff'
         }}>
-          🎯 Task Information
+          <FiTarget size={16} color="#3b82f6" /> Task Objectives
         </div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-          padding: '16px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0'
+        <div style={{ 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500',
+          background: '#fff'
         }}>
+          {workflow.objectives}
+        </div>
+      </div>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiUser size={16} color="#3b82f6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📋 Objectives</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.objectives}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiCalendar size={16} color="#10b981" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>👤 Target Gender</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiClock size={16} color="#ef4444" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🎂 Age Range</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={16} color="#8b5cf6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📅 Deadline</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🏢 Current Stage</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>
-              {workflow.currentStage === 'contentcreator' ? 'Content Creator' : 
-               workflow.currentStage === 'marketinglead' ? 'Marketing Lead' : 
-               workflow.currentStage === 'graphicdesigner' ? 'Graphic Designer' : 
-               workflow.currentStage}
-            </div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={workflow.selectedPlatforms || []} size="small" />
           </div>
         </div>
       </div>
@@ -416,31 +427,32 @@ const ApprovedContentCard = ({ workflow, onSetTask }) => {
           <button
             onClick={() => onSetTask(workflow.id)}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '12px 20px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              background: '#3b82f6',
               color: '#fff',
               border: 'none',
+              padding: '8px 16px',
               borderRadius: '12px',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: '600',
               cursor: 'pointer',
+              height: '36px',
               transition: 'all 0.2s ease',
-              boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
             onMouseEnter={e => {
               e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+              e.target.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.3)';
             }}
             onMouseLeave={e => {
               e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
+              e.target.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.2)';
             }}
           >
-            <span style={{ fontSize: '16px' }}>⚙️</span>
-            Set Task for Graphics Designer
+            <FiSettings size={14} />
+            Set Task
           </button>
         </div>
       )}
@@ -658,32 +670,89 @@ export default function ApprovedContents() {
           margin: '8px 0 0 0',
           fontWeight: '400'
         }}>
-          Content approved but not yet posted ({workflows.length} items)
+          Manage approved content and design assignments ({workflows.length} items)
         </p>
       </div>
 
-      {/* Content List */}
-      {workflows.length === 0 ? (
-        <div style={componentStyles.emptyState}>
-          <div style={componentStyles.emptyStateIcon}>✅</div>
-          <h3 style={componentStyles.emptyStateTitle}>
-            No Approved Content
-          </h3>
-          <p style={componentStyles.emptyStateText}>
-            Approved content will appear here, ready for graphic designer assignment.
-          </p>
+      {/* Set Task for Graphics Designer */}
+      <div style={{ marginBottom: '40px' }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            Set Task for Graphics Designer
+          </h2>
+          {workflows.filter(w => w.status === 'ready_for_design_assignment').length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No content ready for graphics designer assignment.
+            </div>
+          ) : (
+            workflows.filter(w => w.status === 'ready_for_design_assignment').map(workflow => (
+              <ApprovedContentCard 
+                key={workflow.id} 
+                workflow={workflow} 
+                onSetTask={handleSetTask}
+              />
+            ))
+          )}
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          {workflows.map(workflow => (
-            <ApprovedContentCard 
-              key={workflow.id} 
-              workflow={workflow} 
-              onSetTask={handleSetTask}
-            />
-          ))}
+      </div>
+
+      {/* Posting */}
+      <div>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            Posting
+          </h2>
+          {workflows.filter(w => w.status === 'design_approved').length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No designs ready for posting.
+            </div>
+          ) : (
+            workflows.filter(w => w.status === 'design_approved').map(workflow => (
+              <ApprovedContentCard 
+                key={workflow.id} 
+                workflow={workflow} 
+                onSetTask={handleSetTask}
+              />
+            ))
+          )}
         </div>
-      )}
+      </div>
       
       <style>{`
         @keyframes spin {

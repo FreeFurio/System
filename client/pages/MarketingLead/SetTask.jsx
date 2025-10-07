@@ -5,8 +5,6 @@ import 'rc-slider/assets/index.css';
 import { componentStyles } from '../../styles/designSystem';
 import PlatformSelector from '../../components/common/PlatformSelector';
 import { FiSend } from 'react-icons/fi';
-import Toast from '../../components/common/Toast';
-
 export default function SetTask() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -27,7 +25,7 @@ export default function SetTask() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [toast, setToast] = useState(null);
+  const [taskSubmitted, setTaskSubmitted] = useState(false);
 
   useEffect(() => {
     const dateFromUrl = searchParams.get('date');
@@ -74,7 +72,7 @@ export default function SetTask() {
     setError(null);
     
     if (selectedPlatforms.length === 0) {
-      setToast({ message: 'Please select at least one social media platform', type: 'error' });
+      setError('Please select at least one social media platform');
       setLoading(false);
       return;
     }
@@ -103,21 +101,15 @@ export default function SetTask() {
         return data;
       })
       .then(() => {
-        setToast({ message: 'Task submitted successfully!', type: 'success' });
-        setObjective('');
-        setGender('');
-        setAgeRange([20, 40]);
-        setDeadline('');
-        setDeadlineTime('12:00');
-        setSelectedPlatforms([]);
+        setTaskSubmitted(true);
         
         // Redirect to Ongoing Task tab after successful submission
         setTimeout(() => {
           navigate('/marketing/ongoing-task');
-        }, 1500);
+        }, 2500);
       })
       .catch((err) => {
-        setToast({ message: err.message || 'Submission failed', type: 'error' });
+        setError(err.message || 'Submission failed');
       })
       .finally(() => setLoading(false));
   };
@@ -150,13 +142,44 @@ export default function SetTask() {
 
       {/* Form Container */}
       <div style={{
-        background: '#fff',
+        background: taskSubmitted ? '#f0fdf4' : '#fff',
         borderRadius: '16px',
         padding: '40px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-        border: '1px solid #e5e7eb',
-        width: '100%'
+        border: taskSubmitted ? '2px solid #10b981' : '1px solid #e5e7eb',
+        width: '100%',
+        minHeight: '1138px',
+        transition: 'all 0.3s ease'
       }}>
+        {taskSubmitted ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            minHeight: '1130px'
+          }}>
+            <div style={{
+              fontSize: '64px',
+              color: '#10b981',
+              marginBottom: '20px'
+            }}>✓</div>
+            <h2 style={{
+              fontSize: '32px',
+              fontWeight: '800',
+              color: '#10b981',
+              margin: '0 0 16px 0'
+            }}>Task Submitted Successfully!</h2>
+            <p style={{
+              fontSize: '18px',
+              color: '#6b7280',
+              margin: 0
+            }}>Redirecting to ongoing tasks...</p>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Objective */}
           <div>
@@ -559,15 +582,22 @@ export default function SetTask() {
           </button>
 
         </form>
+        )}
+        
+        {error && (
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            color: '#dc2626',
+            fontSize: '14px',
+            marginTop: '16px'
+          }}>
+            {error}
+          </div>
+        )}
       </div>
-      
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }

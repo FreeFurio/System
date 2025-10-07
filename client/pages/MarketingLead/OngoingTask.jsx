@@ -457,8 +457,7 @@ const DeleteModal = ({ isOpen, onConfirm, onCancel, taskTitle, taskType }) => {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(0,0,0,0.5)', zIndex: 1000,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      paddingTop: '100px'
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <div style={{
         background: '#fff', borderRadius: '16px', padding: '32px',
@@ -535,7 +534,13 @@ const DeleteModal = ({ isOpen, onConfirm, onCancel, taskTitle, taskType }) => {
   );
 };
 
-const TaskCard = ({ task, type, onEdit, onDelete }) => {
+const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
+  const getCardHeight = () => {
+    if (type === 'Graphic Designer') {
+      return isDeleting ? '438px' : '438px';
+    }
+    return isDeleting ? '339px' : '320px';
+  };
   const [contentExpanded, setContentExpanded] = useState(false);
   
   console.log('TaskCard render - contentExpanded:', contentExpanded, 'task.content:', !!task.content, 'type:', type);
@@ -583,6 +588,43 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
     return <FiClipboard size={20} color="#fff" />;
   };
 
+  if (isDeleting) {
+    return (
+      <div style={{
+        background: '#fef2f2',
+        borderRadius: '16px',
+        padding: '24px',
+        marginBottom: '20px',
+        boxShadow: '0 4px 16px rgba(220, 38, 38, 0.2)',
+        border: '2px solid #dc2626',
+        transition: 'all 0.3s ease',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: getCardHeight()
+      }}>
+        <div style={{
+          textAlign: 'center',
+          color: '#dc2626',
+          background: 'transparent'
+        }}>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            margin: '0 0 8px 0',
+            background: 'transparent'
+          }}>Deleted</h3>
+          <p style={{
+            fontSize: '16px',
+            margin: 0,
+            opacity: 0.8,
+            background: 'transparent'
+          }}>Task has been removed</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div style={{
       background: '#fff',
@@ -591,7 +633,8 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
       marginBottom: '20px',
       boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
       border: '1px solid #e5e7eb',
-      transition: 'all 0.3s ease'
+      transition: 'all 0.3s ease',
+      minHeight: getCardHeight()
     }}
     onMouseEnter={e => {
       e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
@@ -643,21 +686,19 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
             </p>
           </div>
         </div>
-        <div style={{
-          background: getStatusColor(task.status),
-          color: '#fff',
-          padding: '8px 16px',
+        <span style={{
+          background: '#fed7aa',
+          color: '#9a3412',
+          padding: '6px 12px',
           borderRadius: '20px',
-          fontSize: '12px',
-          fontWeight: '700',
+          fontSize: '11px',
+          fontWeight: '600',
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
+          border: '1px solid transparent'
         }}>
-          <FiClock size={12} /> {getStatusText(task.status)}
-        </div>
+          {getStatusText(task.status)}
+        </span>
       </div>
       
       <div style={{ marginBottom: '20px', background: '#fff' }}>
@@ -778,27 +819,28 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
         <button
           onClick={() => onEdit(task)}
           style={{
-            padding: '12px 24px', 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            border: 'none', 
-            borderRadius: '12px', 
-            cursor: 'pointer', 
-            fontSize: '14px',
-            fontWeight: '700',
+            background: '#10b981',
+            color: '#fff',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            height: '36px',
             transition: 'all 0.2s ease',
-            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px'
           }}
           onMouseEnter={e => {
             e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+            e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
           }}
           onMouseLeave={e => {
             e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+            e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
           }}
         >
           <FiEdit3 size={14} /> Edit Task
@@ -806,27 +848,28 @@ const TaskCard = ({ task, type, onEdit, onDelete }) => {
         <button
           onClick={() => onDelete(task)}
           style={{
-            padding: '12px 24px', 
-            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-            color: 'white',
-            border: 'none', 
-            borderRadius: '12px', 
-            cursor: 'pointer', 
-            fontSize: '14px',
-            fontWeight: '700',
+            background: '#ef4444',
+            color: '#fff',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            height: '36px',
             transition: 'all 0.2s ease',
-            boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)',
+            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px'
           }}
           onMouseEnter={e => {
             e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 6px 16px rgba(255, 107, 107, 0.4)';
+            e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
           }}
           onMouseLeave={e => {
             e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.3)';
+            e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
           }}
         >
           <FiTrash2 size={14} /> Delete
@@ -846,6 +889,7 @@ export default function OngoingTask() {
   const [deleteModal, setDeleteModal] = useState({ 
     isOpen: false, task: null, type: null 
   });
+  const [deletingTaskId, setDeletingTaskId] = useState(null);
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -963,30 +1007,36 @@ export default function OngoingTask() {
 
   const confirmDelete = async () => {
     const { task, type } = deleteModal;
+    const taskId = task.id || task._id;
+    
+    setDeleteModal({ isOpen: false, task: null, type: null });
+    setDeletingTaskId(taskId);
+    
     try {
-      const taskId = task.id || task._id;
-      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${encodeURIComponent(taskId)}`, {
         method: 'DELETE'
       });
       
       if (response.ok) {
-        if (type === 'Content Creator') {
-          setCreatorTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
-        } else {
-          setDesignerTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
-        }
+        setTimeout(() => {
+          if (type === 'Content Creator') {
+            setCreatorTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
+          } else {
+            setDesignerTasks(prev => prev.filter(t => (t.id || t._id) !== taskId));
+          }
+          setDeletingTaskId(null);
+        }, 2000);
         console.log('Task deleted successfully');
       } else {
         const errorText = await response.text();
         console.error('Failed to delete task:', errorText);
         alert('Failed to delete task');
+        setDeletingTaskId(null);
       }
     } catch (error) {
       console.error('Error deleting task:', error);
       alert('Error deleting task: ' + error.message);
-    } finally {
-      setDeleteModal({ isOpen: false, task: null, type: null });
+      setDeletingTaskId(null);
     }
   };
 
@@ -1066,6 +1116,7 @@ export default function OngoingTask() {
                   type="Content Creator" 
                   onEdit={(task) => handleEdit(task, 'Content Creator')}
                   onDelete={(task) => handleDeleteClick(task, 'Content Creator')}
+                  isDeleting={deletingTaskId === (task.id || task._id)}
                 />
               ))
             ) : (
@@ -1123,6 +1174,7 @@ export default function OngoingTask() {
                   type="Graphic Designer" 
                   onEdit={(task) => handleEdit(task, 'Graphic Designer')}
                   onDelete={(task) => handleDeleteClick(task, 'Graphic Designer')}
+                  isDeleting={deletingTaskId === (task.id || task._id)}
                 />
               ))
             ) : (

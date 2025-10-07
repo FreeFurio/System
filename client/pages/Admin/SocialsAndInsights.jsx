@@ -3,6 +3,7 @@ import adminService from '../../services/adminService';
 import InsightsMetrics from '../../components/common/InsightsMetrics';
 import SocialAccountCard from '../../components/common/SocialAccountCard';
 import AccountInsightCard from '../../components/common/AccountInsightCard';
+import { FiRefreshCw } from 'react-icons/fi';
 
 const API_BASE_URL = import.meta.env.PROD 
   ? '/api/v1/admin' 
@@ -149,6 +150,7 @@ const SocialsAndInsights = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/connected-twitter-accounts`);
       const data = await response.json();
+      console.log('Twitter accounts data:', data.accounts); // Debug log
       setConnectedTwitterAccounts(data.accounts || []);
     } catch (err) {
       console.error('Error fetching Twitter accounts:', err);
@@ -268,44 +270,78 @@ const SocialsAndInsights = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('🔍 Fetching account insights data...');
+      console.log('🔍 Fetching account insights data with Twitter rate limiting...');
       
-      // Fetch Facebook/Instagram insights
+      // Fetch Facebook/Instagram insights using new refresh endpoint
       const facebookInsights = await Promise.all(
         connectedPages.map(async (account) => {
           try {
-            const engagement = await adminService.getAccountEngagement(account.id);
-            return {
-              account: { ...account, platform: 'facebook' },
-              engagement: engagement.data
-            };
+            // Use new refresh endpoint that respects Twitter rate limits
+            const response = await fetch(`${API_BASE_URL}/refresh-insights`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accountId: account.id })
+            });
+            
+            const refreshData = await response.json();
+            
+            if (refreshData.success) {
+              return {
+                account: { ...account, platform: 'facebook' },
+                engagement: {
+                  facebook: refreshData.results.facebook,
+                  instagram: refreshData.results.instagram
+                }
+              };
+            } else {
+              throw new Error(refreshData.error || 'Refresh failed');
+            }
           } catch (error) {
-            console.error(`Failed to fetch engagement for ${account.name}:`, error);
-            return {
-              account: { ...account, platform: 'facebook' },
-              engagement: {
-                facebook: {
-                  totalLikes: 0,
-                  totalComments: 0,
-                  totalShares: 0,
-                  postsCount: 0
-                },
-                instagram: null
-              }
-            };
+            console.error(`Failed to refresh engagement for ${account.name}:`, error);
+            // Fallback to old method if refresh fails
+            try {
+              const engagement = await adminService.getAccountEngagement(account.id);
+              return {
+                account: { ...account, platform: 'facebook' },
+                engagement: engagement.data
+              };
+            } catch (fallbackError) {
+              return {
+                account: { ...account, platform: 'facebook' },
+                engagement: {
+                  facebook: {
+                    totalLikes: 0,
+                    totalComments: 0,
+                    totalShares: 0,
+                    postsCount: 0
+                  },
+                  instagram: null
+                }
+              };
+            }
           }
         })
       );
       
-      // Fetch Twitter insights
+      // Fetch Twitter insights with rate limiting awareness
       const twitterInsights = await Promise.all(
         connectedTwitterAccounts.map(async (account) => {
           try {
             const response = await fetch(`${API_BASE_URL}/twitter-insights/${account.id}`);
             const data = await response.json();
+            
+            // Check if Twitter was rate limited
+            if (data.rateLimited) {
+              console.log(`⏳ Twitter rate limited for ${account.username} - using cached data`);
+            }
+            
             return {
               account: { ...account, platform: 'twitter' },
-              engagement: { twitter: data.insights }
+              engagement: { 
+                twitter: data.insights,
+                rateLimited: data.rateLimited,
+                cached: data.cached
+              }
             };
           } catch (error) {
             console.error(`Failed to fetch Twitter insights for ${account.username}:`, error);
@@ -320,6 +356,13 @@ const SocialsAndInsights = () => {
       const accountInsights = [...facebookInsights, ...twitterInsights];
       
       setInsights(accountInsights);
+      
+      // Show rate limiting message if any Twitter accounts were skipped
+      const rateLimitedAccounts = twitterInsights.filter(insight => insight.engagement.rateLimited);
+      if (rateLimitedAccounts.length > 0) {
+        console.log(`⏳ ${rateLimitedAccounts.length} Twitter account(s) were rate limited`);
+      }
+      
     } catch (err) {
       setError(err.message);
     } finally {
@@ -328,63 +371,131 @@ const SocialsAndInsights = () => {
   };
 
   return (
-    <div style={{ padding: '20px', background: '#fff', minHeight: '80vh' }}>
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#333', marginBottom: '20px' }}>Social Media Management</h2>
-        
-        <div style={{ display: 'flex', borderBottom: '2px solid #e0e0e0' }}>
-          <button
-            onClick={() => handleTabChange('socials')}
-            style={{
-              padding: '12px 24px',
-              border: 'none',
-              background: activeTab === 'socials' ? '#007bff' : 'transparent',
-              color: activeTab === 'socials' ? '#fff' : '#666',
-              cursor: 'pointer',
-              borderRadius: '8px 8px 0 0',
-              fontWeight: '500'
-            }}
-          >
-            Socials
-          </button>
-          <button
-            onClick={() => handleTabChange('insights')}
-            style={{
-              padding: '12px 24px',
-              border: 'none',
-              background: activeTab === 'insights' ? '#007bff' : 'transparent',
-              color: activeTab === 'insights' ? '#fff' : '#666',
-              cursor: 'pointer',
-              borderRadius: '8px 8px 0 0',
-              fontWeight: '500'
-            }}
-          >
-            Insights
-          </button>
-        </div>
+    <div style={{ padding: '0', maxWidth: '100%' }}>
+      {/* Header */}
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: '800',
+          color: '#111827',
+          margin: 0,
+          letterSpacing: '-0.025em'
+        }}>
+          Social Media Management
+        </h1>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '16px',
+          margin: '8px 0 0 0',
+          fontWeight: '400'
+        }}>
+          Manage connected accounts and view analytics insights
+        </p>
       </div>
 
+      {/* Tabs */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '8px', 
+        alignItems: 'center',
+        marginBottom: '24px'
+      }}>
+        <button
+          onClick={() => handleTabChange('socials')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: activeTab === 'socials' ? '#3b82f6' : '#f3f4f6',
+            color: activeTab === 'socials' ? 'white' : '#374151',
+            fontWeight: '600',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Socials
+        </button>
+        <button
+          onClick={() => handleTabChange('insights')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: activeTab === 'insights' ? '#3b82f6' : '#f3f4f6',
+            color: activeTab === 'insights' ? 'white' : '#374151',
+            fontWeight: '600',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Insights
+        </button>
+      </div>
+
+      {/* Socials Section */}
       {activeTab === 'socials' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ color: '#333', margin: 0 }}>Connected Accounts</h3>
-            <button
-              onClick={() => {
-                fetchConnectedPages();
-                fetchConnectedTwitterAccounts();
-              }}
-              style={{
-                background: '#28a745',
-                color: '#fff',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Refresh
-            </button>
-          </div>
+          <div style={{
+            background: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            border: '1px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: '600', 
+                color: '#1f2937', 
+                margin: 0,
+                paddingBottom: '12px',
+                borderBottom: '2px solid #e5e7eb'
+              }}>
+                Connected Accounts
+              </h2>
+              <button
+                onClick={() => {
+                  fetchConnectedPages();
+                  fetchConnectedTwitterAccounts();
+                }}
+                style={{
+                  background: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                }}
+              >
+                <FiRefreshCw size={14} />
+                Refresh
+              </button>
+            </div>
           
           <div style={{ marginBottom: '30px' }}>
             <h4 style={{ color: '#1877f2', marginBottom: '15px' }}>Facebook Pages</h4>
@@ -443,7 +554,7 @@ const SocialsAndInsights = () => {
                   status="Connected"
                   accountInfo={`@${account.username} • ${account.followersCount} followers`}
                   color="#1da1f2"
-                  account={{...account, platform: 'twitter'}}
+                  account={{...account, platform: 'twitter', tokenTimestamp: account.tokenTimestamp}}
                   onDelete={handleDeleteAccount}
                 />
               ))}
@@ -474,67 +585,116 @@ const SocialsAndInsights = () => {
                 </button>
               </div>
             </div>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Insights Section */}
       {activeTab === 'insights' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ color: '#333', margin: 0 }}>Analytics & Insights</h3>
-            <button
-              onClick={fetchInsights}
-              disabled={loading}
-              style={{
-                background: '#28a745',
-                color: '#fff',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
-              }}
-            >
-              {loading ? 'Refreshing...' : 'Refresh Data'}
-            </button>
+          <div style={{
+            background: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            border: '1px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: '600', 
+                color: '#1f2937', 
+                margin: 0,
+                paddingBottom: '12px',
+                borderBottom: '2px solid #e5e7eb'
+              }}>
+                Analytics & Insights
+              </h2>
+              <button
+                onClick={fetchInsights}
+                disabled={loading}
+                style={{
+                  background: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                }}
+              >
+                <FiRefreshCw size={14} />
+                {loading ? 'Refreshing...' : 'Refresh Data'}
+              </button>
+            </div>
+          
+            {loading && (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px', 
+                color: '#6b7280',
+                fontSize: '14px'
+              }}>
+                Loading insights...
+              </div>
+            )}
+          
+            {error && (
+              <div style={{ 
+                background: '#fef2f2', 
+                border: '1px solid #fecaca', 
+                borderRadius: '8px', 
+                padding: '15px', 
+                color: '#dc2626',
+                marginBottom: '20px',
+                fontSize: '14px'
+              }}>
+                Error: {error}
+              </div>
+            )}
+          
+            {insights && insights.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {insights.map((accountData) => (
+                  <AccountInsightCard
+                    key={accountData.account.id}
+                    account={accountData.account}
+                    engagement={accountData.engagement}
+                  />
+                ))}
+              </div>
+            )}
+          
+            {insights && insights.length === 0 && (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px', 
+                color: '#9ca3af',
+                fontSize: '14px'
+              }}>
+                No connected accounts found. Please connect your social media accounts first.
+              </div>
+            )}
           </div>
-          
-          {loading && (
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <p>Loading insights...</p>
-            </div>
-          )}
-          
-          {error && (
-            <div style={{ 
-              background: '#fee', 
-              border: '1px solid #fcc', 
-              borderRadius: '4px', 
-              padding: '15px', 
-              color: '#c33',
-              marginBottom: '20px'
-            }}>
-              Error: {error}
-            </div>
-          )}
-          
-          {insights && insights.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
-              {insights.map((accountData) => (
-                <AccountInsightCard
-                  key={accountData.account.id}
-                  account={accountData.account}
-                  engagement={accountData.engagement}
-                />
-              ))}
-            </div>
-          )}
-          
-          {insights && insights.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-              <p>No connected accounts found. Please connect your social media accounts first.</p>
-            </div>
-          )}
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { componentStyles } from '../../styles/designSystem';
+import { FiRefreshCw } from 'react-icons/fi';
 
 const PostedContents = () => {
   const [postedWorkflows, setPostedWorkflows] = useState([]);
@@ -74,81 +75,207 @@ const PostedContents = () => {
 
   if (loading) {
     return (
-      <div style={componentStyles.pageContainer}>
-        <div style={{ marginBottom: '32px', padding: '24px', background: '#fff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#111827', margin: 0, letterSpacing: '-0.025em' }}>Posted Contents</h2>
+      <div style={{ padding: '0', maxWidth: '100%' }}>
+        <div style={{
+          marginBottom: '32px',
+          padding: '24px',
+          background: '#fff',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: '800',
+            color: '#111827',
+            margin: 0,
+            letterSpacing: '-0.025em'
+          }}>
+            Posted Contents
+          </h1>
+          <p style={{
+            color: '#6b7280',
+            fontSize: '16px',
+            margin: '8px 0 0 0',
+            fontWeight: '400'
+          }}>
+            All content that has been posted ({postedWorkflows.length} items)
+          </p>
         </div>
-        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Loading posted contents...</div>
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '40px', 
+          color: '#6b7280',
+          fontSize: '14px'
+        }}>
+          Loading posted contents...
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={componentStyles.pageContainer}>
-      <div style={{ marginBottom: '32px', padding: '24px', background: '#fff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#111827', margin: 0, letterSpacing: '-0.025em' }}>Posted Contents</h2>
-        <p style={{ color: '#6b7280', fontSize: '16px', margin: '8px 0 16px 0', fontWeight: '400' }}>
+    <div style={{ padding: '0', maxWidth: '100%' }}>
+      {/* Header */}
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: '800',
+          color: '#111827',
+          margin: 0,
+          letterSpacing: '-0.025em'
+        }}>
+          Posted Contents
+        </h1>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '16px',
+          margin: '8px 0 0 0',
+          fontWeight: '400'
+        }}>
           All content that has been posted ({postedWorkflows.length} items)
         </p>
-        
-        {/* Platform Tabs */}
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => handleTabChange('facebook')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              background: activeTab === 'facebook' ? '#1877f2' : '#f3f4f6',
-              color: activeTab === 'facebook' ? 'white' : '#374151',
-              fontWeight: '500',
-              cursor: 'pointer'
-            }}
-          >
-            Facebook
-          </button>
-          <button
-            onClick={() => handleTabChange('instagram')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              background: activeTab === 'instagram' ? '#e4405f' : '#f3f4f6',
-              color: activeTab === 'instagram' ? 'white' : '#374151',
-              fontWeight: '500',
-              cursor: 'pointer'
-            }}
-          >
-            Instagram
-          </button>
-          <button
-            onClick={() => handleTabChange('twitter')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              background: activeTab === 'twitter' ? '#1da1f2' : '#f3f4f6',
-              color: activeTab === 'twitter' ? 'white' : '#374151',
-              fontWeight: '500',
-              cursor: 'pointer'
-            }}
-          >
-            Twitter
-          </button>
-        </div>
       </div>
 
-      {tabLoading ? (
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '40px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb' }}>
-          <p style={{ color: '#6b7280' }}>Loading {activeTab} posts...</p>
-        </div>
-      ) : postedWorkflows.length === 0 ? (
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '60px 40px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb' }}>
-          <p>No posted contents found.</p>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-          {postedWorkflows.map((post) => {
+      {/* Platform Tabs */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '8px', 
+        alignItems: 'center',
+        marginBottom: '24px'
+      }}>
+        <button
+          onClick={() => handleTabChange('facebook')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: activeTab === 'facebook' ? '#1877f2' : '#f3f4f6',
+            color: activeTab === 'facebook' ? 'white' : '#374151',
+            fontWeight: '600',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Facebook
+        </button>
+        <button
+          onClick={() => handleTabChange('instagram')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: activeTab === 'instagram' ? '#e4405f' : '#f3f4f6',
+            color: activeTab === 'instagram' ? 'white' : '#374151',
+            fontWeight: '600',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Instagram
+        </button>
+        <button
+          onClick={() => handleTabChange('twitter')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: activeTab === 'twitter' ? '#1da1f2' : '#f3f4f6',
+            color: activeTab === 'twitter' ? 'white' : '#374151',
+            fontWeight: '600',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Twitter
+        </button>
+        <button
+          onClick={() => fetchPostedContents(activeTab, true)}
+          disabled={tabLoading}
+          style={{
+            background: '#10b981',
+            color: '#fff',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: tabLoading ? 'not-allowed' : 'pointer',
+            opacity: tabLoading ? 0.6 : 1,
+            marginLeft: 'auto',
+            height: '36px',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          onMouseEnter={(e) => {
+            if (!tabLoading) {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+          }}
+        >
+          <FiRefreshCw size={14} />
+          {tabLoading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
+      {/* Posted Content Section */}
+      <div>
+        <div style={{
+          background: '#fff',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Posts
+          </h2>
+          {tabLoading ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#6b7280',
+              fontSize: '14px'
+            }}>
+              Loading {activeTab} posts...
+            </div>
+          ) : postedWorkflows.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#9ca3af',
+              fontSize: '14px'
+            }}>
+              No posted contents found.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+              {postedWorkflows.map((post) => {
             return (
               <div 
                 key={post.id} 
@@ -249,9 +376,11 @@ const PostedContents = () => {
                 </div>
               </div>
             );
-          })}
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
       
       {/* Post Modal */}
       {selectedPost && (

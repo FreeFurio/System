@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
-import { FiEye, FiUser, FiCalendar, FiTarget, FiEdit3 } from 'react-icons/fi';
+import { FiEye, FiUser, FiCalendar, FiTarget, FiEdit3, FiClock, FiSmartphone, FiBarChart, FiFileText } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const SEOBar = ({ score, label, width = '100%' }) => {
   const getColor = (score) => {
@@ -193,13 +194,30 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
   
   const getStatusColor = (status) => {
     switch (status) {
-      case 'content_creation': return 'linear-gradient(135deg, #e53935, #c62828)';
-      case 'content_approval': return 'linear-gradient(135deg, #F6C544, #f57f17)';
-      case 'design_creation': return 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
-      case 'design_approval': return 'linear-gradient(135deg, #f57c00, #ef6c00)';
-      case 'posted': return 'linear-gradient(135deg, #388e3c, #2e7d32)';
-      default: return 'linear-gradient(135deg, #757575, #616161)';
+      case 'content_creation': return '#f59e0b';
+      case 'content_approval': return '#f59e0b';
+      case 'design_creation': return '#3b82f6';
+      case 'design_approval': return '#f59e0b';
+      case 'posted': return '#10b981';
+      default: return '#6b7280';
     }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'content_creation': return 'Content Creation';
+      case 'content_approval': return 'Pending Approval';
+      case 'design_creation': return 'Design Creation';
+      case 'design_approval': return 'Design Approval';
+      case 'posted': return 'Posted';
+      default: return 'In Progress';
+    }
+  };
+
+  const getTaskIcon = () => {
+    if (workflow.status === 'design_creation') return <FiEdit3 size={20} color="#fff" />;
+    if (workflow.status === 'design_approval') return <FiEye size={20} color="#fff" />;
+    return <FiEdit3 size={20} color="#fff" />;
   };
 
   const formatDate = (dateString) => {
@@ -240,13 +258,13 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
             width: '48px',
             height: '48px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '20px'
           }}>
-            🎨
+            {getTaskIcon()}
           </div>
           <div style={{ background: '#fff' }}>
             <h3 style={{ 
@@ -270,21 +288,19 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
             </p>
           </div>
         </div>
-        <div style={{
-          background: getStatusColor(workflow.status),
-          color: '#fff',
-          padding: '8px 16px',
+        <span style={{
+          background: '#fed7aa',
+          color: '#9a3412',
+          padding: '6px 12px',
           borderRadius: '20px',
-          fontSize: '12px',
-          fontWeight: '700',
+          fontSize: '11px',
+          fontWeight: '600',
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
+          border: '1px solid transparent'
         }}>
-          🎨 {workflow.status?.replace('_', ' ') || 'CREATED'}
-        </div>
+          {getStatusText(workflow.status)}
+        </span>
       </div>
       
       <div style={{ marginBottom: '20px', background: '#fff' }}>
@@ -298,36 +314,65 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
           gap: '8px',
           background: '#fff'
         }}>
-          🎯 Task Information
+          <FiTarget size={16} color="#3b82f6" /> Task Objectives
         </div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-          padding: '16px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0'
+        <div style={{ 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500',
+          background: '#fff',
+          marginBottom: '20px'
         }}>
+          {workflow.objectives}
+        </div>
+      </div>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiUser size={16} color="#3b82f6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📋 Objectives</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.objectives}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiCalendar size={16} color="#10b981" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>👤 Target Gender</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
           </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🎂 Age Range</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
+        </div>
+        {workflow.numContent && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiBarChart size={16} color="#f59e0b" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Content Count</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.numContent}</div>
+            </div>
           </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiClock size={16} color="#ef4444" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📅 Deadline</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={16} color="#8b5cf6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🏢 Current Stage</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>Graphic Designer</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={workflow.selectedPlatforms || []} size="small" />
           </div>
         </div>
       </div>
@@ -423,59 +468,61 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
               <button
                 onClick={() => onCreateDesign(workflow, true)}
                 style={{
-                  padding: '12px 24px', 
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                  color: 'white',
-                  border: 'none', 
-                  borderRadius: '12px', 
-                  cursor: 'pointer', 
-                  fontSize: '14px',
-                  fontWeight: '700',
+                  background: '#f59e0b',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  boxShadow: '0 2px 4px rgba(245, 158, 11, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px'
                 }}
                 onMouseEnter={e => {
                   e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(245, 158, 11, 0.3)';
                 }}
                 onMouseLeave={e => {
                   e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(245, 158, 11, 0.2)';
                 }}
               >
-                ✏️ Edit Draft
+                <FiEdit3 size={14} /> Edit Draft
               </button>
             )}
             <button
               onClick={() => onCreateDesign(workflow)}
               style={{
-                padding: '12px 24px', 
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                color: 'white',
-                border: 'none', 
-                borderRadius: '12px', 
-                cursor: 'pointer', 
-                fontSize: '14px',
-                fontWeight: '700',
+                background: '#10b981',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                height: '36px',
                 transition: 'all 0.2s ease',
-                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
               }}
               onMouseEnter={e => {
                 e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+                e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
               }}
               onMouseLeave={e => {
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+                e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
               }}
             >
-              🎨 {hasDraftDesign ? 'Start New Design' : 'Create Design'}
+              <FiEdit3 size={14} /> {hasDraftDesign ? 'Start New Design' : 'Create Design'}
             </button>
           </>
         )}
@@ -536,93 +583,90 @@ export default function Task() {
   };
 
   return (
-    <div style={{
-      padding: '24px',
-      backgroundColor: '#f8f9fa',
-      minHeight: '100vh',
-      fontFamily: 'Inter, sans-serif'
-    }}>
+    <div style={{ padding: '0', maxWidth: '100%' }}>
+      {/* Header */}
+      <div style={{
+        marginBottom: '32px',
+        padding: '24px',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: '800',
+          color: '#111827',
+          margin: 0,
+          letterSpacing: '-0.025em'
+        }}>
+          Graphic Design Tasks
+        </h1>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '16px',
+          margin: '8px 0 0 0',
+          fontWeight: '400'
+        }}>
+          Create visual designs for approved content workflows
+        </p>
+      </div>
+
+      {/* Graphic Designer Tasks */}
+      <div>
         <div style={{
-          marginBottom: '32px',
-          padding: '24px',
           background: '#fff',
           borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           border: '1px solid #e5e7eb'
         }}>
-          <h1 style={{
-            margin: 0,
-            color: '#111827',
-            fontSize: '32px',
-            fontWeight: '800',
-            letterSpacing: '-0.025em'
-          }}>Graphic Design Tasks</h1>
-          <p style={{
-            margin: '8px 0 0 0',
-            color: '#6b7280',
-            fontSize: '16px',
-            fontWeight: '400'
-          }}>Create visual designs for approved content workflows</p>
-        </div>
-        
-        {loading ? (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '60px',
-            background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937', 
+            margin: '0 0 20px 0',
+            paddingBottom: '12px',
+            borderBottom: '2px solid #e5e7eb'
           }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              border: '4px solid #f3f3f3',
-              borderTop: '4px solid #8b5cf6',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <span style={{ marginLeft: '16px', color: '#6c757d', fontSize: '16px' }}>Loading tasks...</span>
-          </div>
-        ) : (
-          Array.isArray(workflows) && workflows.length === 0
-            ? <div style={{
-                padding: '60px',
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e0e0e0'
+            Assigned Tasks
+          </h2>
+        
+          {loading ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#6b7280',
+              fontSize: '14px'
+            }}>
+              Loading tasks...
+            </div>
+          ) : (
+            Array.isArray(workflows) && workflows.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px', 
+                color: '#9ca3af',
+                fontSize: '14px'
               }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
-                <h3 style={{ color: '#6c757d', fontSize: '18px', fontWeight: '500', margin: '0 0 8px 0' }}>No Design Tasks Available</h3>
-                <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>New graphic design tasks will appear here when content is approved</p>
+                No graphic design tasks available.
               </div>
-            : Array.isArray(workflows)
-              ? workflows.map(workflow => (
-                  <WorkflowCard 
-                    key={workflow.id} 
-                    workflow={workflow} 
-                    onCreateDesign={handleCreateDesign}
-                  />
-                ))
-              : <div style={{
-                  padding: '24px',
-                  textAlign: 'center',
-                  backgroundColor: '#fee',
-                  color: '#c53030',
-                  borderRadius: '12px',
-                  border: '1px solid #feb2b2'
-                }}>Error: Workflows data is not an array.</div>
-        )}
-      
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+            ) : Array.isArray(workflows) ? (
+              workflows.map(workflow => (
+                <WorkflowCard 
+                  key={workflow.id} 
+                  workflow={workflow} 
+                  onCreateDesign={handleCreateDesign}
+                />
+              ))
+            ) : (
+              <div style={{ color: '#ef4444', padding: '20px', textAlign: 'center' }}>
+                Error: Tasks data is not available.
+              </div>
+            )
+          )}
+        </div>
+      </div>}
     </div>
   );
 }

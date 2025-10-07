@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import Toast from '../../components/common/Toast';
-
 const SEOBar = ({ score, label, width = '100%' }) => {
   const getColor = (score) => {
     if (score >= 85) return '#10b981';
@@ -181,7 +179,7 @@ export default function SetTaskGraphicDesigner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [taskSubmitted, setTaskSubmitted] = useState(false);
 
   useEffect(() => {
     if (workflowId) {
@@ -239,18 +237,17 @@ export default function SetTaskGraphicDesigner() {
       
       const data = await response.json();
       if (data.status === 'success') {
-        setSubmitted(true);
-        setToast({ message: 'Task assigned successfully!', type: 'success' });
+        setTaskSubmitted(true);
         
         // Redirect to Ongoing Task tab after successful assignment
         setTimeout(() => {
           navigate('/marketing/ongoing-task');
-        }, 1500);
+        }, 2500);
       } else {
-        setToast({ message: 'Failed to assign task', type: 'error' });
+        setError('Failed to assign task');
       }
     } catch (error) {
-      setToast({ message: 'Failed to assign task', type: 'error' });
+      setError('Failed to assign task');
     } finally {
       setLoading(false);
     }
@@ -362,13 +359,44 @@ export default function SetTaskGraphicDesigner() {
 
       {/* Content Container */}
       <div style={{
-        background: '#fff',
+        background: taskSubmitted ? '#f0fdf4' : '#fff',
         borderRadius: '16px',
         padding: '40px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-        border: '1px solid #e5e7eb',
-        width: '100%'
+        border: taskSubmitted ? '2px solid #10b981' : '1px solid #e5e7eb',
+        width: '100%',
+        minHeight: '833px',
+        transition: 'all 0.3s ease'
       }}>
+        {taskSubmitted ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            minHeight: '800px'
+          }}>
+            <div style={{
+              fontSize: '64px',
+              color: '#10b981',
+              marginBottom: '20px'
+            }}>✓</div>
+            <h2 style={{
+              fontSize: '32px',
+              fontWeight: '800',
+              color: '#10b981',
+              margin: '0 0 16px 0'
+            }}>Task Submitted Successfully!</h2>
+            <p style={{
+              fontSize: '18px',
+              color: '#6b7280',
+              margin: 0
+            }}>Redirecting to ongoing tasks...</p>
+          </div>
+        ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Task Information */}
           <div>
@@ -467,15 +495,22 @@ export default function SetTaskGraphicDesigner() {
           </button>
         
         </div>
+        )}
+        
+        {error && (
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            color: '#dc2626',
+            fontSize: '14px',
+            marginTop: '16px'
+          }}>
+            {error}
+          </div>
+        )}
       </div>
-      
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 } 

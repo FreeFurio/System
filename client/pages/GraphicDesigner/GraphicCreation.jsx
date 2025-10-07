@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ImageEditorWrapper from '../../components/ImageEditor/ImageEditorWrapper';
 import TemplatedEditor from '../../components/PhotopeaEditor/PhotopeaEditor';
+import { FiClipboard } from 'react-icons/fi';
 
 export default function GraphicCreation() {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,8 @@ export default function GraphicCreation() {
   useEffect(() => {
     if (taskId) {
       fetchWorkflow();
+    } else {
+      setIsLoading(false);
     }
 
     // Handle messages from iframe
@@ -253,6 +256,62 @@ export default function GraphicCreation() {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: '#dc2626' }}>Error: {fetchError}</div>
+      </div>
+    );
+  }
+
+  // Show task selection prompt if no task is selected
+  if (!taskId) {
+    return (
+      <div style={{
+        minHeight: 'calc(100vh - 200px)',
+        padding: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: '16px',
+          padding: '48px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb',
+          textAlign: 'center',
+          maxWidth: '500px'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '24px' }}>🎨</div>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1f2937',
+            margin: '0 0 16px 0'
+          }}>Pick a Task First</h2>
+          <p style={{
+            color: '#6b7280',
+            fontSize: '16px',
+            margin: '0 0 32px 0',
+            lineHeight: '1.5'
+          }}>You need to select a task before you can create designs. Go to the Task page to choose an assigned task.</p>
+          <button
+            onClick={() => navigate('/graphic/task')}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto'
+            }}
+          >
+            🎨 Go to Tasks
+          </button>
+        </div>
       </div>
     );
   }

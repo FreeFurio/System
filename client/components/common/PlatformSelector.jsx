@@ -32,14 +32,20 @@ const PlatformSelector = ({ selectedPlatforms, onPlatformChange, size = 'large' 
     const checkPlatformAvailability = async () => {
       try {
         const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3000';
+        console.log('🔍 Checking platform availability...');
         const response = await fetch(`${API_BASE_URL}/api/v1/admin/platform-availability`);
         const data = await response.json();
         
+        console.log('📊 Platform availability response:', data);
+        
         if (data.success) {
+          console.log('✅ Setting platform availability:', data.platforms);
           setPlatformAvailability(data.platforms);
+        } else {
+          console.error('❌ Platform availability check failed:', data);
         }
       } catch (error) {
-        console.error('Error checking platform availability:', error);
+        console.error('❌ Error checking platform availability:', error);
       }
     };
     

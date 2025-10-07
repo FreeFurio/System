@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { FiClock, FiCheckCircle, FiXCircle, FiEye } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiXCircle, FiEye, FiTarget, FiUser, FiCalendar, FiSmartphone, FiBarChart, FiEdit3, FiFileText, FiTrash2 } from 'react-icons/fi';
+import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const SEOBar = ({ score, label, width = '100%' }) => {
   const getColor = (score) => {
@@ -201,15 +202,6 @@ const ApprovalCard = ({ workflow }) => {
     });
   };
 
-  const getStatusColor = () => {
-    switch (workflow.status) {
-      case 'content_approval': return 'linear-gradient(135deg, #f59e0b, #d97706)';
-      case 'ready_for_design_assignment': return 'linear-gradient(135deg, #10b981, #059669)';
-      case 'content_rejected': return 'linear-gradient(135deg, #ef4444, #dc2626)';
-      default: return 'linear-gradient(135deg, #6b7280, #4b5563)';
-    }
-  };
-
   const getStatusText = () => {
     switch (workflow.status) {
       case 'content_approval': return 'Pending Approval';
@@ -219,13 +211,11 @@ const ApprovalCard = ({ workflow }) => {
     }
   };
 
-  const getStatusEmoji = () => {
-    switch (workflow.status) {
-      case 'content_approval': return '⏱️';
-      case 'ready_for_design_assignment': return '✅';
-      case 'content_rejected': return '❌';
-      default: return '⏱️';
-    }
+  const getTaskIcon = () => {
+    if (workflow.status === 'content_approval') return <FiFileText size={20} color="#fff" />;
+    if (workflow.status === 'ready_for_design_assignment') return <FiCheckCircle size={20} color="#fff" />;
+    if (workflow.status === 'content_rejected') return <FiXCircle size={20} color="#fff" />;
+    return <FiFileText size={20} color="#fff" />;
   };
 
   return (
@@ -252,17 +242,14 @@ const ApprovalCard = ({ workflow }) => {
           <div style={{
             width: '48px',
             height: '48px',
-            borderRadius: '50%',
-            background: workflow.status === 'ready_for_design_assignment' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: '600',
-            overflow: 'hidden'
+            fontSize: '20px'
           }}>
-            {workflow.status === 'ready_for_design_assignment' ? '✓' : '📝'}
+            {getTaskIcon()}
           </div>
           <div style={{ background: '#fff' }}>
             <h3 style={{ 
@@ -287,8 +274,8 @@ const ApprovalCard = ({ workflow }) => {
           </div>
         </div>
         <span style={{
-          background: workflow.status === 'ready_for_design_assignment' ? '#dcfce7' : workflow.status === 'content_rejected' ? '#fef2f2' : '#fed7aa',
-          color: workflow.status === 'ready_for_design_assignment' ? '#166534' : workflow.status === 'content_rejected' ? '#991b1b' : '#9a3412',
+          background: '#fed7aa',
+          color: '#9a3412',
           padding: '6px 12px',
           borderRadius: '20px',
           fontSize: '11px',
@@ -313,43 +300,68 @@ const ApprovalCard = ({ workflow }) => {
           gap: '8px',
           background: '#fff'
         }}>
-          🎯 Task Information
+          <FiTarget size={16} color="#3b82f6" /> Task Objectives
         </div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-          padding: '16px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0'
+        <div style={{ 
+          fontSize: '16px', 
+          color: '#1f2937', 
+          lineHeight: '1.6',
+          fontWeight: '500',
+          background: '#fff',
+          marginBottom: '20px'
         }}>
+          {workflow.objectives}
+        </div>
+      </div>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '20px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiUser size={16} color="#3b82f6" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📋 Objectives</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.objectives}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Gender</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiCalendar size={16} color="#10b981" />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>👤 Target Gender</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.gender}</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Age Range</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
           </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🎂 Age Range</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>📅 Deadline</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>🏢 Current Stage</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', background: '#fff' }}>
-              {workflow.currentStage === 'contentcreator' ? 'Content Creator' : 
-               workflow.currentStage === 'marketinglead' ? 'Marketing Lead' : 
-               workflow.currentStage === 'graphicdesigner' ? 'Graphic Designer' : 
-               workflow.currentStage}
+        </div>
+        {workflow.numContent && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiBarChart size={16} color="#f59e0b" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Content Count</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.numContent}</div>
             </div>
           </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiClock size={16} color="#ef4444" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Deadline</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{formatDate(workflow.deadline)}</div>
+          </div>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiSmartphone size={16} color="#8b5cf6" />
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Target Platforms</div>
+            <PlatformDisplay platforms={workflow.selectedPlatforms || []} size="small" />
+          </div>
+        </div>
+
       </div>
 
       {workflow.marketingApproval && (
@@ -407,20 +419,31 @@ const ApprovalCard = ({ workflow }) => {
           <button
             onClick={() => window.location.href = `/content/create?workflowId=${workflow.id}`}
             style={{
-              padding: '12px 24px',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-              color: 'white',
+              background: '#f59e0b',
+              color: '#fff',
               border: 'none',
+              padding: '8px 16px',
               borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: '600',
               cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '700',
+              height: '36px',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(245, 158, 11, 0.2)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(245, 158, 11, 0.3)';
+            }}
+            onMouseLeave={e => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 4px rgba(245, 158, 11, 0.2)';
+            }}
           >
-            🔄 Recreate Content
+            <FiEdit3 size={14} /> Recreate Content
           </button>
         </div>
       )}
@@ -470,16 +493,10 @@ export default function OngoingApproval() {
   const [pendingWorkflows, setPendingWorkflows] = useState([]);
   const [approvedWorkflows, setApprovedWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
 
   useEffect(() => {
     fetchApprovalWorkflows();
-    
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
-    
-    window.addEventListener('resize', handleResize);
     
     const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
     
@@ -520,10 +537,7 @@ export default function OngoingApproval() {
       }
     });
     
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, []);
 
   const fetchApprovalWorkflows = async () => {
@@ -577,11 +591,8 @@ export default function OngoingApproval() {
   }
 
   return (
-    <div style={{ 
-      maxWidth: '100%', 
-      margin: '0 auto',
-      width: '100%'
-    }}>
+    <div style={{ padding: '0', maxWidth: '100%' }}>
+      {/* Header */}
       <div style={{
         marginBottom: '32px',
         padding: '24px',
@@ -609,105 +620,104 @@ export default function OngoingApproval() {
         </p>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '40px',
-        alignItems: 'start'
-      }}>
-        {/* Rejected Content Section */}
-        {rejectedWorkflows.length > 0 ? (
-          <div>
+      {/* Rejected Content */}
+      {rejectedWorkflows.length > 0 && (
+        <div style={{ marginBottom: '40px' }}>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            marginBottom: '20px', padding: '16px 20px',
-            background: 'linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)',
-            borderRadius: '12px', border: '1px solid #fca5a5'
+            background: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            border: '1px solid #e5e7eb'
           }}>
-            <FiXCircle size={24} color="#dc2626" />
-            <h2 style={{
-              fontSize: '20px', fontWeight: '700', color: '#dc2626',
-              margin: 0
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: '600', 
+              color: '#1f2937', 
+              margin: '0 0 20px 0',
+              paddingBottom: '12px',
+              borderBottom: '2px solid #e5e7eb'
             }}>
               Rejected Content ({rejectedWorkflows.length})
             </h2>
+            {rejectedWorkflows.map(workflow => (
+              <ApprovalCard key={workflow.id} workflow={workflow} />
+            ))}
           </div>
-          {rejectedWorkflows.map(workflow => (
-            <ApprovalCard key={workflow.id} workflow={workflow} />
-          ))}
-          </div>
-        ) : (
-          <div></div>
-        )}
+        </div>
+      )}
 
-        {/* Pending Approval Section */}
-        {pendingWorkflows.length > 0 ? (
-          <div>
+      {/* Pending Approval */}
+      {pendingWorkflows.length > 0 && (
+        <div style={{ marginBottom: '40px' }}>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            marginBottom: '20px', padding: '16px 20px',
-            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-            borderRadius: '12px', border: '1px solid #fbbf24'
+            background: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            border: '1px solid #e5e7eb'
           }}>
-            <FiClock size={24} color="#d97706" />
-            <h2 style={{
-              fontSize: '20px', fontWeight: '700', color: '#d97706',
-              margin: 0
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: '600', 
+              color: '#1f2937', 
+              margin: '0 0 20px 0',
+              paddingBottom: '12px',
+              borderBottom: '2px solid #e5e7eb'
             }}>
               Pending Approval ({pendingWorkflows.length})
             </h2>
+            {pendingWorkflows.map(workflow => (
+              <ApprovalCard key={workflow.id} workflow={workflow} />
+            ))}
           </div>
-          {pendingWorkflows.map(workflow => (
-            <ApprovalCard key={workflow.id} workflow={workflow} />
-          ))}
-          </div>
-        ) : (
-          <div></div>
-        )}
+        </div>
+      )}
 
-        {/* Approved Content Section */}
-        {approvedWorkflows.length > 0 && (
-          <div>
+      {/* Approved Content */}
+      {approvedWorkflows.length > 0 && (
+        <div>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            marginBottom: '20px', padding: '16px 20px',
-            background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
-            borderRadius: '12px', border: '1px solid #22c55e'
+            background: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            border: '1px solid #e5e7eb'
           }}>
-            <FiCheckCircle size={24} color="#16a34a" />
-            <h2 style={{
-              fontSize: '20px', fontWeight: '700', color: '#16a34a',
-              margin: 0
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: '600', 
+              color: '#1f2937', 
+              margin: '0 0 20px 0',
+              paddingBottom: '12px',
+              borderBottom: '2px solid #e5e7eb'
             }}>
               Approved Content ({approvedWorkflows.length})
             </h2>
+            {approvedWorkflows.map(workflow => (
+              <ApprovalCard key={workflow.id} workflow={workflow} />
+            ))}
           </div>
-          {approvedWorkflows.map(workflow => (
-            <ApprovalCard key={workflow.id} workflow={workflow} />
-          ))}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Empty State */}
       {rejectedWorkflows.length === 0 && pendingWorkflows.length === 0 && approvedWorkflows.length === 0 && (
         <div style={{
-          textAlign: 'center',
-          padding: isDesktop ? '80px 40px' : '60px 20px',
           background: '#fff',
-          borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-          border: '1px solid #e5e7eb',
-          maxWidth: '600px',
-          margin: '0 auto'
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          border: '1px solid #e5e7eb'
         }}>
-          <FiCheckCircle size={48} color="#10b981" style={{ marginBottom: '16px' }} />
-          <h3 style={{ color: '#6b7280', fontSize: '18px', margin: '0 0 8px 0' }}>
-            All Content Processed
-          </h3>
-          <p style={{ color: '#9ca3af', margin: 0 }}>
-            No content currently awaiting approval or revision
-          </p>
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '40px', 
+            color: '#9ca3af',
+            fontSize: '14px'
+          }}>
+            No content currently awaiting approval or revision.
+          </div>
         </div>
       )}
     </div>

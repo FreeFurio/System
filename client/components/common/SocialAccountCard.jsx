@@ -70,10 +70,8 @@ const SocialAccountCard = ({
               <img 
                 src={account.profilePicture} 
                 alt={`${platform} profile`}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
                 style={{
                   width: '40px',
                   height: '40px',
@@ -150,10 +148,8 @@ const SocialAccountCard = ({
                 <img 
                   src={account.instagramAccount.profilePicture} 
                   alt="Instagram profile"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   style={{
                     width: '24px',
                     height: '24px',
@@ -163,23 +159,7 @@ const SocialAccountCard = ({
                   }}
                 />
               ) : null}
-              {account?.hasInstagram && account?.instagramAccount?.profilePicture && (
-                <div style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: '#e4405f',
-                  display: 'none',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                  marginRight: '8px'
-                }}>
-                  IG
-                </div>
-              )}
+
               <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>
                 {account?.hasInstagram && account?.instagramAccount 
                   ? `@${account.instagramAccount.username} • ${account.instagramAccount.followersCount} followers`

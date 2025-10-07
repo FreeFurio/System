@@ -50,10 +50,8 @@ const AccountInsightCard = ({ account, engagement }) => {
             <img 
               src={account.profilePicture} 
               alt={account.name}
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
               style={{
                 width: '40px',
                 height: '40px',
@@ -212,10 +210,8 @@ const AccountInsightCard = ({ account, engagement }) => {
           <img 
             src={account.profilePicture} 
             alt={account.name}
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
             style={{
               width: '40px',
               height: '40px',

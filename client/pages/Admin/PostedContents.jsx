@@ -296,10 +296,8 @@ const PostedContents = () => {
                       <img 
                         src={post.profilePicture} 
                         alt={post.pageName}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
                         style={{
                           width: '32px',
                           height: '32px',
@@ -418,10 +416,8 @@ const PostedContents = () => {
                 <img 
                   src={selectedPost.profilePicture} 
                   alt={selectedPost.pageName}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   style={{
                     width: '40px',
                     height: '40px',
@@ -486,9 +482,8 @@ const PostedContents = () => {
                   <img 
                     src={selectedPost.image || selectedPost.mediaUrl} 
                     alt="Post content" 
-                    onError={(e) => {
-                      e.target.parentNode.style.display = 'none';
-                    }}
+                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
                     style={{ 
                       width: '100%', 
                       maxHeight: '400px', 

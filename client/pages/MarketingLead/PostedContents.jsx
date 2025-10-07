@@ -295,6 +295,10 @@ const PostedContents = () => {
                           <img 
                             src={post.profilePicture} 
                             alt={post.pageName}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
                             style={{
                               width: '32px',
                               height: '32px',
@@ -303,23 +307,22 @@ const PostedContents = () => {
                               objectFit: 'cover'
                             }}
                           />
-                        ) : (
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: activeTab === 'facebook' ? '#1877f2' : activeTab === 'instagram' ? '#e4405f' : '#1da1f2',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '14px',
-                            marginRight: '8px'
-                          }}>
-                            {activeTab === 'facebook' ? 'f' : activeTab === 'instagram' ? 'ig' : 't'}
-                          </div>
-                        )}
+                        ) : null}
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          background: activeTab === 'facebook' ? '#1877f2' : activeTab === 'instagram' ? '#e4405f' : '#1da1f2',
+                          display: post.profilePicture ? 'none' : 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          marginRight: '8px'
+                        }}>
+                          {activeTab === 'facebook' ? 'f' : activeTab === 'instagram' ? 'ig' : 't'}
+                        </div>
                         <div>
                           <div style={{ fontWeight: '600', fontSize: '14px', color: '#1c1e21' }}>
                             {post.pageName}
@@ -414,6 +417,10 @@ const PostedContents = () => {
                 <img 
                   src={selectedPost.profilePicture} 
                   alt={selectedPost.pageName}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
                   style={{
                     width: '40px',
                     height: '40px',
@@ -422,23 +429,22 @@ const PostedContents = () => {
                     objectFit: 'cover'
                   }}
                 />
-              ) : (
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: '#1877f2',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '16px',
-                  marginRight: '12px'
-                }}>
-                  {selectedPost.pageName.charAt(0)}
-                </div>
-              )}
+              ) : null}
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: '#1877f2',
+                display: selectedPost.profilePicture ? 'none' : 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                marginRight: '12px'
+              }}>
+                {selectedPost.pageName.charAt(0)}
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '600', fontSize: '15px', color: '#1c1e21' }}>
                   {selectedPost.pageName}
@@ -479,6 +485,9 @@ const PostedContents = () => {
                   <img 
                     src={selectedPost.image || selectedPost.mediaUrl} 
                     alt="Post content" 
+                    onError={(e) => {
+                      e.target.parentNode.style.display = 'none';
+                    }}
                     style={{ 
                       width: '100%', 
                       maxHeight: '400px', 

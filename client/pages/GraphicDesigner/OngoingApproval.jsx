@@ -191,6 +191,7 @@ const MultiPlatformContentModal = ({ workflow }) => {
 const ApprovalCard = ({ workflow }) => {
   const [expanded, setExpanded] = useState(false);
   const [showDesignModal, setShowDesignModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -558,6 +559,10 @@ const ApprovalCard = ({ workflow }) => {
               <img 
                 src={workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl} 
                 alt="Submitted Design" 
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
                 style={{
                   maxWidth: '100%',
                   maxHeight: '70vh',
@@ -566,16 +571,17 @@ const ApprovalCard = ({ workflow }) => {
                   border: '1px solid #e5e7eb'
                 }}
               />
-            ) : (
-              <div style={{
-                padding: '40px',
-                textAlign: 'center',
-                color: '#6b7280',
-                fontSize: '16px'
-              }}>
-                No design image available
-              </div>
-            )}
+            ) : null}
+            <div style={{
+              padding: '40px',
+              textAlign: 'center',
+              color: '#6b7280',
+              fontSize: '16px',
+              display: (workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl) ? 'none' : 'block'
+            }}>
+              {(workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl) ? 
+                'Failed to load design image' : 'No design image available'}
+            </div>
           </div>
         </div>
       )}

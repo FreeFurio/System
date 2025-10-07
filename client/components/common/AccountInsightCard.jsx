@@ -46,10 +46,14 @@ const AccountInsightCard = ({ account, engagement }) => {
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
       }}>
         <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {account.profilePicture && (
+          {account.profilePicture ? (
             <img 
               src={account.profilePicture} 
               alt={account.name}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
               style={{
                 width: '40px',
                 height: '40px',
@@ -57,7 +61,21 @@ const AccountInsightCard = ({ account, engagement }) => {
                 objectFit: 'cover'
               }}
             />
-          )}
+          ) : null}
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            background: account.platform === 'twitter' ? '#1da1f2' : '#1877f2',
+            display: account.profilePicture ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px'
+          }}>
+            {(account.name || account.username || 'U').charAt(0).toUpperCase()}
+          </div>
           <div>
             <h3 style={{ 
               margin: '0 0 5px 0', 
@@ -190,10 +208,14 @@ const AccountInsightCard = ({ account, engagement }) => {
       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
     }}>
       <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {account.profilePicture && (
+        {account.profilePicture ? (
           <img 
             src={account.profilePicture} 
             alt={account.name}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
             style={{
               width: '40px',
               height: '40px',
@@ -201,7 +223,21 @@ const AccountInsightCard = ({ account, engagement }) => {
               objectFit: 'cover'
             }}
           />
-        )}
+        ) : null}
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: '#1877f2',
+          display: account.profilePicture ? 'none' : 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '16px'
+        }}>
+          {(account.name || 'U').charAt(0).toUpperCase()}
+        </div>
         <div>
           <h3 style={{ 
             margin: '0 0 5px 0', 

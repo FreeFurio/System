@@ -203,6 +203,10 @@ export default function FinalizedDesign() {
               <img 
                 src={designUrl} 
                 alt="Final Design" 
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
                 style={{
                   maxWidth: '100%',
                   maxHeight: '600px',
@@ -211,6 +215,17 @@ export default function FinalizedDesign() {
                   border: '1px solid #e5e7eb'
                 }}
               />
+              <div style={{
+                padding: '60px',
+                textAlign: 'center',
+                background: '#f8fafc',
+                borderRadius: '12px',
+                border: '2px dashed #d1d5db',
+                display: 'none'
+              }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+                <p style={{ color: '#6b7280', fontSize: '16px' }}>Failed to load design image</p>
+              </div>
             </div>
           ) : (
             <div style={{

@@ -66,10 +66,14 @@ const SocialAccountCard = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-            {account?.profilePicture && (
+            {account?.profilePicture ? (
               <img 
                 src={account.profilePicture} 
                 alt={`${platform} profile`}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
                 style={{
                   width: '40px',
                   height: '40px',
@@ -78,7 +82,22 @@ const SocialAccountCard = ({
                   objectFit: 'cover'
                 }}
               />
-            )}
+            ) : null}
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: color || '#1877f2',
+              display: account?.profilePicture ? 'none' : 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '16px',
+              marginRight: '10px'
+            }}>
+              {platform.charAt(0)}
+            </div>
             <h4 style={{ color: color, margin: 0, display: 'flex', alignItems: 'center' }}>
               {platform}
               <span style={{
@@ -127,10 +146,14 @@ const SocialAccountCard = ({
           )}
           {platform === 'Facebook' && (
             <div style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>
-              {account?.hasInstagram && account?.instagramAccount?.profilePicture && (
+              {account?.hasInstagram && account?.instagramAccount?.profilePicture ? (
                 <img 
                   src={account.instagramAccount.profilePicture} 
                   alt="Instagram profile"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
                   style={{
                     width: '24px',
                     height: '24px',
@@ -139,6 +162,23 @@ const SocialAccountCard = ({
                     objectFit: 'cover'
                   }}
                 />
+              ) : null}
+              {account?.hasInstagram && account?.instagramAccount?.profilePicture && (
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: '#e4405f',
+                  display: 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                  marginRight: '8px'
+                }}>
+                  IG
+                </div>
               )}
               <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>
                 {account?.hasInstagram && account?.instagramAccount 

@@ -559,10 +559,6 @@ const ApprovalCard = ({ workflow }) => {
               <img 
                 src={workflow.graphicDesigner?.designUrl || workflow.graphicDesigner?.designs?.designUrl} 
                 alt="Submitted Design" 
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
                 style={{
                   maxWidth: '100%',
                   maxHeight: '70vh',

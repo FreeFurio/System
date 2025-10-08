@@ -49,8 +49,42 @@ router.get('/account', async (req, res) => {
 
 router.get('/engagement/facebook', async (req, res) => {
   try {
+    const { ref, get, set } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const { refresh } = req.query;
+    
+    // If not refresh, try to get cached data first
+    if (!refresh) {
+      const cachedInsightsRef = ref(db, 'cachedInsights/admin/facebook');
+      const cachedSnapshot = await get(cachedInsightsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          data: cachedData.data,
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
+    
     console.log('🚀 Admin API: Fetching Facebook engagement...');
     const engagement = await insightsService.getRecentPostsEngagement();
+    
+    // Cache the insights in Firebase
+    const cachedInsightsRef = ref(db, 'cachedInsights/admin/facebook');
+    await set(cachedInsightsRef, {
+      data: engagement,
+      lastUpdated: new Date().toISOString()
+    });
+    
     res.json({ success: true, data: engagement });
   } catch (error) {
     console.error('❌ Admin API Error (Facebook Engagement):', error.message);
@@ -60,8 +94,42 @@ router.get('/engagement/facebook', async (req, res) => {
 
 router.get('/engagement/instagram', async (req, res) => {
   try {
+    const { ref, get, set } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const { refresh } = req.query;
+    
+    // If not refresh, try to get cached data first
+    if (!refresh) {
+      const cachedInsightsRef = ref(db, 'cachedInsights/admin/instagram');
+      const cachedSnapshot = await get(cachedInsightsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          data: cachedData.data,
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
+    
     console.log('🚀 Admin API: Fetching Instagram engagement...');
     const engagement = await insightsService.getInstagramPostsEngagement();
+    
+    // Cache the insights in Firebase
+    const cachedInsightsRef = ref(db, 'cachedInsights/admin/instagram');
+    await set(cachedInsightsRef, {
+      data: engagement,
+      lastUpdated: new Date().toISOString()
+    });
+    
     res.json({ success: true, data: engagement });
   } catch (error) {
     console.error('❌ Admin API Error (Instagram Engagement):', error.message);
@@ -72,9 +140,49 @@ router.get('/engagement/instagram', async (req, res) => {
 router.get('/engagement/account/:accountId', async (req, res) => {
   try {
     const { accountId } = req.params;
+    const { refresh } = req.query;
+    
+    const { ref, get, set } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // If not refresh, try to get cached data first
+    if (!refresh) {
+      const cachedInsightsRef = ref(db, `cachedInsights/admin/account/${accountId}`);
+      const cachedSnapshot = await get(cachedInsightsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          data: cachedData.data,
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
+    
     console.log('🚀 Admin API: Fetching engagement for account:', accountId);
     
+    // Check if this request involves Twitter and log rate limit status
+    const twitterAllowed = await insightsService.isTwitterCallAllowed();
+    if (!twitterAllowed) {
+      const timeRemaining = 15 - ((new Date() - insightsService.twitterRateLimit?.lastCall || new Date()) / (1000 * 60));
+      console.log(`⏳ Twitter Insights Rate Limited - ${Math.ceil(timeRemaining)} minutes remaining (account-specific insights)`);
+    }
     const engagement = await insightsService.getAccountSpecificEngagement(accountId);
+    
+    // Cache the insights in Firebase
+    const cachedInsightsRef = ref(db, `cachedInsights/admin/account/${accountId}`);
+    await set(cachedInsightsRef, {
+      data: engagement,
+      lastUpdated: new Date().toISOString()
+    });
+    
     res.json({ success: true, data: engagement });
   } catch (error) {
     console.error('❌ Admin API Error (Account Engagement):', error.message);
@@ -917,13 +1025,31 @@ router.get('/debug-token', async (req, res) => {
 // Get Facebook posts with engagement data
 router.get('/facebook-posts', async (req, res) => {
   try {
-    const { ref, get } = await import('firebase/database');
+    const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const { refresh } = req.query;
+    
+    // If not refresh, try to get cached data first
+    if (!refresh) {
+      const cachedPostsRef = ref(db, 'cachedPosts/admin/facebook');
+      const cachedSnapshot = await get(cachedPostsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          posts: cachedData.posts || [],
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
     
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
@@ -977,6 +1103,13 @@ router.get('/facebook-posts', async (req, res) => {
     
     // Sort by creation time (newest first)
     allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    
+    // Cache the posts in Firebase
+    const cachedPostsRef = ref(db, 'cachedPosts/admin/facebook');
+    await set(cachedPostsRef, {
+      posts: allPosts,
+      lastUpdated: new Date().toISOString()
+    });
     
     res.json({ success: true, posts: allPosts });
   } catch (error) {
@@ -1840,13 +1973,31 @@ router.get('/instagram-posts/:pageId', async (req, res) => {
 // Get Instagram posts from all connected pages
 router.get('/instagram-posts', async (req, res) => {
   try {
-    const { ref, get } = await import('firebase/database');
+    const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const { refresh } = req.query;
+    
+    // If not refresh, try to get cached data first
+    if (!refresh) {
+      const cachedPostsRef = ref(db, 'cachedPosts/admin/instagram');
+      const cachedSnapshot = await get(cachedPostsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          posts: cachedData.posts || [],
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
     
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
@@ -1896,21 +2047,24 @@ router.get('/instagram-posts', async (req, res) => {
         
         const posts = response.data.data || [];
         posts.forEach(post => {
-          allPosts.push({
-            id: post.id,
+          // Sanitize data to remove undefined values for Firebase
+          const sanitizedPost = {
+            id: post.id || '',
             caption: post.caption || 'No caption',
-            createdTime: post.timestamp,
-            mediaType: post.media_type,
-            mediaUrl: post.media_url,
-            thumbnailUrl: post.thumbnail_url,
-            permalink: post.permalink,
+            createdTime: post.timestamp || new Date().toISOString(),
+            mediaType: post.media_type || 'unknown',
+            mediaUrl: post.media_url || null,
+            thumbnailUrl: post.thumbnail_url || null,
+            permalink: post.permalink || null,
             likes: post.like_count || 0,
             comments: post.comments_count || 0,
-            pageName: igName,
-            pageId: page.id,
-            profilePicture: profilePictureUrl,
-            image: post.media_url
-          });
+            pageName: igName || 'Instagram Account',
+            pageId: page.id || '',
+            profilePicture: profilePictureUrl || null,
+            image: post.media_url || null
+          };
+          
+          allPosts.push(sanitizedPost);
         });
       } catch (error) {
         console.error(`❌ Error fetching Instagram posts for page ${page.id}:`, error.response?.data || error.message);
@@ -1919,6 +2073,13 @@ router.get('/instagram-posts', async (req, res) => {
     
     // Sort by creation time (newest first)
     allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    
+    // Cache the posts in Firebase
+    const cachedPostsRef = ref(db, 'cachedPosts/admin/instagram');
+    await set(cachedPostsRef, {
+      posts: allPosts,
+      lastUpdated: new Date().toISOString()
+    });
     
     res.json({ success: true, posts: allPosts });
     
@@ -2137,113 +2298,12 @@ router.delete('/twitter-account/:accountId', async (req, res) => {
   }
 });
 
-// Get Twitter insights with Free tier limitations
-router.get('/twitter-insights/:accountId', async (req, res) => {
-  try {
-    const { accountId } = req.params;
-    
-    const { ref, get } = await import('firebase/database');
-    const { getDatabase } = await import('firebase/database');
-    const { initializeApp } = await import('firebase/app');
-    const { config } = await import('../config/config.mjs');
-    
-    const app = initializeApp(config.firebase);
-    const db = getDatabase(app, config.firebase.databaseURL);
-    
-    const accountRef = ref(db, `connectedAccounts/admin/twitter/${accountId}`);
-    const snapshot = await get(accountRef);
-    
-    if (!snapshot.exists()) {
-      return res.status(404).json({ success: false, error: 'Twitter account not found' });
-    }
-    
-    const account = snapshot.val();
-    
-    // Get recent tweets with metrics (Free tier allows this)
-    const tweetsResponse = await axios.get(`https://api.twitter.com/2/users/${accountId}/tweets`, {
-      headers: { 'Authorization': `Bearer ${account.accessToken}` },
-      params: {
-        max_results: 10,
-        'tweet.fields': 'created_at,public_metrics'
-      }
-    });
-    
-    const tweets = tweetsResponse.data.data || [];
-    
-    // Calculate basic engagement metrics
-    const totalTweets = tweets.length;
-    const totalLikes = tweets.reduce((sum, tweet) => sum + (tweet.public_metrics?.like_count || 0), 0);
-    const totalRetweets = tweets.reduce((sum, tweet) => sum + (tweet.public_metrics?.retweet_count || 0), 0);
-    const totalReplies = tweets.reduce((sum, tweet) => sum + (tweet.public_metrics?.reply_count || 0), 0);
-    const totalEngagement = totalLikes + totalRetweets + totalReplies;
-    
-    const insights = {
-      account: {
-        name: account.name,
-        username: account.username,
-        followersCount: account.followersCount
-      },
-      metrics: {
-        totalTweets,
-        totalLikes,
-        totalRetweets, 
-        totalReplies,
-        totalEngagement,
-        avgEngagementPerTweet: totalTweets > 0 ? Math.round(totalEngagement / totalTweets) : 0
-      },
-      limitation: 'Twitter Free tier - Limited analytics available',
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Cache insights in Firebase
-    const { set } = await import('firebase/database');
-    const insightsRef = ref(db, `twitterInsights/admin/${accountId}`);
-    await set(insightsRef, insights);
-    
-    res.json({ success: true, insights });
-    
-  } catch (error) {
-    console.error('Twitter insights error:', error.response?.data || error.message);
-    
-    // Try to get cached insights from Firebase
-    try {
-      const { accountId } = req.params;
-      const { ref, get } = await import('firebase/database');
-      const { getDatabase } = await import('firebase/database');
-      const { initializeApp } = await import('firebase/app');
-      const { config } = await import('../config/config.mjs');
-      
-      const app = initializeApp(config.firebase);
-      const db = getDatabase(app, config.firebase.databaseURL);
-      
-      const cachedInsightsRef = ref(db, `twitterInsights/admin/${accountId}`);
-      const cachedSnapshot = await get(cachedInsightsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedInsights = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          insights: {
-            ...cachedInsights,
-            limitation: 'Cached data - Twitter API rate limited (1 req/15min)'
-          },
-          cached: true
-        });
-      }
-    } catch (cacheError) {
-      console.error('Error retrieving cached insights:', cacheError.message);
-    }
-    
-    res.json({ 
-      success: false, 
-      error: 'Twitter API rate limited. No cached data available.',
-      rateLimited: true,
-      retryAfter: '15 minutes'
-    });
-  }
-});
 
-router.get('/twitter-posts', async (req, res) => {
+
+
+
+// Unified Twitter data endpoint (posts + insights in one call)
+router.get('/twitter-data', async (req, res) => {
   try {
     const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
@@ -2253,6 +2313,25 @@ router.get('/twitter-posts', async (req, res) => {
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
     
+    const { refresh } = req.query;
+    
+    // If not refresh, try to get cached data first
+    if (!refresh) {
+      const cachedDataRef = ref(db, 'cachedTwitterData/admin');
+      const cachedSnapshot = await get(cachedDataRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        return res.json({ 
+          success: true, 
+          posts: cachedData.posts || [],
+          insights: cachedData.insights || {},
+          cached: true,
+          lastUpdated: cachedData.lastUpdated
+        });
+      }
+    }
+    
     const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
     const snapshot = await get(twitterAccountsRef);
     
@@ -2260,37 +2339,42 @@ router.get('/twitter-posts', async (req, res) => {
       return res.json({ 
         success: true, 
         posts: [],
-        message: 'No Twitter accounts connected.',
-        authUrl: '/api/v1/admin/twitter-oauth'
+        insights: {},
+        message: 'No Twitter accounts connected.'
       });
     }
     
     // Check Twitter rate limiting (15-minute cooldown)
-    const twitterAllowed = insightsService.isTwitterCallAllowed();
+    const twitterAllowed = await insightsService.isTwitterCallAllowed();
     
     if (!twitterAllowed) {
+      const timeRemaining = 15 - ((new Date() - insightsService.twitterRateLimit?.lastCall || new Date()) / (1000 * 60));
+      console.log(`⏳ Twitter Data API Rate Limited - ${Math.ceil(timeRemaining)} minutes remaining`);
+      
       // Return cached data when rate limited
-      const cachedPostsRef = ref(db, 'twitterPosts/admin');
-      const cachedSnapshot = await get(cachedPostsRef);
+      const cachedDataRef = ref(db, 'cachedTwitterData/admin');
+      const cachedSnapshot = await get(cachedDataRef);
       
       if (cachedSnapshot.exists()) {
         const cachedData = cachedSnapshot.val();
-        const timeRemaining = 15 - ((new Date() - insightsService.twitterRateLimit?.lastCall || new Date()) / (1000 * 60));
+        console.log(`📦 Returning cached Twitter data from ${cachedData.lastUpdated}`);
         
         return res.json({ 
           success: true, 
           posts: cachedData.posts || [],
+          insights: cachedData.insights || {},
           cached: true,
           rateLimited: true,
           timeRemaining: Math.ceil(timeRemaining),
-          lastUpdated: cachedData.lastUpdated,
-          message: `Twitter rate limited. Showing cached data. Next refresh in ${Math.ceil(timeRemaining)} minutes.`
+          lastUpdated: cachedData.lastUpdated
         });
       }
       
+      console.log(`❌ No cached Twitter data available during rate limit`);
       return res.json({ 
         success: true, 
         posts: [],
+        insights: {},
         rateLimited: true,
         message: 'Twitter rate limited and no cached data available.'
       });
@@ -2298,7 +2382,9 @@ router.get('/twitter-posts', async (req, res) => {
     
     const accounts = Object.values(snapshot.val());
     const allPosts = [];
-    let hasApiError = false;
+    let totalLikes = 0;
+    let totalRetweets = 0;
+    let totalReplies = 0;
     
     for (const account of accounts) {
       try {
@@ -2310,64 +2396,70 @@ router.get('/twitter-posts', async (req, res) => {
           }
         });
 
-        const posts = tweetsResponse.data.data?.map(tweet => ({
-          id: tweet.id,
-          message: tweet.text,
-          createdTime: tweet.created_at,
-          pageName: account.name,
-          pageId: account.id,
-          profilePicture: account.profilePicture,
-          likes: tweet.public_metrics?.like_count || 0,
-          retweets: tweet.public_metrics?.retweet_count || 0,
-          replies: tweet.public_metrics?.reply_count || 0
-        })) || [];
+        const posts = tweetsResponse.data.data?.map(tweet => {
+          const likes = tweet.public_metrics?.like_count || 0;
+          const retweets = tweet.public_metrics?.retweet_count || 0;
+          const replies = tweet.public_metrics?.reply_count || 0;
+          
+          // Add to totals for insights
+          totalLikes += likes;
+          totalRetweets += retweets;
+          totalReplies += replies;
+          
+          return {
+            id: tweet.id,
+            message: tweet.text,
+            createdTime: tweet.created_at,
+            pageName: account.name,
+            pageId: account.id,
+            profilePicture: account.profilePicture,
+            likes,
+            retweets,
+            replies
+          };
+        }) || [];
         
         allPosts.push(...posts);
       } catch (error) {
         console.error(`Error fetching tweets for ${account.username}:`, error.response?.data || error.message);
-        hasApiError = true;
       }
     }
     
-    if (allPosts.length > 0) {
-      // Sort by creation time (newest first)
-      allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
-      
-      // Save posts to Firebase
-      const postsRef = ref(db, 'twitterPosts/admin');
-      await set(postsRef, {
-        posts: allPosts,
-        lastUpdated: new Date().toISOString()
-      });
-      
-      // Update rate limit timestamp after successful API call
-      insightsService.updateTwitterRateLimit();
-      
-      return res.json({ success: true, posts: allPosts });
-    }
+    // Sort posts by creation time (newest first)
+    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
-    // If API failed, try to get cached posts
-    if (hasApiError) {
-      const cachedPostsRef = ref(db, 'twitterPosts/admin');
-      const cachedSnapshot = await get(cachedPostsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          posts: cachedData.posts || [],
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
-      }
-    }
+    // Calculate insights
+    const totalEngagement = totalLikes + totalRetweets + totalReplies;
+    const insights = {
+      totalTweets: allPosts.length,
+      totalLikes,
+      totalRetweets,
+      totalReplies,
+      totalEngagement,
+      avgEngagementPerTweet: allPosts.length > 0 ? Math.round(totalEngagement / allPosts.length) : 0
+    };
     
-    res.json({ success: true, posts: [] });
+    // Cache both posts and insights in Firebase
+    const cachedDataRef = ref(db, 'cachedTwitterData/admin');
+    await set(cachedDataRef, {
+      posts: allPosts,
+      insights,
+      lastUpdated: new Date().toISOString()
+    });
+    
+    // Update rate limit timestamp after successful API call
+    await insightsService.updateTwitterRateLimit();
+    
+    res.json({ 
+      success: true, 
+      posts: allPosts,
+      insights
+    });
 
   } catch (error) {
-    console.error('Twitter posts error:', error.message);
+    console.error('Twitter data error:', error.message);
     
-    // Try to get cached posts on error
+    // Try to get cached data on error
     try {
       const { ref, get } = await import('firebase/database');
       const { getDatabase } = await import('firebase/database');
@@ -2377,20 +2469,21 @@ router.get('/twitter-posts', async (req, res) => {
       const app = initializeApp(config.firebase);
       const db = getDatabase(app, config.firebase.databaseURL);
       
-      const cachedPostsRef = ref(db, 'twitterPosts/admin');
-      const cachedSnapshot = await get(cachedPostsRef);
+      const cachedDataRef = ref(db, 'cachedTwitterData/admin');
+      const cachedSnapshot = await get(cachedDataRef);
       
       if (cachedSnapshot.exists()) {
         const cachedData = cachedSnapshot.val();
         return res.json({ 
           success: true, 
           posts: cachedData.posts || [],
+          insights: cachedData.insights || {},
           cached: true,
           lastUpdated: cachedData.lastUpdated
         });
       }
     } catch (cacheError) {
-      console.error('Error retrieving cached posts:', cacheError.message);
+      console.error('Error retrieving cached Twitter data:', cacheError.message);
     }
     
     res.status(500).json({ success: false, error: error.message });
@@ -2656,7 +2749,7 @@ router.post('/refresh-insights', async (req, res) => {
     console.log('🔄 Refreshing insights for account:', accountId);
     
     // Check if Twitter rate limit allows refresh
-    const twitterAllowed = insightsService.isTwitterCallAllowed();
+    const twitterAllowed = await insightsService.isTwitterCallAllowed();
     const refreshResults = {
       facebook: null,
       instagram: null,
@@ -2720,7 +2813,7 @@ router.post('/refresh-insights', async (req, res) => {
             };
             
             // Update rate limit timestamp
-            insightsService.updateTwitterRateLimit();
+            await insightsService.updateTwitterRateLimit();
             console.log('✅ Twitter data refreshed');
           }
         }

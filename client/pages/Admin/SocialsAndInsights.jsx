@@ -266,92 +266,79 @@ const SocialsAndInsights = () => {
     }
   };
 
-  const fetchInsights = async () => {
+  const fetchInsights = async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
     try {
       console.log('🔍 Fetching account insights data with Twitter rate limiting...');
       
-      // Fetch Facebook/Instagram insights using new refresh endpoint
+      // Fetch Facebook/Instagram insights using cached or fresh data
       const facebookInsights = await Promise.all(
         connectedPages.map(async (account) => {
           try {
-            // Use new refresh endpoint that respects Twitter rate limits
-            const response = await fetch(`${API_BASE_URL}/refresh-insights`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ accountId: account.id })
-            });
+            // Use account engagement endpoint with refresh parameter
+            const url = `${API_BASE_URL}/engagement/account/${account.id}${forceRefresh ? '?refresh=true' : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
             
-            const refreshData = await response.json();
-            
-            if (refreshData.success) {
+            if (data.success) {
               return {
                 account: { ...account, platform: 'facebook' },
-                engagement: {
-                  facebook: refreshData.results.facebook,
-                  instagram: refreshData.results.instagram
-                }
+                engagement: data.data
               };
             } else {
-              throw new Error(refreshData.error || 'Refresh failed');
+              throw new Error(data.error || 'Failed to fetch engagement');
             }
           } catch (error) {
-            console.error(`Failed to refresh engagement for ${account.name}:`, error);
-            // Fallback to old method if refresh fails
-            try {
-              const engagement = await adminService.getAccountEngagement(account.id);
-              return {
-                account: { ...account, platform: 'facebook' },
-                engagement: engagement.data
-              };
-            } catch (fallbackError) {
-              return {
-                account: { ...account, platform: 'facebook' },
-                engagement: {
-                  facebook: {
-                    totalLikes: 0,
-                    totalComments: 0,
-                    totalShares: 0,
-                    postsCount: 0
-                  },
-                  instagram: null
-                }
-              };
-            }
+            console.error(`Failed to fetch engagement for ${account.name}:`, error);
+            return {
+              account: { ...account, platform: 'facebook' },
+              engagement: {
+                facebook: {
+                  totalLikes: 0,
+                  totalComments: 0,
+                  totalShares: 0,
+                  postsCount: 0
+                },
+                instagram: null
+              }
+            };
           }
         })
       );
       
-      // Fetch Twitter insights with rate limiting awareness
-      const twitterInsights = await Promise.all(
-        connectedTwitterAccounts.map(async (account) => {
-          try {
-            const response = await fetch(`${API_BASE_URL}/twitter-insights/${account.id}`);
-            const data = await response.json();
-            
+      // Fetch Twitter insights using unified endpoint
+      let twitterInsights = [];
+      if (connectedTwitterAccounts.length > 0) {
+        try {
+          const url = `${API_BASE_URL}/twitter-data${forceRefresh ? '?refresh=true' : ''}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          if (data.success && data.insights) {
             // Check if Twitter was rate limited
             if (data.rateLimited) {
-              console.log(`⏳ Twitter rate limited for ${account.username} - using cached data`);
+              console.log(`⏳ Twitter rate limited - using cached data`);
             }
             
-            return {
+            // Map insights to each connected Twitter account
+            twitterInsights = connectedTwitterAccounts.map(account => ({
               account: { ...account, platform: 'twitter' },
               engagement: { 
                 twitter: data.insights,
                 rateLimited: data.rateLimited,
                 cached: data.cached
               }
-            };
-          } catch (error) {
-            console.error(`Failed to fetch Twitter insights for ${account.username}:`, error);
-            return {
-              account: { ...account, platform: 'twitter' },
-              engagement: { twitter: null }
-            };
+            }));
           }
-        })
-      );
+        } catch (error) {
+          console.error('Failed to fetch Twitter insights:', error);
+          twitterInsights = connectedTwitterAccounts.map(account => ({
+            account: { ...account, platform: 'twitter' },
+            engagement: { twitter: null }
+          }));
+        }
+      }
       
       const accountInsights = [...facebookInsights, ...twitterInsights];
       
@@ -612,7 +599,7 @@ const SocialsAndInsights = () => {
                 Analytics & Insights
               </h2>
               <button
-                onClick={fetchInsights}
+                onClick={() => fetchInsights(true)}
                 disabled={loading}
                 style={{
                   background: '#10b981',

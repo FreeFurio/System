@@ -1,27 +1,51 @@
 import axios from 'axios';
 
-// Twitter rate limiting - 15 minute polling restriction
-const twitterRateLimit = {
-  lastCall: null,
-  cooldownMinutes: 15
-};
-
 class InsightsService {
-  // Check if Twitter API call is allowed (15-minute rate limit)
-  isTwitterCallAllowed() {
-    if (!twitterRateLimit.lastCall) {
-      return true;
+  // Check if Twitter API call is allowed (15-minute rate limit) - Firebase version
+  async isTwitterCallAllowed() {
+    try {
+      const { ref, get } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const rateLimitRef = ref(db, 'twitterRateLimit/admin/lastCall');
+      const snapshot = await get(rateLimitRef);
+      
+      if (!snapshot.exists()) {
+        return true;
+      }
+      
+      const lastCall = snapshot.val();
+      const now = Date.now();
+      const timeSinceLastCall = (now - lastCall) / (1000 * 60); // minutes
+      
+      return timeSinceLastCall >= 15;
+    } catch (error) {
+      console.error('Error checking Twitter rate limit:', error);
+      return true; // Allow on error
     }
-    
-    const now = new Date();
-    const timeSinceLastCall = (now - twitterRateLimit.lastCall) / (1000 * 60); // minutes
-    
-    return timeSinceLastCall >= twitterRateLimit.cooldownMinutes;
   }
   
-  // Update Twitter rate limit timestamp
-  updateTwitterRateLimit() {
-    twitterRateLimit.lastCall = new Date();
+  // Update Twitter rate limit timestamp - Firebase version
+  async updateTwitterRateLimit() {
+    try {
+      const { ref, set } = await import('firebase/database');
+      const { getDatabase } = await import('firebase/database');
+      const { initializeApp } = await import('firebase/app');
+      const { config } = await import('../config/config.mjs');
+      
+      const app = initializeApp(config.firebase);
+      const db = getDatabase(app, config.firebase.databaseURL);
+      
+      const rateLimitRef = ref(db, 'twitterRateLimit/admin/lastCall');
+      await set(rateLimitRef, Date.now());
+    } catch (error) {
+      console.error('Error updating Twitter rate limit:', error);
+    }
   }
   
   async getPageInsights() {

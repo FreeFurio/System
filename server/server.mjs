@@ -53,7 +53,8 @@ app.use(
           "'self'",
           "data:",
           "wss://*.firebasedatabase.app",
-          "https://*.firebasedatabase.app"
+          "https://*.firebasedatabase.app",
+          "https://api.cloudinary.com"
         ],
         scriptSrc: ["'self'", "'unsafe-inline'", "https://*.firebasedatabase.app", "https://code.jquery.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],

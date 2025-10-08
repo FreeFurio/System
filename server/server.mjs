@@ -59,7 +59,7 @@ app.use(
         scriptSrc: ["'self'", "'unsafe-inline'", "https://*.firebasedatabase.app", "https://code.jquery.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.fbcdn.net", "https://*.twimg.com", "https://*.cdninstagram.com"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.fbcdn.net", "https://*.twimg.com", "https://*.cdninstagram.com", "https://cdn.jsdelivr.net"],
         frameSrc: ["'self'", "https://app.templated.io"]
       },
     },

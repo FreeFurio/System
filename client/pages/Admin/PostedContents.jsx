@@ -33,7 +33,7 @@ const PostedContents = () => {
           endpoint = `${API_BASE_URL}/instagram-posts`;
           break;
         case 'twitter':
-          endpoint = `${API_BASE_URL}/twitter-data`;
+          endpoint = `${API_BASE_URL}/twitter-data?v=${Date.now()}`;
           break;
         default:
           endpoint = `${API_BASE_URL}/facebook-posts`;
@@ -41,7 +41,7 @@ const PostedContents = () => {
       
       // Add refresh parameter if force refresh is requested
       if (forceRefresh) {
-        endpoint += '?refresh=true';
+        endpoint += endpoint.includes('?') ? '&refresh=true' : '?refresh=true';
       }
       
       const response = await fetch(endpoint);

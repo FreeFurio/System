@@ -101,7 +101,7 @@ const AccountInsightCard = ({ account, engagement }) => {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={[
                     { name: '', total: null, invisible: true },
-                    { name: 'Current', total: twitterData.metrics?.totalEngagement || 0 },
+                    { name: 'Current', total: twitterData.totalEngagement || 0 },
                     { name: '', total: null, invisible: true }
                   ]} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -134,15 +134,15 @@ const AccountInsightCard = ({ account, engagement }) => {
               marginBottom: '20px'
             }}>
               <div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1da1f2' }}>{twitterData.metrics?.totalTweets || 0}</div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1da1f2' }}>{twitterData.totalTweets || 0}</div>
                 <div style={{ fontSize: '12px', color: '#666' }}>Recent Tweets</div>
               </div>
               <div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>{twitterData.metrics?.totalEngagement || 0}</div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>{twitterData.totalEngagement || 0}</div>
                 <div style={{ fontSize: '12px', color: '#666' }}>Total Engagement</div>
               </div>
               <div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545' }}>{twitterData.metrics?.avgEngagementPerTweet || 0}</div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545' }}>{twitterData.avgEngagementPerTweet || 0}</div>
                 <div style={{ fontSize: '12px', color: '#666' }}>Avg per Tweet</div>
               </div>
             </div>
@@ -155,15 +155,15 @@ const AccountInsightCard = ({ account, engagement }) => {
               marginBottom: '20px'
             }}>
               <div>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{twitterData.metrics?.totalLikes || 0}</div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{twitterData.totalLikes || 0}</div>
                 <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
               </div>
               <div>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4caf50' }}>{twitterData.metrics?.totalRetweets || 0}</div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4caf50' }}>{twitterData.totalRetweets || 0}</div>
                 <div style={{ fontSize: '12px', color: '#666' }}>Retweets</div>
               </div>
               <div>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff9800' }}>{twitterData.metrics?.totalReplies || 0}</div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff9800' }}>{twitterData.totalReplies || 0}</div>
                 <div style={{ fontSize: '12px', color: '#666' }}>Replies</div>
               </div>
             </div>

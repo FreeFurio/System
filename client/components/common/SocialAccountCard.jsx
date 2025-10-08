@@ -12,33 +12,7 @@ const SocialAccountCard = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const isActive = account?.active !== false;
   
-  // Check Twitter token expiration (2 hours = 7200000 ms)
-  const checkTokenExpiration = () => {
-    if (platform === 'Twitter' && account?.tokenTimestamp) {
-      const tokenAge = Date.now() - account.tokenTimestamp;
-      const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
-      return {
-        expired: tokenAge >= twoHours,
-        timeRemaining: Math.max(0, twoHours - tokenAge)
-      };
-    }
-    return { expired: false, timeRemaining: 0 };
-  };
-  
-  const tokenStatus = checkTokenExpiration();
-  const isTokenExpired = tokenStatus.expired;
-  
-  // Format time remaining for display
-  const formatTimeRemaining = (ms) => {
-    const minutes = Math.floor(ms / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
-    }
-    return `${remainingMinutes}m`;
-  };
+
 
   const handleToggleActive = () => {
     if (onToggleActive) {
@@ -113,35 +87,7 @@ const SocialAccountCard = ({
           </div>
           <p style={{ color: '#666', margin: '5px 0' }}>Status: {status}</p>
           <p style={{ color: '#666', margin: '5px 0' }}>{accountInfo}</p>
-          {platform === 'Twitter' && account?.tokenTimestamp && (
-            <div>
-              {isTokenExpired ? (
-                <div style={{
-                  background: '#f8d7da',
-                  border: '1px solid #f5c6cb',
-                  borderRadius: '4px',
-                  padding: '8px',
-                  margin: '8px 0',
-                  fontSize: '14px',
-                  color: '#721c24'
-                }}>
-                  ⚠️ Reauthentication needed - Token expired
-                </div>
-              ) : tokenStatus.timeRemaining < (30 * 60 * 1000) && ( // Show warning 30 minutes before expiry
-                <div style={{
-                  background: '#fff3cd',
-                  border: '1px solid #ffeaa7',
-                  borderRadius: '4px',
-                  padding: '8px',
-                  margin: '8px 0',
-                  fontSize: '14px',
-                  color: '#856404'
-                }}>
-                  ⏰ Token expires in {formatTimeRemaining(tokenStatus.timeRemaining)}
-                </div>
-              )}
-            </div>
-          )}
+
           {platform === 'Facebook' && (
             <div style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>
               {account?.hasInstagram && account?.instagramAccount?.profilePicture ? (

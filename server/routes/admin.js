@@ -2302,6 +2302,18 @@ router.delete('/twitter-account/:accountId', async (req, res) => {
 
 
 
+// Legacy redirect for old twitter-posts endpoint
+router.get('/twitter-posts', (req, res) => {
+  console.log('⚠️ Redirecting legacy /twitter-posts to /twitter-data');
+  res.redirect(301, `/api/v1/admin/twitter-data${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
+});
+
+// Legacy redirect for old twitter-insights endpoint
+router.get('/twitter-insights/:accountId', (req, res) => {
+  console.log('⚠️ Redirecting legacy /twitter-insights to /twitter-data');
+  res.redirect(301, `/api/v1/admin/twitter-data${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
+});
+
 // Unified Twitter data endpoint (posts + insights in one call)
 router.get('/twitter-data', async (req, res) => {
   try {
@@ -2322,13 +2334,31 @@ router.get('/twitter-data', async (req, res) => {
       
       if (cachedSnapshot.exists()) {
         const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          posts: cachedData.posts || [],
-          insights: cachedData.insights || {},
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
+        console.log('🐦 Returning cached Twitter data:', {
+          postsCount: cachedData.posts?.length || 0,
+          insights: cachedData.insights,
+          firstPost: cachedData.posts?.[0] ? {
+            id: cachedData.posts[0].id,
+            message: cachedData.posts[0].message?.substring(0, 50),
+            pageName: cachedData.posts[0].pageName,
+            platform: 'twitter'
+          } : null
         });
+        
+        // TEMPORARY: Clear corrupted cache if it contains Facebook data or missing insights
+        if (cachedData.posts?.[0]?.reactions !== undefined || !cachedData.insights || Object.keys(cachedData.insights).length === 0) {
+          console.log('❌ Detected corrupted cache (Facebook data or missing insights), clearing...');
+          await set(cachedDataRef, null);
+          // Continue to fetch fresh Twitter data
+        } else {
+          return res.json({ 
+            success: true, 
+            posts: cachedData.posts || [],
+            insights: cachedData.insights || {},
+            cached: true,
+            lastUpdated: cachedData.lastUpdated
+          });
+        }
       }
     }
     
@@ -2438,6 +2468,8 @@ router.get('/twitter-data', async (req, res) => {
       totalEngagement,
       avgEngagementPerTweet: allPosts.length > 0 ? Math.round(totalEngagement / allPosts.length) : 0
     };
+    
+    console.log('📊 Fresh Twitter insights calculated:', insights);
     
     // Cache both posts and insights in Firebase
     const cachedDataRef = ref(db, 'cachedTwitterData/admin');

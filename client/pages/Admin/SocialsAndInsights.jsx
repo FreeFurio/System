@@ -270,8 +270,6 @@ const SocialsAndInsights = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('🔍 Fetching account insights data with Twitter rate limiting...');
-      
       // Fetch Facebook/Instagram insights using cached or fresh data
       const facebookInsights = await Promise.all(
         connectedPages.map(async (account) => {
@@ -316,11 +314,6 @@ const SocialsAndInsights = () => {
           const data = await response.json();
           
           if (data.success && data.insights) {
-            // Check if Twitter was rate limited
-            if (data.rateLimited) {
-              console.log(`⏳ Twitter rate limited - using cached data`);
-            }
-            
             // Map insights to each connected Twitter account
             twitterInsights = connectedTwitterAccounts.map(account => ({
               account: { ...account, platform: 'twitter' },
@@ -343,13 +336,6 @@ const SocialsAndInsights = () => {
       const accountInsights = [...facebookInsights, ...twitterInsights];
       
       setInsights(accountInsights);
-      
-      // Show rate limiting message if any Twitter accounts were skipped
-      const rateLimitedAccounts = twitterInsights.filter(insight => insight.engagement.rateLimited);
-      if (rateLimitedAccounts.length > 0) {
-        console.log(`⏳ ${rateLimitedAccounts.length} Twitter account(s) were rate limited`);
-      }
-      
     } catch (err) {
       setError(err.message);
     } finally {

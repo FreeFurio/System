@@ -12,7 +12,7 @@ const PostedContents = () => {
     fetchPostedContents(activeTab);
   }, []);
 
-  const fetchPostedContents = async (platform = 'facebook', isTabChange = false) => {
+  const fetchPostedContents = async (platform = 'facebook', isTabChange = false, forceRefresh = false) => {
     try {
       if (isTabChange) {
         setTabLoading(true);
@@ -36,6 +36,11 @@ const PostedContents = () => {
           break;
         default:
           endpoint = `${API_BASE_URL}/facebook-posts`;
+      }
+      
+      // Add refresh parameter if force refresh is requested
+      if (forceRefresh) {
+        endpoint += '?refresh=true';
       }
       
       const response = await fetch(endpoint);
@@ -199,7 +204,7 @@ const PostedContents = () => {
           Twitter
         </button>
         <button
-          onClick={() => fetchPostedContents(activeTab, true)}
+          onClick={() => fetchPostedContents(activeTab, true, true)}
           disabled={tabLoading}
           style={{
             background: '#10b981',

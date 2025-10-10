@@ -57,6 +57,14 @@
     name: 'clear',
     title: 'Clear',
     icon: `<svg width="128px" height="128px" viewBox="0 0 365.696 365.696"><path d="m243.1875 182.859375 113.132812-113.132813c12.5-12.5 12.5-32.765624 0-45.246093l-15.082031-15.082031c-12.503906-12.503907-32.769531-12.503907-45.25 0l-113.128906 113.128906-113.132813-113.152344c-12.5-12.5-32.765624-12.5-45.246093 0l-15.105469 15.082031c-12.5 12.503907-12.5 32.769531 0 45.25l113.152344 113.152344-113.128906 113.128906c-12.503907 12.503907-12.503907 32.769531 0 45.25l15.082031 15.082031c12.5 12.5 32.765625 12.5 45.246093 0l113.132813-113.132812 113.128906 113.132812c12.503907 12.5 32.769531 12.5 45.25 0l15.082031-15.082031c12.5-12.503906 12.5-32.769531 0-45.25zm0 0"></path></svg>`
+  }, {
+    name: 'back',
+    title: 'Back to Tasks',
+    icon: `<svg viewBox="0 0 24 24" width="128px" height="128px"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>`
+  }, {
+    name: 'task-info',
+    title: 'Task Information',
+    icon: `<svg viewBox="0 0 24 24" width="128px" height="128px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`
   }]
 
   var toolbar = function () {
@@ -121,10 +129,8 @@
         $(`${this.containerSelector} #toolbar .extended-buttons button`).click(function () {
           let id = $(this).attr('id');
           if (id === 'save') {
-            if (window.confirm('The current design will be saved to the database! Are you sure?')) {
-              const dataURL = _self.canvas.toDataURL('image/png');
-              window.parent.postMessage('SAVE:' + dataURL, '*');
-            }
+            const dataURL = _self.canvas.toDataURL('image/png');
+            window.parent.postMessage('SAVE:' + dataURL, '*');
           } else if (id === 'clear') {
             if (window.confirm('This will clear the canvas! Are you sure?')) {
               _self.canvas.clear(), saveInBrowser.remove('canvasEditor');
@@ -153,6 +159,11 @@
 
           } else if (id === 'undo') _self.undo();
           else if (id === 'redo') _self.redo();
+          else if (id === 'back') {
+            window.parent.postMessage('BACK_TO_TASKS', '*');
+          } else if (id === 'task-info') {
+            window.parent.postMessage('SHOW_TASK_INFO', '*');
+          }
         })
       })()
     } catch (_) {

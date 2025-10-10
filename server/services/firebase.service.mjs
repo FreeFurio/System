@@ -259,10 +259,21 @@ class FirebaseService {
           
           if (stage === 'contentcreator') {
             // Show tasks that are in content creation stage OR have been rejected and need rework
-            return workflow.currentStage === stage && 
+            const shouldShow = workflow.currentStage === stage && 
                    (workflow.status === 'content_creation' || workflow.status === 'content_rejected');
+            console.log(`Content Creator filter - Workflow ${key}: currentStage=${workflow.currentStage}, status=${workflow.status}, shouldShow=${shouldShow}`);
+            return shouldShow;
           }
-          return workflow.currentStage === stage;
+          if (stage === 'graphicdesigner') {
+            // Show tasks that are in graphic designer stage OR have been rejected and need rework
+            const shouldShow = workflow.currentStage === stage && 
+                   (workflow.status === 'design_creation' || workflow.status === 'design_rejected');
+            console.log(`Graphic Designer filter - Workflow ${key}: currentStage=${workflow.currentStage}, status=${workflow.status}, shouldShow=${shouldShow}`);
+            return shouldShow;
+          }
+          const shouldShow = workflow.currentStage === stage;
+          console.log(`General filter - Workflow ${key}: currentStage=${workflow.currentStage}, stage=${stage}, shouldShow=${shouldShow}`);
+          return shouldShow;
         })
         .map(([key, workflow]) => ({ id: key, ...workflow }));
       
@@ -436,6 +447,12 @@ class FirebaseService {
       }
       
       const workflow = snapshot.val();
+      console.log('❌ rejectDesign - Current workflow state:', {
+        id: workflowId,
+        currentStage: workflow.currentStage,
+        status: workflow.status
+      });
+      
       const updatedWorkflow = {
         ...workflow,
         status: 'design_rejected',
@@ -448,7 +465,23 @@ class FirebaseService {
         updatedAt: new Date().toISOString()
       };
       
+      console.log('❌ rejectDesign - Setting workflow to:', {
+        id: workflowId,
+        currentStage: updatedWorkflow.currentStage,
+        status: updatedWorkflow.status
+      });
+      
       await set(workflowRef, updatedWorkflow);
+      
+      // Verify the update was successful
+      const verifySnapshot = await get(workflowRef);
+      const verifiedWorkflow = verifySnapshot.val();
+      console.log('❌ rejectDesign - Verified workflow state after update:', {
+        id: workflowId,
+        currentStage: verifiedWorkflow.currentStage,
+        status: verifiedWorkflow.status
+      });
+      
       console.log('❌ rejectDesign success - Design rejected and returned to graphic designer');
       return updatedWorkflow;
     } catch (error) {

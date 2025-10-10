@@ -18,7 +18,12 @@ export default function SetTask() {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
-  const [deadlineTime, setDeadlineTime] = useState('12:00');
+  const [deadlineTime, setDeadlineTime] = useState(() => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  });
   const [submitted, setSubmitted] = useState(false);
   const [ageRange, setAgeRange] = useState([20, 40]);
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
@@ -511,6 +516,12 @@ export default function SetTask() {
                   type="time"
                   id="deadlineTime"
                   value={deadlineTime}
+                  min={deadline === minDate ? (() => {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    return `${hours}:${minutes}`;
+                  })() : undefined}
                   onChange={e => setDeadlineTime(e.target.value)}
                   onFocus={e => {
                     e.target.style.borderColor = '#f59e0b';

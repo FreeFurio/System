@@ -1,35 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { FiClock, FiCheckCircle, FiXCircle, FiEye, FiTarget, FiUser, FiCalendar, FiSmartphone, FiBarChart, FiEdit3, FiFileText, FiTrash2 } from 'react-icons/fi';
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 
-const SEOBar = ({ score, label, width = '100%' }) => {
+const SEORadial = ({ score, label }) => {
   const getColor = (score) => {
     if (score >= 85) return '#10b981';
     if (score >= 75) return '#f59e0b';
     return '#ef4444';
   };
   
+  const getQuality = (score) => {
+    if (score >= 85) return 'Excellent';
+    if (score >= 75) return 'Good';
+    return 'Needs Work';
+  };
+  
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{label}</span>
-        <span style={{ fontSize: '14px', fontWeight: '700', color: getColor(score) }}>{score}/100</span>
-      </div>
-      <div style={{
-        width: width,
-        height: '8px',
-        backgroundColor: '#e5e7eb',
-        borderRadius: '4px',
-        overflow: 'hidden'
-      }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      marginBottom: '16px'
+    }}>
+      <div style={{ position: 'relative', marginBottom: '8px' }}>
+        <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="6"
+            fill="transparent"
+          />
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke={getColor(score)}
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+          />
+        </svg>
         <div style={{
-          width: `${score}%`,
-          height: '100%',
-          backgroundColor: getColor(score),
-          borderRadius: '4px',
-          transition: 'width 0.5s ease-in-out'
-        }} />
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '18px',
+          fontWeight: '700',
+          color: getColor(score)
+        }}>
+          {score}
+        </div>
+      </div>
+      
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '2px' }}>
+          {label}
+        </div>
+        <div style={{ fontSize: '11px', color: getColor(score), fontWeight: '500' }}>
+          {getQuality(score)}
+        </div>
       </div>
     </div>
   );
@@ -38,9 +80,13 @@ const SEOBar = ({ score, label, width = '100%' }) => {
 const MultiPlatformContentModal = ({ workflow }) => {
   const [activeTab, setActiveTab] = useState('facebook');
   
-  const getPlatformEmoji = (platform) => {
-    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
-    return emojis[platform] || '📱';
+  const getPlatformIcon = (platform, size = 20) => {
+    const icons = {
+      facebook: <FaFacebook size={size} color="#1877f2" />,
+      instagram: <FaInstagram size={size} color="#e4405f" />,
+      twitter: <FaTwitter size={size} color="#1da1f2" />
+    };
+    return icons[platform] || <FaFacebook size={size} color="#6b7280" />;
   };
   
   const getPlatformDisplayName = (platform) => {
@@ -107,34 +153,37 @@ const MultiPlatformContentModal = ({ workflow }) => {
             key={platform}
             onClick={() => setActiveTab(platform)}
             style={{
-              padding: '8px 16px',
-              background: activeTab === platform 
-                ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' 
-                : '#f8f9fa',
-              color: activeTab === platform ? '#fff' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
+              padding: '12px 24px',
+              background: '#ffffff',
+              color: activeTab === platform ? '#1f2937' : '#6b7280',
+              border: activeTab === platform ? '2px solid #fdba74' : '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '8px'
             }}
           >
-            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+            {getPlatformIcon(platform, 16)} {getPlatformDisplayName(platform)}
           </button>
         ))}
       </div>
       
       {selectedContent[activeTab] && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
@@ -142,17 +191,29 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
@@ -160,17 +221,29 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.captionScore || 0} label="Content" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
               <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
@@ -178,8 +251,16 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall" />
             </div>
           </div>
         </div>
@@ -710,32 +791,7 @@ export default function OngoingApproval() {
         </p>
       </div>
 
-      {/* Rejected Designs */}
-      {rejectedWorkflows.length > 0 && (
-        <div style={{ marginBottom: '40px' }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: '12px',
-            padding: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <h2 style={{ 
-              fontSize: '1.25rem', 
-              fontWeight: '600', 
-              color: '#1f2937', 
-              margin: '0 0 20px 0',
-              paddingBottom: '12px',
-              borderBottom: '2px solid #e5e7eb'
-            }}>
-              Rejected Designs ({rejectedWorkflows.length})
-            </h2>
-            {rejectedWorkflows.map(workflow => (
-              <ApprovalCard key={workflow.id} workflow={workflow} />
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Pending Approval */}
       {pendingWorkflows.length > 0 && (
@@ -765,7 +821,7 @@ export default function OngoingApproval() {
       )}
 
       {/* Empty State */}
-      {rejectedWorkflows.length === 0 && pendingWorkflows.length === 0 && (
+      {pendingWorkflows.length === 0 && (
         <div style={{
           background: '#fff',
           borderRadius: '12px',

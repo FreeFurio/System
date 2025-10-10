@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContent } from '../../services/contentService';
 import { FiEdit3, FiZap, FiTarget, FiRefreshCw, FiUser, FiCalendar, FiClock, FiSmartphone, FiClipboard } from 'react-icons/fi';
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 
 const TaskDetailsSidebar = ({ task }) => {
@@ -147,6 +148,7 @@ export default function CreateContent() {
   const [input, setInput] = useState('');
   const [numContents, setNumContents] = useState(3);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
   const [searchParams] = useSearchParams();
@@ -185,21 +187,42 @@ export default function CreateContent() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setProgress(0);
+    
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) return prev; // Stop at 90% until actual completion
+        return prev + Math.random() * 15; // Random increments
+      });
+    }, 500);
     
     try {
       const finalId = workflowId || taskId;
       const res = await createContent({ input, numContents, taskId: finalId });
-      if (res.success) {
-        const finalTaskId = res.taskId || finalId;
-        const outputUrl = finalTaskId ? `/content/output?taskId=${finalTaskId}` : '/content/output';
-        navigate(outputUrl, { state: { contents: res.contents, taskId: finalTaskId } });
-      } else {
-        setError('Failed to create content.');
-      }
+      
+      // Complete progress
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      // Small delay to show 100% completion
+      setTimeout(() => {
+        if (res.success) {
+          const finalTaskId = res.taskId || finalId;
+          const outputUrl = finalTaskId ? `/content/output?taskId=${finalTaskId}` : '/content/output';
+          navigate(outputUrl, { state: { contents: res.contents, taskId: finalTaskId } });
+        } else {
+          setError('Failed to create content.');
+        }
+      }, 500);
     } catch (err) {
+      clearInterval(progressInterval);
       setError('An error occurred.');
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+      }, 500);
     }
   };
 
@@ -257,6 +280,256 @@ export default function CreateContent() {
             <FiClipboard size={16} />
             Go to Tasks
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading overlay component
+  if (loading) {
+    return (
+      <div style={{ 
+        minHeight: 'calc(100vh - 200px)',
+        padding: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '1200px',
+          background: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '60px 40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}>
+        <div style={{
+          textAlign: 'center',
+          color: '#1f2937',
+          maxWidth: '600px',
+          padding: '40px'
+        }}>
+          {/* Main AI Icon with Animation */}
+          <div style={{
+            fontSize: '80px',
+            marginBottom: '32px',
+            animation: 'pulse 2s ease-in-out infinite',
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            <FiZap size={80} color="#6b7280" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
+          </div>
+          
+          {/* Title */}
+          <h1 style={{
+            fontSize: '36px',
+            fontWeight: '800',
+            margin: '0 0 16px 0',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}>AI is Creating Your Content</h1>
+          
+          {/* Subtitle */}
+          <p style={{
+            fontSize: '18px',
+            margin: '0 0 40px 0',
+            opacity: 0.9,
+            lineHeight: '1.6'
+          }}>Generating {numContents} unique variations for each platform...</p>
+          
+          {/* Progress Steps */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '24px',
+            marginBottom: '40px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.2)',
+              padding: '12px 20px',
+              borderRadius: '25px',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#4ade80',
+                animation: 'blink 1.5s ease-in-out infinite'
+              }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600' }}>Analyzing Brief</span>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.2)',
+              padding: '12px 20px',
+              borderRadius: '25px',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#60a5fa',
+                animation: 'blink 1.5s ease-in-out infinite 0.5s'
+              }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600' }}>Creating Headlines</span>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.2)',
+              padding: '12px 20px',
+              borderRadius: '25px',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#f59e0b',
+                animation: 'blink 1.5s ease-in-out infinite 1s'
+              }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600' }}>Generating Content</span>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.2)',
+              padding: '12px 20px',
+              borderRadius: '25px',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#ec4899',
+                animation: 'blink 1.5s ease-in-out infinite 1.5s'
+              }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600' }}>Adding Hashtags</span>
+            </div>
+          </div>
+          
+          {/* Platform Icons */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '20px',
+            marginBottom: '40px'
+          }}>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'float 3s ease-in-out infinite'
+            }}>
+              <FaFacebook size={24} color="#6b7280" />
+            </div>
+            
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'float 3s ease-in-out infinite 0.5s'
+            }}>
+              <FaInstagram size={24} color="#6b7280" />
+            </div>
+            
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'float 3s ease-in-out infinite 1s'
+            }}>
+              <FaTwitter size={24} color="#6b7280" />
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div style={{
+            width: '100%',
+            height: '4px',
+            background: '#f3f4f6',
+            borderRadius: '2px',
+            overflow: 'hidden',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${progress}%`,
+              background: '#6b7280',
+              borderRadius: '2px',
+              transition: 'width 0.3s ease'
+            }}></div>
+          </div>
+          
+          {/* Progress Percentage */}
+          <div style={{
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#6b7280',
+            marginBottom: '24px'
+          }}>
+            {Math.round(progress)}% Complete
+          </div>
+          
+          {/* Fun Fact */}
+          <p style={{
+            fontSize: '14px',
+            opacity: 0.8,
+            fontStyle: 'italic',
+            margin: 0
+          }}>💡 Did you know? Our AI analyzes thousands of successful posts to create engaging content!</p>
+        </div>
+        
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+          }
+          
+          @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+          }
+          
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+          }
+          
+
+        `}</style>
         </div>
       </div>
     );

@@ -1,10 +1,259 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
-import { FiTarget, FiUser, FiCalendar, FiSmartphone, FiClock, FiEdit3, FiFileText } from 'react-icons/fi';
+import { FiEye, FiUser, FiCalendar, FiTarget, FiEdit3, FiClock, FiSmartphone, FiBarChart, FiFileText } from 'react-icons/fi';
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 
+const SEORadial = ({ score, label, size = 60 }) => {
+  const getColor = (score) => {
+    if (score >= 85) return '#10b981';
+    if (score >= 75) return '#f59e0b';
+    return '#ef4444';
+  };
+  
+  const radius = (size - 8) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="4"
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={getColor(score)}
+            strokeWidth="4"
+            fill="none"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+          />
+        </svg>
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '12px',
+          fontWeight: '700',
+          color: getColor(score)
+        }}>
+          {score}
+        </div>
+      </div>
+      <span style={{ fontSize: '12px', fontWeight: '600', color: '#374151', textAlign: 'center' }}>{label}</span>
+    </div>
+  );
+};
+
+const MultiPlatformContentModal = ({ workflow }) => {
+  const [activeTab, setActiveTab] = useState('facebook');
+  
+  const getPlatformIcon = (platform) => {
+    const icons = { 
+      facebook: <FaFacebook color="#1877f2" size={16} />, 
+      instagram: <FaInstagram color="#e4405f" size={16} />, 
+      twitter: <FaTwitter color="#1da1f2" size={16} /> 
+    };
+    return icons[platform] || <FaFacebook color="#6b7280" size={16} />;
+  };
+  
+  const getPlatformDisplayName = (platform) => {
+    const names = { facebook: 'Facebook', instagram: 'Instagram', twitter: 'Twitter' };
+    return names[platform] || platform;
+  };
+  
+  const selectedContent = workflow.contentCreator?.content?.selectedContent || {};
+  const seoAnalysis = workflow.contentCreator?.content?.seoAnalysis || {};
+  const availablePlatforms = Object.keys(selectedContent);
+  
+  if (availablePlatforms.length === 0) {
+    return (
+      <div style={{
+        marginTop: '0px',
+        padding: '32px',
+        background: '#f8f9fa',
+        borderRadius: '8px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
+        <div style={{ fontSize: '16px', color: '#6b7280' }}>No content available</div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      marginTop: '0px',
+      padding: '0px',
+      background: 'transparent',
+      borderRadius: '0px',
+      border: 'none'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start',
+        marginBottom: '24px',
+        paddingBottom: '12px',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#374151', 
+          fontSize: '16px', 
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          📝 Multi-Platform Content
+        </h4>
+      </div>
+      
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '8px', 
+        marginBottom: '20px'
+      }}>
+        {availablePlatforms.map(platform => (
+          <button
+            key={platform}
+            onClick={() => setActiveTab(platform)}
+            style={{
+              padding: '12px 24px',
+              background: '#ffffff',
+              color: activeTab === platform ? '#1f2937' : '#6b7280',
+              border: activeTab === platform ? '2px solid #fdba74' : '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {getPlatformIcon(platform)} {getPlatformDisplayName(platform)}
+          </button>
+        ))}
+      </div>
+      
+      {selectedContent[activeTab] && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
+                {selectedContent[activeTab].headline}
+              </div>
+            </div>
+            
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
+              <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
+                {selectedContent[activeTab].caption}
+              </div>
+            </div>
+            
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.captionScore || 0} label="Content" />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', alignItems: 'start' }}>
+            <div style={{
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
+              <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
+                {selectedContent[activeTab].hashtag}
+              </div>
+            </div>
+            
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const WorkflowCard = ({ workflow, onCreateContent }) => {
+  const [contentExpanded, setContentExpanded] = useState(false);
+  
   const getStatusColor = (status) => {
     switch (status) {
       case 'content_creation': return '#f59e0b';
@@ -20,6 +269,7 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
     switch (status) {
       case 'content_creation': return 'Content Creation';
       case 'content_approval': return 'Pending Approval';
+      case 'content_rejected': return 'Content Rejected - Needs Rework';
       case 'design_creation': return 'Design Creation';
       case 'design_approval': return 'Design Approval';
       case 'posted': return 'Posted';
@@ -28,8 +278,8 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
   };
 
   const getTaskIcon = () => {
-    if (workflow.status === 'content_approval') return <FiFileText size={20} color="#fff" />;
-    if (workflow.status === 'design_creation') return <FiEdit3 size={20} color="#fff" />;
+    if (workflow.status === 'content_creation') return <FiEdit3 size={20} color="#fff" />;
+    if (workflow.status === 'content_approval') return <FiEye size={20} color="#fff" />;
     return <FiFileText size={20} color="#fff" />;
   };
 
@@ -43,7 +293,7 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
   };
 
   const canCreateContent = (workflow.status === 'content_creation' || workflow.status === 'content_rejected') && workflow.currentStage === 'contentcreator';
-  const hasSubmittedContent = workflow.contentCreator && workflow.contentCreator.content && workflow.status !== 'content_creation' && workflow.status !== 'content_rejected';
+  const hasSubmittedContent = workflow.contentCreator && workflow.contentCreator.content;
 
   return (
     <div style={{
@@ -101,8 +351,8 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
           </div>
         </div>
         <span style={{
-          background: '#fed7aa',
-          color: '#9a3412',
+          background: workflow.status === 'content_rejected' ? '#fee2e2' : '#fed7aa',
+          color: workflow.status === 'content_rejected' ? '#dc2626' : '#9a3412',
           padding: '6px 12px',
           borderRadius: '20px',
           fontSize: '11px',
@@ -133,7 +383,8 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
           color: '#1f2937', 
           lineHeight: '1.6',
           fontWeight: '500',
-          background: '#fff'
+          background: '#fff',
+          marginBottom: '20px'
         }}>
           {workflow.objectives}
         </div>
@@ -163,6 +414,15 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
             <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.minAge}-{workflow.maxAge} years</div>
           </div>
         </div>
+        {workflow.numContent && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FiBarChart size={16} color="#f59e0b" />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', marginBottom: '2px', background: '#fff' }}>Content Count</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#374151', background: '#fff' }}>{workflow.numContent}</div>
+            </div>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FiClock size={16} color="#ef4444" />
           <div>
@@ -179,119 +439,83 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
         </div>
       </div>
       
-      {hasSubmittedContent && (
+      {workflow.status === 'content_rejected' && workflow.marketingRejection && (
         <div style={{
-          background: 'linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%)',
-          padding: '20px',
+          background: '#fef2f2',
           borderRadius: '16px',
-          marginBottom: '20px',
-          border: '1px solid #81d4fa',
-          boxShadow: '0 2px 8px rgba(3, 169, 244, 0.1)'
+          padding: '24px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '2px solid #ef4444',
+          marginBottom: '20px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '20px' }}>✨</span>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Submitted Content</div>
-                <div style={{ fontSize: '13px', color: '#1565c0' }}>Content ready for review and approval</div>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              color: '#fff'
+            }}>⚠</div>
+            <div>
+              <h3 style={{ margin: 0, color: '#dc2626', fontSize: '18px', fontWeight: '700' }}>Content Rejected</h3>
+              <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>Rejected on {formatDate(workflow.marketingRejection.rejectedAt)}</p>
             </div>
           </div>
-          
           <div style={{
-            marginTop: '16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '16px'
+            background: '#fff',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #fecaca'
           }}>
-            <div style={{
-              background: '#ffffff',
-              padding: '16px',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ 
-                fontSize: '14px', 
-                fontWeight: '700', 
-                color: '#374151', 
-                marginBottom: '12px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px' 
-              }}>
-                <span>📰</span> HEADLINE
-              </div>
-              <div style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: '#1f2937',
-                lineHeight: 1.5
-              }}>
-                {workflow.contentCreator.content.headline}
-              </div>
-            </div>
-            
-            <div style={{
-              background: '#ffffff',
-              padding: '16px',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ 
-                fontSize: '14px', 
-                fontWeight: '700', 
-                color: '#374151', 
-                marginBottom: '12px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px' 
-              }}>
-                <span>📝</span> CAPTION
-              </div>
-              <div style={{
-                fontSize: '15px',
-                color: '#374151',
-                lineHeight: 1.6
-              }}>
-                {workflow.contentCreator.content.caption}
-              </div>
-            </div>
-            
-            <div style={{
-              background: '#ffffff',
-              padding: '16px',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ 
-                fontSize: '14px', 
-                fontWeight: '700', 
-                color: '#374151', 
-                marginBottom: '12px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px' 
-              }}>
-                <span>🏷️</span> HASHTAGS
-              </div>
-              <div style={{
-                fontSize: '15px',
-                color: '#3b82f6',
-                fontWeight: '600',
-                lineHeight: 1.4
-              }}>
-                {workflow.contentCreator.content.hashtag}
-              </div>
-            </div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Feedback from Marketing Lead:</div>
+            <div style={{ fontSize: '15px', color: '#1f2937', lineHeight: '1.5' }}>{workflow.marketingRejection.feedback}</div>
           </div>
         </div>
       )}
       
+      {/* Submitted Content */}
+      {hasSubmittedContent && (
+        <div style={{
+          background: 'transparent',
+          padding: '20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>✨</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Submitted Content</span>
+            </div>
+            <button
+              onClick={() => setContentExpanded(!contentExpanded)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#0ea5e9',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}
+            >
+              <FiEye size={14} />
+              {contentExpanded ? 'Hide' : 'View'} Details
+            </button>
+          </div>
+          
+          {contentExpanded && <MultiPlatformContentModal workflow={workflow} />}
+        </div>
+      )}
+      
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-        {canCreateContent && !hasSubmittedContent && (
+        {canCreateContent && (
           <button
             onClick={() => onCreateContent(workflow)}
             style={{
@@ -323,8 +547,6 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
           </button>
         )}
       </div>
-      
-
     </div>
   );
 };

@@ -1,34 +1,80 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import DraftService from '../../services/draftService';
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 
-const SEOBar = ({ score, label, width = '100%' }) => {
+const SEORadial = ({ score, label }) => {
   const getColor = (score) => {
     if (score >= 85) return '#10b981';
     if (score >= 75) return '#f59e0b';
     return '#ef4444';
   };
   
+  const getQuality = (score) => {
+    if (score >= 85) return 'Excellent';
+    if (score >= 75) return 'Good';
+    return 'Needs Work';
+  };
+  
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{label}</span>
-        <span style={{ fontSize: '14px', fontWeight: '700', color: getColor(score) }}>{score}/100</span>
-      </div>
-      <div style={{
-        width: width,
-        height: '8px',
-        backgroundColor: '#e5e7eb',
-        borderRadius: '4px',
-        overflow: 'hidden'
-      }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      marginBottom: '16px'
+    }}>
+      <div style={{ position: 'relative', marginBottom: '8px' }}>
+        <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Background circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="6"
+            fill="transparent"
+          />
+          {/* Progress circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke={getColor(score)}
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+          />
+        </svg>
+        {/* Score in center */}
         <div style={{
-          width: `${score}%`,
-          height: '100%',
-          backgroundColor: getColor(score),
-          borderRadius: '4px',
-          transition: 'width 0.5s ease-in-out'
-        }} />
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '18px',
+          fontWeight: '700',
+          color: getColor(score)
+        }}>
+          {score}
+        </div>
+      </div>
+      
+      {/* Label and quality */}
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '2px' }}>
+          {label}
+        </div>
+        <div style={{ fontSize: '11px', color: getColor(score), fontWeight: '500' }}>
+          {getQuality(score)}
+        </div>
       </div>
     </div>
   );
@@ -265,14 +311,14 @@ export default function OutputContent() {
     return names[platform] || platform;
   };
   
-  // Get platform emoji
-  const getPlatformEmoji = (platform) => {
-    const emojis = {
-      facebook: '🔵',
-      instagram: '🟣',
-      twitter: '🔵'
+  // Get platform icon component
+  const getPlatformIcon = (platform, size = 20) => {
+    const icons = {
+      facebook: <FaFacebook size={size} color="#1877f2" />,
+      instagram: <FaInstagram size={size} color="#e4405f" />,
+      twitter: <FaTwitter size={size} color="#1da1f2" />
     };
-    return emojis[platform] || '📱';
+    return icons[platform] || <FaFacebook size={size} color="#6b7280" />;
   };
 
   const handleSubmitForApproval = async () => {
@@ -447,51 +493,44 @@ export default function OutputContent() {
 
   if (showSuccess) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
-      }}>
+      <div style={{ padding: '0', maxWidth: '100%' }}>
         <div style={{
-          background: '#ffffff',
-          borderRadius: 24,
-          padding: '48px',
-          textAlign: 'center',
-          maxWidth: '500px',
-          width: '90%',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          background: '#f0fdf4',
+          borderRadius: '16px',
+          padding: '40px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '2px solid #10b981',
+          width: '100%',
+          minHeight: '600px',
+          transition: 'all 0.3s ease'
         }}>
           <div style={{
-            width: '80px',
-            height: '80px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            borderRadius: '50%',
+            textAlign: 'center',
+            padding: '60px 20px',
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: 'column',
             justifyContent: 'center',
-            margin: '0 auto 24px',
-            fontSize: '32px'
+            alignItems: 'center',
+            height: '100%',
+            minHeight: '520px'
           }}>
-            ✅
+            <div style={{
+              fontSize: '64px',
+              color: '#10b981',
+              marginBottom: '20px'
+            }}>✓</div>
+            <h2 style={{
+              fontSize: '32px',
+              fontWeight: '800',
+              color: '#10b981',
+              margin: '0 0 16px 0'
+            }}>Content Submitted Successfully!</h2>
+            <p style={{
+              fontSize: '18px',
+              color: '#6b7280',
+              margin: 0
+            }}>Redirecting to ongoing approval...</p>
           </div>
-          
-          <h2 style={{
-            fontSize: '32px',
-            fontWeight: '800',
-            color: '#1e293b',
-            margin: '0 0 16px 0'
-          }}>Content Submitted!</h2>
-          
-          <p style={{
-            color: '#475569',
-            fontSize: '20px',
-            margin: '0 0 24px 0',
-            lineHeight: 1.6,
-            fontWeight: '600'
-          }}>Your content has been successfully submitted for approval.</p>
         </div>
       </div>
     );
@@ -538,11 +577,9 @@ export default function OutputContent() {
                 onClick={() => setActiveTab(platform)}
                 style={{
                   padding: '12px 24px',
-                  background: activeTab === platform 
-                    ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                    : '#f8f9fa',
-                  color: activeTab === platform ? '#fff' : '#6b7280',
-                  border: 'none',
+                  background: '#ffffff',
+                  color: activeTab === platform ? '#1f2937' : '#6b7280',
+                  border: activeTab === platform ? '2px solid #fdba74' : '1px solid #e5e7eb',
                   borderRadius: '12px',
                   fontSize: '16px',
                   fontWeight: '600',
@@ -553,7 +590,7 @@ export default function OutputContent() {
                   gap: '8px'
                 }}
               >
-                {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+                {getPlatformIcon(platform, 16)} {getPlatformDisplayName(platform)}
               </button>
             ))}
           </div>
@@ -618,7 +655,7 @@ export default function OutputContent() {
                       alignItems: 'center',
                       gap: '8px'
                     }}>
-                      {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+                      {getPlatformIcon(platform, 20)} {getPlatformDisplayName(platform)}
                     </h3>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -953,10 +990,14 @@ export default function OutputContent() {
                 alignItems: 'center',
                 gap: '12px'
               }}>
-                {getPlatformEmoji(activeTab)} {getPlatformDisplayName(activeTab)} Content ({processedContents.length} options)
+                {getPlatformIcon(activeTab, 24)} {getPlatformDisplayName(activeTab)} Content ({processedContents.length} options)
               </h3>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '24px' 
+              }}>
                 {processedContents.map((content, index) => {
                   const platformData = content.platforms[activeTab];
                   
@@ -995,7 +1036,7 @@ export default function OutputContent() {
                       </div>
                       
                       {/* Headline Row */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', marginBottom: '20px', alignItems: 'start' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
                         <div 
                           onClick={() => selectPlatformContent(activeTab, 'headline', platformData.headline, content.id)}
                           style={{ 
@@ -1004,7 +1045,11 @@ export default function OutputContent() {
                             border: isSelected(activeTab, 'headline', content.id) ? '2px solid #10b981' : '2px solid #e5e7eb',
                             background: isSelected(activeTab, 'headline', content.id) ? '#f0fdf4' : '#f8fafc',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            minHeight: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
                           }}
                         >
                           <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
@@ -1015,13 +1060,21 @@ export default function OutputContent() {
                           </div>
                         </div>
                         
-                        <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
-                          <SEOBar score={platformData.seoAnalysis?.headlineScore || 75} label="Headline SEO" />
+                        <div style={{ 
+                          padding: '0', 
+                          background: '#f8fafc', 
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minHeight: '140px'
+                        }}>
+                          <SEORadial score={platformData.seoAnalysis?.headlineScore || 75} label="Headline" />
                         </div>
                       </div>
                       
                       {/* Caption Row */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', marginBottom: '20px', alignItems: 'start' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
                         <div 
                           onClick={() => selectPlatformContent(activeTab, 'caption', platformData.caption, content.id)}
                           style={{ 
@@ -1030,7 +1083,11 @@ export default function OutputContent() {
                             border: isSelected(activeTab, 'caption', content.id) ? '2px solid #10b981' : '2px solid #e5e7eb',
                             background: isSelected(activeTab, 'caption', content.id) ? '#f0fdf4' : '#f8fafc',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            minHeight: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
                           }}
                         >
                           <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
@@ -1041,13 +1098,21 @@ export default function OutputContent() {
                           </div>
                         </div>
                         
-                        <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
-                          <SEOBar score={platformData.seoAnalysis?.captionScore || 75} label="Caption SEO" />
+                        <div style={{ 
+                          padding: '0', 
+                          background: '#f8fafc', 
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minHeight: '140px'
+                        }}>
+                          <SEORadial score={platformData.seoAnalysis?.captionScore || 75} label="Content" />
                         </div>
                       </div>
                       
                       {/* Hashtags Row */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', alignItems: 'start' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', alignItems: 'start' }}>
                         <div 
                           onClick={() => selectPlatformContent(activeTab, 'hashtag', platformData.hashtag, content.id)}
                           style={{
@@ -1056,7 +1121,11 @@ export default function OutputContent() {
                             border: isSelected(activeTab, 'hashtag', content.id) ? '2px solid #10b981' : '2px solid #e5e7eb',
                             background: isSelected(activeTab, 'hashtag', content.id) ? '#f0fdf4' : '#f8fafc',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            minHeight: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
                           }}
                         >
                           <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
@@ -1067,8 +1136,16 @@ export default function OutputContent() {
                           </div>
                         </div>
                         
-                        <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
-                          <SEOBar score={platformData.seoAnalysis?.overallScore || 75} label="Overall SEO Score" />
+                        <div style={{ 
+                          padding: '0', 
+                          background: '#f8fafc', 
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minHeight: '140px'
+                        }}>
+                          <SEORadial score={platformData.seoAnalysis?.overallScore || 75} label="Overall" />
                         </div>
                       </div>
                     </div>

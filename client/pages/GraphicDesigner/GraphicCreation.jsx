@@ -318,94 +318,6 @@ export default function GraphicCreation() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-        padding: '16px 24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            background: 'rgba(255,255,255,0.2)',
-            borderRadius: '12px',
-            padding: '8px 12px',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <span style={{ fontSize: '20px' }}>🎨</span>
-          </div>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: '700' }}>Fabric.js Design Studio</h2>
-            <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Task: {workflow?.objectives || taskId || 'New Design'}</p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              onClick={() => {
-                console.log('🔄 Switching to original editor');
-                setSelectedEditor('original');
-              }}
-              style={{ 
-                background: selectedEditor === 'original' ? '#ffffff' : '#6366f1', 
-                color: selectedEditor === 'original' ? '#6366f1' : 'white', 
-                border: '2px solid #ffffff', 
-                padding: '10px 20px', 
-                borderRadius: '8px', 
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                minWidth: '120px'
-              }}
-            >
-              Original Editor
-            </button>
-            <button 
-              onClick={() => {
-                console.log('🔄 Switching to templated editor');
-                setSelectedEditor('templated');
-              }}
-              style={{ 
-                background: selectedEditor === 'templated' ? '#ffffff' : '#6366f1', 
-                color: selectedEditor === 'templated' ? '#6366f1' : 'white', 
-                border: '2px solid #ffffff', 
-                padding: '10px 20px', 
-                borderRadius: '8px', 
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                minWidth: '120px'
-              }}
-            >
-              Templated.io
-            </button>
-          </div>
-          {loading && (
-            <div style={{ color: 'white', padding: '12px 20px', fontSize: '14px' }}>
-              Saving design...
-            </div>
-          )}
-          {success && (
-            <div style={{ color: '#10b981', padding: '12px 20px', fontSize: '14px', fontWeight: '600' }}>
-              ✓ Design saved! Redirecting to finalized design...
-            </div>
-          )}
-          <button onClick={() => navigate('/graphic/task')} style={{ 
-            background: 'rgba(255,255,255,0.2)', 
-            color: 'white', 
-            border: '1px solid rgba(255,255,255,0.3)', 
-            padding: '12px 20px', 
-            borderRadius: '10px', 
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '14px',
-            backdropFilter: 'blur(10px)'
-          }}>← Back to Tasks</button>
-        </div>
-      </div>
-      
       {/* Error Display */}
       {error && (
         <div style={{
@@ -420,6 +332,7 @@ export default function GraphicCreation() {
         </div>
       )}
       
+
       {/* Editor Selection */}
       <div style={{ flex: 1 }}>
         {selectedEditor === 'original' ? (
@@ -427,6 +340,8 @@ export default function GraphicCreation() {
             onSave={handleDesignSave}
             onExport={handleDesignExport}
             initialCanvasData={workflow?.graphicDesigner?.canvasData}
+            onBackToTasks={() => navigate('/graphic/task')}
+            taskInfo={workflow}
           />
         ) : (
           <TemplatedEditor 

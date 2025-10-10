@@ -87,51 +87,44 @@ export default function FinalizedDesign() {
 
   if (showSuccess) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
-      }}>
+      <div style={{ padding: '0', maxWidth: '100%' }}>
         <div style={{
-          background: '#ffffff',
-          borderRadius: 24,
-          padding: '48px',
-          textAlign: 'center',
-          maxWidth: '500px',
-          width: '90%',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          background: '#f0fdf4',
+          borderRadius: '16px',
+          padding: '40px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '2px solid #10b981',
+          width: '100%',
+          minHeight: '600px',
+          transition: 'all 0.3s ease'
         }}>
           <div style={{
-            width: '80px',
-            height: '80px',
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-            borderRadius: '50%',
+            textAlign: 'center',
+            padding: '60px 20px',
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: 'column',
             justifyContent: 'center',
-            margin: '0 auto 24px',
-            fontSize: '32px'
+            alignItems: 'center',
+            height: '100%',
+            minHeight: '520px'
           }}>
-            🎨
+            <div style={{
+              fontSize: '64px',
+              color: '#10b981',
+              marginBottom: '20px'
+            }}>✓</div>
+            <h2 style={{
+              fontSize: '32px',
+              fontWeight: '800',
+              color: '#10b981',
+              margin: '0 0 16px 0'
+            }}>Design Submitted Successfully!</h2>
+            <p style={{
+              fontSize: '18px',
+              color: '#6b7280',
+              margin: 0
+            }}>Redirecting to ongoing approval...</p>
           </div>
-          
-          <h2 style={{
-            fontSize: '32px',
-            fontWeight: '800',
-            color: '#1e293b',
-            margin: '0 0 16px 0'
-          }}>Design Submitted!</h2>
-          
-          <p style={{
-            color: '#475569',
-            fontSize: '20px',
-            margin: '0 0 24px 0',
-            lineHeight: 1.6,
-            fontWeight: '600'
-          }}>Your design has been successfully submitted for approval.</p>
         </div>
       </div>
     );

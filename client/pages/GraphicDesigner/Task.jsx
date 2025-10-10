@@ -2,36 +2,59 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
 import { FiEye, FiUser, FiCalendar, FiTarget, FiEdit3, FiClock, FiSmartphone, FiBarChart, FiFileText } from 'react-icons/fi';
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 
-const SEOBar = ({ score, label, width = '100%' }) => {
+const SEORadial = ({ score, label, size = 60 }) => {
   const getColor = (score) => {
     if (score >= 85) return '#10b981';
     if (score >= 75) return '#f59e0b';
     return '#ef4444';
   };
   
+  const radius = (size - 8) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{label}</span>
-        <span style={{ fontSize: '14px', fontWeight: '700', color: getColor(score) }}>{score}/100</span>
-      </div>
-      <div style={{
-        width: width,
-        height: '8px',
-        backgroundColor: '#e5e7eb',
-        borderRadius: '4px',
-        overflow: 'hidden'
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="4"
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={getColor(score)}
+            strokeWidth="4"
+            fill="none"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+          />
+        </svg>
         <div style={{
-          width: `${score}%`,
-          height: '100%',
-          backgroundColor: getColor(score),
-          borderRadius: '4px',
-          transition: 'width 0.5s ease-in-out'
-        }} />
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '12px',
+          fontWeight: '700',
+          color: getColor(score)
+        }}>
+          {score}
+        </div>
       </div>
+      <span style={{ fontSize: '12px', fontWeight: '600', color: '#374151', textAlign: 'center' }}>{label}</span>
     </div>
   );
 };
@@ -39,9 +62,13 @@ const SEOBar = ({ score, label, width = '100%' }) => {
 const MultiPlatformContentModal = ({ workflow }) => {
   const [activeTab, setActiveTab] = useState('facebook');
   
-  const getPlatformEmoji = (platform) => {
-    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
-    return emojis[platform] || '📱';
+  const getPlatformIcon = (platform) => {
+    const icons = { 
+      facebook: <FaFacebook color="#1877f2" size={16} />, 
+      instagram: <FaInstagram color="#e4405f" size={16} />, 
+      twitter: <FaTwitter color="#1da1f2" size={16} /> 
+    };
+    return icons[platform] || <FaFacebook color="#6b7280" size={16} />;
   };
   
   const getPlatformDisplayName = (platform) => {
@@ -108,34 +135,37 @@ const MultiPlatformContentModal = ({ workflow }) => {
             key={platform}
             onClick={() => setActiveTab(platform)}
             style={{
-              padding: '8px 16px',
-              background: activeTab === platform 
-                ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' 
-                : '#f8f9fa',
-              color: activeTab === platform ? '#fff' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
+              padding: '12px 24px',
+              background: '#ffffff',
+              color: activeTab === platform ? '#1f2937' : '#6b7280',
+              border: activeTab === platform ? '2px solid #fdba74' : '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '8px'
             }}
           >
-            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+            {getPlatformIcon(platform)} {getPlatformDisplayName(platform)}
           </button>
         ))}
       </div>
       
       {selectedContent[activeTab] && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
@@ -143,17 +173,29 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
@@ -161,17 +203,29 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.captionScore || 0} label="Content" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
               <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
@@ -179,8 +233,16 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall" />
             </div>
           </div>
         </div>
@@ -208,6 +270,7 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
       case 'content_creation': return 'Content Creation';
       case 'content_approval': return 'Pending Approval';
       case 'design_creation': return 'Design Creation';
+      case 'design_rejected': return 'Design Rejected - Needs Rework';
       case 'design_approval': return 'Design Approval';
       case 'posted': return 'Posted';
       default: return 'In Progress';
@@ -229,7 +292,7 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
     });
   };
 
-  const canCreateDesign = workflow.status === 'design_creation' && workflow.currentStage === 'graphicdesigner';
+  const canCreateDesign = (workflow.status === 'design_creation' || workflow.status === 'design_rejected') && workflow.currentStage === 'graphicdesigner';
   const hasSubmittedDesign = workflow.graphicDesigner && workflow.graphicDesigner.designs;
   const hasDraftDesign = workflow.graphicDesigner && workflow.graphicDesigner.canvasData;
 
@@ -289,8 +352,8 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
           </div>
         </div>
         <span style={{
-          background: '#fed7aa',
-          color: '#9a3412',
+          background: workflow.status === 'design_rejected' ? '#fee2e2' : '#fed7aa',
+          color: workflow.status === 'design_rejected' ? '#dc2626' : '#9a3412',
           padding: '6px 12px',
           borderRadius: '20px',
           fontSize: '11px',
@@ -377,51 +440,42 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
         </div>
       </div>
       
-      {hasSubmittedDesign && (
+
+      
+      {workflow.status === 'design_rejected' && workflow.marketingRejection && (
         <div style={{
-          background: 'linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%)',
-          padding: '20px',
+          background: '#fef2f2',
           borderRadius: '16px',
-          marginBottom: '20px',
-          border: '1px solid #81d4fa',
-          boxShadow: '0 2px 8px rgba(3, 169, 244, 0.1)'
+          padding: '24px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '2px solid #ef4444',
+          marginBottom: '20px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '20px' }}>🎨</span>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0d47a1', marginBottom: '4px' }}>Design Submitted</div>
-                <div style={{ fontSize: '13px', color: '#1565c0' }}>Design ready for final approval</div>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              color: '#fff'
+            }}>⚠</div>
+            <div>
+              <h3 style={{ margin: 0, color: '#dc2626', fontSize: '18px', fontWeight: '700' }}>Design Rejected</h3>
+              <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>Rejected on {formatDate(workflow.marketingRejection.rejectedAt)}</p>
             </div>
           </div>
-          
           <div style={{
-            marginTop: '16px',
-            background: '#ffffff',
+            background: '#fff',
             padding: '16px',
-            borderRadius: '12px',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            borderRadius: '8px',
+            border: '1px solid #fecaca'
           }}>
-            <div style={{ 
-              fontSize: '14px', 
-              fontWeight: '700', 
-              color: '#374151', 
-              marginBottom: '12px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px' 
-            }}>
-              <span>📋</span> DESIGN DETAILS
-            </div>
-            <div style={{
-              fontSize: '15px',
-              color: '#374151',
-              lineHeight: 1.6
-            }}>
-              Submitted on {new Date(workflow.graphicDesigner.submittedAt).toLocaleDateString()}
-            </div>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Feedback from Marketing Lead:</div>
+            <div style={{ fontSize: '15px', color: '#1f2937', lineHeight: '1.5' }}>{workflow.marketingRejection.feedback}</div>
           </div>
         </div>
       )}
@@ -462,9 +516,9 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
       </div>
       
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-        {canCreateDesign && !hasSubmittedDesign && (
+        {canCreateDesign && (
           <>
-            {hasDraftDesign && (
+            {hasDraftDesign ? (
               <button
                 onClick={() => onCreateDesign(workflow, true)}
                 style={{
@@ -494,36 +548,37 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
               >
                 <FiEdit3 size={14} /> Edit Draft
               </button>
+            ) : (
+              <button
+                onClick={() => onCreateDesign(workflow)}
+                style={{
+                  background: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                }}
+                onMouseLeave={e => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                }}
+              >
+                <FiEdit3 size={14} /> Create Design
+              </button>
             )}
-            <button
-              onClick={() => onCreateDesign(workflow)}
-              style={{
-                background: '#10b981',
-                color: '#fff',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                height: '36px',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              onMouseEnter={e => {
-                e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
-              }}
-              onMouseLeave={e => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
-              }}
-            >
-              <FiEdit3 size={14} /> {hasDraftDesign ? 'Start New Design' : 'Create Design'}
-            </button>
           </>
         )}
       </div>
@@ -666,7 +721,7 @@ export default function Task() {
             )
           )}
         </div>
-      </div>}
+      </div>
     </div>
   );
 }

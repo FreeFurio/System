@@ -1,33 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-const SEOBar = ({ score, label, width = '100%' }) => {
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
+const SEORadial = ({ score, label, size = 60 }) => {
   const getColor = (score) => {
     if (score >= 85) return '#10b981';
     if (score >= 75) return '#f59e0b';
     return '#ef4444';
   };
   
+  const radius = (size - 8) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{label}</span>
-        <span style={{ fontSize: '14px', fontWeight: '700', color: getColor(score) }}>{score}/100</span>
-      </div>
-      <div style={{
-        width: width,
-        height: '8px',
-        backgroundColor: '#e5e7eb',
-        borderRadius: '4px',
-        overflow: 'hidden'
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="4"
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={getColor(score)}
+            strokeWidth="4"
+            fill="none"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+          />
+        </svg>
         <div style={{
-          width: `${score}%`,
-          height: '100%',
-          backgroundColor: getColor(score),
-          borderRadius: '4px',
-          transition: 'width 0.5s ease-in-out'
-        }} />
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '12px',
+          fontWeight: '700',
+          color: getColor(score)
+        }}>
+          {score}
+        </div>
       </div>
+      <span style={{ fontSize: '12px', fontWeight: '600', color: '#374151', textAlign: 'center' }}>{label}</span>
     </div>
   );
 };
@@ -35,9 +58,13 @@ const SEOBar = ({ score, label, width = '100%' }) => {
 const MultiPlatformContentModal = ({ workflow }) => {
   const [activeTab, setActiveTab] = useState('facebook');
   
-  const getPlatformEmoji = (platform) => {
-    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
-    return emojis[platform] || '📱';
+  const getPlatformIcon = (platform) => {
+    const icons = { 
+      facebook: <FaFacebook color="#1877f2" size={16} />, 
+      instagram: <FaInstagram color="#e4405f" size={16} />, 
+      twitter: <FaTwitter color="#1da1f2" size={16} /> 
+    };
+    return icons[platform] || <FaFacebook color="#6b7280" size={16} />;
   };
   
   const getPlatformDisplayName = (platform) => {
@@ -89,34 +116,37 @@ const MultiPlatformContentModal = ({ workflow }) => {
             key={platform}
             onClick={() => setActiveTab(platform)}
             style={{
-              padding: '8px 16px',
-              background: activeTab === platform 
-                ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                : '#f8f9fa',
-              color: activeTab === platform ? '#fff' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
+              padding: '12px 24px',
+              background: '#ffffff',
+              color: activeTab === platform ? '#1f2937' : '#6b7280',
+              border: activeTab === platform ? '2px solid #fdba74' : '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '8px'
             }}
           >
-            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+            {getPlatformIcon(platform)} {getPlatformDisplayName(platform)}
           </button>
         ))}
       </div>
       
       {selectedContent[activeTab] && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
@@ -124,17 +154,29 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
@@ -142,17 +184,29 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.captionScore || 0} label="Content" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
               <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
@@ -160,8 +214,16 @@ const MultiPlatformContentModal = ({ workflow }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall" />
             </div>
           </div>
         </div>

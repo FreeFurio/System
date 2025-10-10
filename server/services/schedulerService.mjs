@@ -39,27 +39,52 @@ class SchedulerService {
       const now = new Date();
       
       let postsTriggered = 0;
+      let expiredWorkflows = 0;
       
       for (const workflow of workflows) {
-        if (workflow.status === 'design_approved' && workflow.deadline) {
+        if (workflow.deadline) {
           const deadline = new Date(workflow.deadline);
           
           if (now >= deadline) {
-            console.log(`⏰ Workflow ${workflow.id} deadline reached, posting...`);
-            
-            await FirebaseService.updateWorkflowStatus(
-              workflow.id, 
-              'posted', 
-              { currentStage: 'completed' }
-            );
-            
-            postsTriggered++;
+            if (workflow.status === 'design_approved') {
+              console.log(`⏰ Workflow ${workflow.id} deadline reached, posting...`);
+              
+              // Call actual social media posting
+              await FirebaseService.autoPostToSocialMedia(workflow.id, workflow);
+              
+              await FirebaseService.updateWorkflowStatus(
+                workflow.id, 
+                'posted', 
+                { currentStage: 'completed' }
+              );
+              
+              postsTriggered++;
+            } else if (workflow.status !== 'posted' && workflow.status !== 'expired') {
+              console.log(`⚠️ Workflow ${workflow.id} expired without completion. Status: ${workflow.status}`);
+              
+              // Mark as expired
+              await FirebaseService.updateWorkflowStatus(
+                workflow.id, 
+                'expired', 
+                { 
+                  currentStage: 'expired',
+                  expiredAt: now.toISOString(),
+                  expiredStatus: workflow.status
+                }
+              );
+              
+              expiredWorkflows++;
+            }
           }
         }
       }
       
       if (postsTriggered > 0) {
         console.log(`📤 Triggered ${postsTriggered} workflow posts`);
+      }
+      
+      if (expiredWorkflows > 0) {
+        console.log(`⚠️ Marked ${expiredWorkflows} workflows as expired`);
       }
       
     } catch (error) {

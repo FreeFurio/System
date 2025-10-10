@@ -1970,6 +1970,13 @@ router.get('/instagram-posts/:pageId', async (req, res) => {
   }
 });
 
+// Instagram data endpoint (for PostedContents refresh)
+router.get('/instagram-data', async (req, res) => {
+  // Just redirect to instagram-posts with same query params
+  const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  res.redirect(`/api/v1/admin/instagram-posts${queryString}`);
+});
+
 // Get Instagram posts from all connected pages
 router.get('/instagram-posts', async (req, res) => {
   try {
@@ -2095,7 +2102,7 @@ router.get('/twitter-oauth', async (req, res) => {
     const clientId = process.env.TWITTER_CLIENT_ID;
     const redirectUri = process.env.TWITTER_REDIRECT_URI;
     
-    const scopes = 'tweet.read users.read tweet.write';
+    const scopes = 'tweet.read users.read tweet.write offline.access';
     const state = Date.now().toString();
     
     // Generate proper PKCE code challenge
@@ -2314,6 +2321,50 @@ router.get('/twitter-insights/:accountId', (req, res) => {
   res.redirect(301, `/api/v1/admin/twitter-data${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
 });
 
+// Debug endpoint to check Firebase structure
+router.get('/debug-firebase-twitter', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Check all possible Twitter locations
+    const locations = [
+      'cachedPosts/admin/twitter',
+      'cachedPosts/admin/twitter/posts',
+      'cachedTwitterData/admin'
+    ];
+    
+    const results = {};
+    
+    for (const location of locations) {
+      const locationRef = ref(db, location);
+      const snapshot = await get(locationRef);
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        results[location] = {
+          exists: true,
+          type: Array.isArray(data) ? 'array' : typeof data,
+          keys: Object.keys(data || {}),
+          count: Array.isArray(data) ? data.length : Object.keys(data || {}).length,
+          sample: Object.keys(data || {}).slice(0, 3)
+        };
+      } else {
+        results[location] = { exists: false };
+      }
+    }
+    
+    res.json({ success: true, firebase: results });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Unified Twitter data endpoint (posts + insights in one call)
 router.get('/twitter-data', async (req, res) => {
   try {
@@ -2327,94 +2378,43 @@ router.get('/twitter-data', async (req, res) => {
     
     const { refresh } = req.query;
     
-    // If not refresh, try to get cached data first
+    // If not refresh, try cached data first
     if (!refresh) {
-      const cachedDataRef = ref(db, 'cachedTwitterData/admin');
-      const cachedSnapshot = await get(cachedDataRef);
+      const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter/posts');
+      const cachedPostsSnapshot = await get(cachedPostsRef);
       
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        console.log('🐦 Returning cached Twitter data:', {
-          postsCount: cachedData.posts?.length || 0,
-          insights: cachedData.insights,
-          firstPost: cachedData.posts?.[0] ? {
-            id: cachedData.posts[0].id,
-            message: cachedData.posts[0].message?.substring(0, 50),
-            pageName: cachedData.posts[0].pageName,
-            platform: 'twitter'
-          } : null
-        });
+      if (cachedPostsSnapshot.exists()) {
+        const cachedPosts = cachedPostsSnapshot.val();
+        const postsArray = Object.values(cachedPosts || {});
         
-        // TEMPORARY: Clear corrupted cache if it contains Facebook data or missing insights
-        if (cachedData.posts?.[0]?.reactions !== undefined || !cachedData.insights || Object.keys(cachedData.insights).length === 0) {
-          console.log('❌ Detected corrupted cache (Facebook data or missing insights), clearing...');
-          await set(cachedDataRef, null);
-          // Continue to fetch fresh Twitter data
-        } else {
-          return res.json({ 
-            success: true, 
-            posts: cachedData.posts || [],
-            insights: cachedData.insights || {},
-            cached: true,
-            lastUpdated: cachedData.lastUpdated
-          });
-        }
-      }
-    }
-    
-    const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
-    const snapshot = await get(twitterAccountsRef);
-    
-    if (!snapshot.exists()) {
-      return res.json({ 
-        success: true, 
-        posts: [],
-        insights: {},
-        message: 'No Twitter accounts connected.'
-      });
-    }
-    
-    // Check Twitter rate limiting (15-minute cooldown)
-    const twitterAllowed = await insightsService.isTwitterCallAllowed();
-    
-    if (!twitterAllowed) {
-      const timeRemaining = 15 - ((new Date() - insightsService.twitterRateLimit?.lastCall || new Date()) / (1000 * 60));
-      console.log(`⏳ Twitter Data API Rate Limited - ${Math.ceil(timeRemaining)} minutes remaining`);
-      
-      // Return cached data when rate limited
-      const cachedDataRef = ref(db, 'cachedTwitterData/admin');
-      const cachedSnapshot = await get(cachedDataRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        console.log(`📦 Returning cached Twitter data from ${cachedData.lastUpdated}`);
+        const insights = {
+          totalTweets: postsArray.length,
+          totalLikes: postsArray.reduce((sum, post) => sum + (post.likes || 0), 0),
+          totalRetweets: postsArray.reduce((sum, post) => sum + (post.retweets || 0), 0),
+          totalReplies: postsArray.reduce((sum, post) => sum + (post.replies || 0), 0)
+        };
+        insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
+        insights.avgEngagementPerTweet = postsArray.length > 0 ? Math.round(insights.totalEngagement / postsArray.length) : 0;
         
         return res.json({ 
           success: true, 
-          posts: cachedData.posts || [],
-          insights: cachedData.insights || {},
-          cached: true,
-          rateLimited: true,
-          timeRemaining: Math.ceil(timeRemaining),
-          lastUpdated: cachedData.lastUpdated
+          posts: postsArray,
+          insights,
+          postsCount: postsArray.length
         });
       }
-      
-      console.log(`❌ No cached Twitter data available during rate limit`);
-      return res.json({ 
-        success: true, 
-        posts: [],
-        insights: {},
-        rateLimited: true,
-        message: 'Twitter rate limited and no cached data available.'
-      });
     }
     
-    const accounts = Object.values(snapshot.val());
+    // Fetch fresh data from Twitter API
+    const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const accountsSnapshot = await get(twitterAccountsRef);
+    
+    if (!accountsSnapshot.exists()) {
+      return res.json({ success: true, posts: [], insights: {}, postsCount: 0 });
+    }
+    
+    const accounts = Object.values(accountsSnapshot.val());
     const allPosts = [];
-    let totalLikes = 0;
-    let totalRetweets = 0;
-    let totalReplies = 0;
     
     for (const account of accounts) {
       try {
@@ -2422,102 +2422,116 @@ router.get('/twitter-data', async (req, res) => {
           headers: { 'Authorization': `Bearer ${account.accessToken}` },
           params: {
             max_results: 10,
-            'tweet.fields': 'created_at,public_metrics'
+            'tweet.fields': 'created_at,public_metrics,text'
           }
         });
-
-        const posts = tweetsResponse.data.data?.map(tweet => {
-          const likes = tweet.public_metrics?.like_count || 0;
-          const retweets = tweet.public_metrics?.retweet_count || 0;
-          const replies = tweet.public_metrics?.reply_count || 0;
-          
-          // Add to totals for insights
-          totalLikes += likes;
-          totalRetweets += retweets;
-          totalReplies += replies;
-          
-          return {
-            id: tweet.id,
-            message: tweet.text,
-            createdTime: tweet.created_at,
-            pageName: account.name,
-            pageId: account.id,
-            profilePicture: account.profilePicture,
-            likes,
-            retweets,
-            replies
-          };
-        }) || [];
         
-        allPosts.push(...posts);
+        const tweets = tweetsResponse.data.data || [];
+        tweets.forEach((tweet, index) => {
+          allPosts.push({
+            id: tweet.id,
+            text: tweet.text,
+            createdTime: tweet.created_at,
+            likes: tweet.public_metrics?.like_count || 0,
+            retweets: tweet.public_metrics?.retweet_count || 0,
+            replies: tweet.public_metrics?.reply_count || 0,
+            username: account.username,
+            name: account.name,
+            profilePicture: account.profilePicture
+          });
+        });
       } catch (error) {
-        console.error(`Error fetching tweets for ${account.username}:`, error.response?.data || error.message);
+        console.error(`Error fetching tweets for ${account.username}:`, error.message);
+        // If rate limited, return cached data
+        if (error.response?.status === 429) {
+          const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter/posts');
+          const cachedPostsSnapshot = await get(cachedPostsRef);
+          
+          if (cachedPostsSnapshot.exists()) {
+            const cachedPosts = cachedPostsSnapshot.val();
+            const postsArray = Object.values(cachedPosts || {});
+            
+            const insights = {
+              totalTweets: postsArray.length,
+              totalLikes: postsArray.reduce((sum, post) => sum + (post.likes || 0), 0),
+              totalRetweets: postsArray.reduce((sum, post) => sum + (post.retweets || 0), 0),
+              totalReplies: postsArray.reduce((sum, post) => sum + (post.replies || 0), 0)
+            };
+            insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
+            insights.avgEngagementPerTweet = postsArray.length > 0 ? Math.round(insights.totalEngagement / postsArray.length) : 0;
+            
+            return res.json({ 
+              success: true, 
+              posts: postsArray,
+              insights,
+              postsCount: postsArray.length,
+              rateLimited: true
+            });
+          }
+        }
       }
     }
     
-    // Sort posts by creation time (newest first)
-    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    // Only cache if we got posts
+    if (allPosts.length > 0) {
+      const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter');
+      const postsObject = {};
+      allPosts.forEach((post, index) => {
+        postsObject[index] = post;
+      });
+      
+      await set(cachedPostsRef, {
+        posts: postsObject,
+        lastUpdated: new Date().toISOString()
+      });
+    }
+    
+    // If no posts fetched, return cached data
+    if (allPosts.length === 0) {
+      const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter/posts');
+      const cachedPostsSnapshot = await get(cachedPostsRef);
+      
+      if (cachedPostsSnapshot.exists()) {
+        const cachedPosts = cachedPostsSnapshot.val();
+        const postsArray = Object.values(cachedPosts || {});
+        
+        const insights = {
+          totalTweets: postsArray.length,
+          totalLikes: postsArray.reduce((sum, post) => sum + (post.likes || 0), 0),
+          totalRetweets: postsArray.reduce((sum, post) => sum + (post.retweets || 0), 0),
+          totalReplies: postsArray.reduce((sum, post) => sum + (post.replies || 0), 0)
+        };
+        insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
+        insights.avgEngagementPerTweet = postsArray.length > 0 ? Math.round(insights.totalEngagement / postsArray.length) : 0;
+        
+        return res.json({ 
+          success: true, 
+          posts: postsArray,
+          insights,
+          postsCount: postsArray.length,
+          rateLimited: true
+        });
+      }
+    }
     
     // Calculate insights
-    const totalEngagement = totalLikes + totalRetweets + totalReplies;
     const insights = {
       totalTweets: allPosts.length,
-      totalLikes,
-      totalRetweets,
-      totalReplies,
-      totalEngagement,
-      avgEngagementPerTweet: allPosts.length > 0 ? Math.round(totalEngagement / allPosts.length) : 0
+      totalLikes: allPosts.reduce((sum, post) => sum + (post.likes || 0), 0),
+      totalRetweets: allPosts.reduce((sum, post) => sum + (post.retweets || 0), 0),
+      totalReplies: allPosts.reduce((sum, post) => sum + (post.replies || 0), 0)
     };
-    
-    console.log('📊 Fresh Twitter insights calculated:', insights);
-    
-    // Cache both posts and insights in Firebase
-    const cachedDataRef = ref(db, 'cachedTwitterData/admin');
-    await set(cachedDataRef, {
-      posts: allPosts,
-      insights,
-      lastUpdated: new Date().toISOString()
-    });
-    
-    // Update rate limit timestamp after successful API call
-    await insightsService.updateTwitterRateLimit();
+    insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
+    insights.avgEngagementPerTweet = allPosts.length > 0 ? Math.round(insights.totalEngagement / allPosts.length) : 0;
     
     res.json({ 
       success: true, 
       posts: allPosts,
-      insights
+      insights,
+      postsCount: allPosts.length
     });
 
   } catch (error) {
-    console.error('Twitter data error:', error.message);
-    
-    // Try to get cached data on error
-    try {
-      const { ref, get } = await import('firebase/database');
-      const { getDatabase } = await import('firebase/database');
-      const { initializeApp } = await import('firebase/app');
-      const { config } = await import('../config/config.mjs');
-      
-      const app = initializeApp(config.firebase);
-      const db = getDatabase(app, config.firebase.databaseURL);
-      
-      const cachedDataRef = ref(db, 'cachedTwitterData/admin');
-      const cachedSnapshot = await get(cachedDataRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          posts: cachedData.posts || [],
-          insights: cachedData.insights || {},
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
-      }
-    } catch (cacheError) {
-      console.error('Error retrieving cached Twitter data:', cacheError.message);
-    }
-    
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2611,6 +2625,47 @@ router.post('/test-token-expiration/:accountId', async (req, res) => {
     
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Debug Twitter token status
+router.get('/debug-twitter-tokens', async (req, res) => {
+  try {
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const snapshot = await get(twitterAccountsRef);
+    
+    if (!snapshot.exists()) {
+      return res.send('<html><body><h1>No Twitter accounts found</h1></body></html>');
+    }
+    
+    const accounts = snapshot.val();
+    let html = '<html><body><h1>Twitter Token Debug</h1>';
+    
+    for (const [accountId, account] of Object.entries(accounts)) {
+      const tokenAge = account.tokenTimestamp ? (Date.now() - account.tokenTimestamp) / (1000 * 60) : null;
+      const isExpired = tokenAge && tokenAge > 120;
+      
+      html += `<div style="border:1px solid #ccc; padding:10px; margin:10px;">`;
+      html += `<h3>@${account.username}</h3>`;
+      html += `<p>Token Length: ${account.accessToken?.length || 'NO TOKEN'}</p>`;
+      html += `<p>Token Age: ${tokenAge ? Math.round(tokenAge) + ' minutes' : 'Unknown'}</p>`;
+      html += `<p>Status: ${isExpired ? 'EXPIRED' : 'Valid'}</p>`;
+      html += `</div>`;
+    }
+    
+    html += '</body></html>';
+    res.send(html);
+    
+  } catch (error) {
+    res.send(`<html><body><h1>Error: ${error.message}</h1></body></html>`);
   }
 });
 

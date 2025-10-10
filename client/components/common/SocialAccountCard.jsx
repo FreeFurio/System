@@ -87,6 +87,40 @@ const SocialAccountCard = ({
           </div>
           <p style={{ color: '#666', margin: '5px 0' }}>Status: {status}</p>
           <p style={{ color: '#666', margin: '5px 0' }}>{accountInfo}</p>
+          
+          {/* Twitter token expiration check */}
+          {platform === 'Twitter' && account?.tokenTimestamp && (
+            (() => {
+              const tokenAge = Date.now() - account.tokenTimestamp;
+              const isExpired = tokenAge > (2 * 60 * 60 * 1000); // 2 hours
+              return isExpired ? (
+                <button 
+                  onClick={() => {
+                    const popup = window.open('/api/v1/admin/twitter-oauth', '_blank', 'width=600,height=600');
+                    const checkClosed = setInterval(() => {
+                      if (popup.closed) {
+                        clearInterval(checkClosed);
+                        window.location.reload(); // Refresh page to show updated token
+                      }
+                    }, 1000);
+                  }}
+                  style={{ 
+                    color: '#dc3545', 
+                    margin: '5px 0', 
+                    fontSize: '14px', 
+                    fontWeight: '600',
+                    background: 'transparent',
+                    border: '1px solid #dc3545',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Reauthenticate Twitter
+                </button>
+              ) : null;
+            })()
+          )}
 
           {platform === 'Facebook' && (
             <div style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>

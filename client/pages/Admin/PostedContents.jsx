@@ -30,7 +30,7 @@ const PostedContents = () => {
           endpoint = `${API_BASE_URL}/facebook-posts`;
           break;
         case 'instagram':
-          endpoint = `${API_BASE_URL}/instagram-posts`;
+          endpoint = `${API_BASE_URL}/instagram-data`;
           break;
         case 'twitter':
           endpoint = `${API_BASE_URL}/twitter-data?v=${Date.now()}`;
@@ -347,7 +347,7 @@ const PostedContents = () => {
                     whiteSpace: 'pre-wrap',
                     marginBottom: '12px'
                   }}>
-                    {`${(post.message || post.caption || '').substring(0, 100)}${(post.message || post.caption || '').length > 100 ? '...' : ''}`}
+                    {`${(post.message || post.caption || post.text || '').substring(0, 100)}${(post.message || post.caption || post.text || '').length > 100 ? '...' : ''}`}
                   </div>
                   
                   {/* Engagement Numbers */}
@@ -478,7 +478,7 @@ const PostedContents = () => {
                 whiteSpace: 'pre-wrap',
                 marginBottom: '16px'
               }}>
-                {selectedPost.message || selectedPost.caption || 'No content'}
+                {selectedPost.message || selectedPost.caption || selectedPost.text || 'No content'}
               </div>
               
               {/* Post Image */}

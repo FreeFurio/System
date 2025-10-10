@@ -17,24 +17,31 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch workflows for graphic designer tasks
-        const workflowsRef = ref(db, 'workflows');
-        const workflowsSnapshot = await get(workflowsRef);
+        // Fetch workflows using API endpoint for real-time data
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
         
-        if (workflowsSnapshot.exists()) {
-          const workflows = workflowsSnapshot.val();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.data) {
+          const workflows = Array.isArray(data.data) ? data.data : [];
           let assignedTasks = 0;
           let completedDesigns = 0;
           let pendingApproval = 0;
           let totalProjects = 0;
           const recentTasks = [];
 
-          Object.entries(workflows).forEach(([id, workflow]) => {
+          workflows.forEach((workflow) => {
+            if (!workflow) return;
+            
             // Count assigned tasks (graphic design stage)
             if (workflow.currentStage === 'graphicdesigner' && workflow.status === 'graphic_design') {
               assignedTasks++;
               recentTasks.push({
-                id,
+                id: workflow.id || Date.now() + Math.random(),
                 title: workflow.objectives || 'Design Task',
                 status: 'assigned',
                 deadline: workflow.deadline,
@@ -47,7 +54,7 @@ export default function Dashboard() {
               completedDesigns++;
               pendingApproval++;
               recentTasks.push({
-                id,
+                id: workflow.id || Date.now() + Math.random(),
                 title: workflow.objectives || 'Design Task',
                 status: 'pending_approval',
                 submittedAt: workflow.graphicDesigner.submittedAt
@@ -62,8 +69,8 @@ export default function Dashboard() {
 
           // Sort recent tasks by date and take latest 5
           recentTasks.sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.submittedAt || a.approvedAt);
-            const dateB = new Date(b.createdAt || b.submittedAt || b.approvedAt);
+            const dateA = new Date(a.createdAt || a.submittedAt || a.approvedAt || 0);
+            const dateB = new Date(b.createdAt || b.submittedAt || b.approvedAt || 0);
             return dateB - dateA;
           });
 
@@ -74,6 +81,8 @@ export default function Dashboard() {
             totalProjects,
             recentTasks: recentTasks.slice(0, 5)
           });
+        } else {
+          throw new Error('Invalid response format');
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

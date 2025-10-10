@@ -10,6 +10,9 @@ const MarketingDashboard = () => {
     approvedContent: 0,
     ongoingTasks: 0,
     postedContent: 0,
+    facebookPosts: 0,
+    instagramPosts: 0,
+    twitterPosts: 0,
     recentActivity: []
   });
   const [loading, setLoading] = useState(true);
@@ -20,51 +23,78 @@ const MarketingDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Get workflows data
-      const workflowsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/marketinglead`);
-      const workflowsData = await workflowsResponse.json();
-      
       let pendingContent = 0;
       let approvedContent = 0;
       let postedContent = 0;
+      let ongoingTasks = 0;
+      let recentActivity = [];
       
-      if (workflowsData.status === 'success') {
-        const workflows = workflowsData.data || [];
-        
-        // Count by status
-        pendingContent = workflows.filter(w => w.status === 'content_approval').length;
-        approvedContent = workflows.filter(w => w.status === 'ready_for_design_assignment').length;
-        postedContent = workflows.filter(w => w.status === 'posted').length;
+      // Get all workflows data
+      try {
+        const workflowsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
+        if (workflowsResponse.ok) {
+          const workflowsData = await workflowsResponse.json();
+          
+          if (workflowsData.status === 'success' && workflowsData.data) {
+            const workflows = workflowsData.data;
+            
+            // Count by status
+            pendingContent = workflows.filter(w => w.status === 'content_approval').length;
+            approvedContent = workflows.filter(w => w.status === 'ready_for_design_assignment').length;
+            ongoingTasks = workflows.filter(w => 
+              w.status === 'content_creation' || w.status === 'graphic_design'
+            ).length;
+            
+            // Count cached posts from Firebase
+            let facebookPosts = 0, instagramPosts = 0, twitterPosts = 0;
+            
+            const cachedPostsRef = ref(db, 'cachedPosts/admin');
+            const cachedSnapshot = await get(cachedPostsRef);
+            
+            if (cachedSnapshot.exists()) {
+              const cachedData = cachedSnapshot.val();
+              
+              facebookPosts = cachedData.facebook?.posts ? Object.keys(cachedData.facebook.posts).length : 0;
+              instagramPosts = cachedData.instagram?.posts ? Object.keys(cachedData.instagram.posts).length : 0;
+              twitterPosts = cachedData.twitter?.posts ? Object.keys(cachedData.twitter.posts).length : 0;
+              
+              console.log('📊 Dashboard Firebase counts:', { facebookPosts, instagramPosts, twitterPosts });
+            }
+            
+            postedContent = facebookPosts + instagramPosts + twitterPosts;
+            
+            setStats({
+              pendingContent,
+              approvedContent,
+              ongoingTasks,
+              postedContent,
+              facebookPosts,
+              instagramPosts,
+              twitterPosts,
+              recentActivity
+            });
+          }
+        }
+      } catch (workflowError) {
+        console.warn('Error fetching workflows:', workflowError);
       }
-      
-      // Get ongoing tasks from both content creator and graphic designer
-      const [creatorTasksRes, designerTasksRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/content-creator/task`),
-        fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/marketing/graphic-designer/task`)
-      ]);
-      
-      const creatorTasks = await creatorTasksRes.json();
-      const designerTasks = await designerTasksRes.json();
-      
-      const ongoingTasks = (creatorTasks.data?.length || 0) + (designerTasks.data?.length || 0);
 
       // Get marketing notifications for activity
-      const notifRef = ref(db, 'notification/marketing');
-      const notifSnapshot = await get(notifRef);
-      const notifications = notifSnapshot.val();
-      const recentActivity = notifications 
-        ? Object.values(notifications)
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .slice(0, 5)
-        : [];
+      try {
+        const notifRef = ref(db, 'notification/marketing');
+        const notifSnapshot = await get(notifRef);
+        const notifications = notifSnapshot.val();
+        recentActivity = notifications 
+          ? Object.values(notifications)
+              .filter(notif => notif && notif.timestamp)
+              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+              .slice(0, 5)
+          : [];
+      } catch (notifError) {
+        console.warn('Error fetching notifications:', notifError);
+      }
 
-      setStats({
-        pendingContent,
-        approvedContent,
-        ongoingTasks,
-        postedContent,
-        recentActivity
-      });
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -263,17 +293,51 @@ const MarketingDashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
-                  Content Published
+                  Facebook Posts
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                  Live content
+                  Published content
                 </div>
               </div>
               <div style={{
-                fontSize: '1.25rem', fontWeight: '700', color: '#10b981',
+                fontSize: '1.25rem', fontWeight: '700', color: '#1877f2',
                 minWidth: '40px', textAlign: 'right'
               }}>
-                {stats.postedContent}
+                {stats.facebookPosts}
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                  Instagram Posts
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                  Published content
+                </div>
+              </div>
+              <div style={{
+                fontSize: '1.25rem', fontWeight: '700', color: '#e4405f',
+                minWidth: '40px', textAlign: 'right'
+              }}>
+                {stats.instagramPosts}
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                  Twitter Posts
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                  Published content
+                </div>
+              </div>
+              <div style={{
+                fontSize: '1.25rem', fontWeight: '700', color: '#1da1f2',
+                minWidth: '40px', textAlign: 'right'
+              }}>
+                {stats.twitterPosts}
               </div>
             </div>
           </div>

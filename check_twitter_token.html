@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter Token Debug</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .token { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .expired { background: #ffe8e8; }
+        .valid { background: #e8f5e8; }
+    </style>
+</head>
+<body>
+    <h1>🐦 Twitter Token Debug</h1>
+    <button onclick="checkTokens()">Check Twitter Tokens</button>
+    <div id="results"></div>
+
+    <script>
+        async function checkTokens() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>🔍 Checking Twitter tokens...</p>';
+            
+            try {
+                const response = await fetch('/api/v1/admin/connected-twitter-accounts');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    results.innerHTML = `<p>❌ Error: ${data.error}</p>`;
+                    return;
+                }
+                
+                const accounts = data.accounts || [];
+                
+                if (accounts.length === 0) {
+                    results.innerHTML = '<p>❌ No Twitter accounts found</p>';
+                    return;
+                }
+                
+                let html = `<h2>Found ${accounts.length} Twitter accounts:</h2>`;
+                
+                for (const account of accounts) {
+                    const tokenAge = account.tokenTimestamp ? 
+                        (Date.now() - account.tokenTimestamp) / (1000 * 60) : null;
+                    const isExpired = tokenAge && tokenAge > 120; // 2 hours
+                    
+                    html += `
+                        <div class="token ${isExpired ? 'expired' : 'valid'}">
+                            <h3>@${account.username} (${account.name})</h3>
+                            <p><strong>Account ID:</strong> ${account.id}</p>
+                            <p><strong>Connected:</strong> ${account.connectedAt}</p>
+                            <p><strong>Token Age:</strong> ${tokenAge ? Math.round(tokenAge) + ' minutes' : 'Unknown'}</p>
+                            <p><strong>Status:</strong> ${isExpired ? '🚨 EXPIRED (>2 hours)' : '✅ Valid'}</p>
+                            <button onclick="testToken('${account.id}')">Test This Token</button>
+                        </div>
+                    `;
+                }
+                
+                results.innerHTML = html;
+                
+            } catch (error) {
+                results.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testToken(accountId) {
+            try {
+                const response = await fetch('/api/v1/admin/test-twitter-post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: {
+                            caption: `Test tweet from account ${accountId} at ${new Date().toISOString()}`,
+                            hashtag: '#test'
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Token works! Tweet posted successfully.');
+                } else {
+                    alert(`❌ Token failed: ${result.error}`);
+                }
+                
+            } catch (error) {
+                alert(`❌ Test failed: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

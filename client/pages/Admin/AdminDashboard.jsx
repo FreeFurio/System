@@ -32,27 +32,42 @@ const AdminDashboard = () => {
 
       // Get users by role
       const roles = ['ContentCreator', 'MarketingLead', 'GraphicDesigner'];
-      const roleBreakdown = {};
+      const roleBreakdown = {
+        ContentCreator: 0,
+        MarketingLead: 0,
+        GraphicDesigner: 0
+      };
       let totalActiveUsers = 0;
 
       for (const role of roles) {
-        const roleRef = ref(db, role);
-        const roleSnapshot = await get(roleRef);
-        const roleData = roleSnapshot.val();
-        const count = roleData ? Object.keys(roleData).length : 0;
-        roleBreakdown[role] = count;
-        totalActiveUsers += count;
+        try {
+          const roleRef = ref(db, role);
+          const roleSnapshot = await get(roleRef);
+          const roleData = roleSnapshot.val();
+          const count = roleData ? Object.keys(roleData).length : 0;
+          roleBreakdown[role] = count;
+          totalActiveUsers += count;
+        } catch (roleError) {
+          console.warn(`Error fetching ${role} data:`, roleError);
+          roleBreakdown[role] = 0;
+        }
       }
 
       // Get recent notifications for activity
-      const notifRef = ref(db, 'notification/admin');
-      const notifSnapshot = await get(notifRef);
-      const notifications = notifSnapshot.val();
-      const recentActivity = notifications 
-        ? Object.values(notifications)
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .slice(0, 5)
-        : [];
+      let recentActivity = [];
+      try {
+        const notifRef = ref(db, 'notification/admin');
+        const notifSnapshot = await get(notifRef);
+        const notifications = notifSnapshot.val();
+        recentActivity = notifications 
+          ? Object.values(notifications)
+              .filter(notif => notif && notif.timestamp)
+              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+              .slice(0, 5)
+          : [];
+      } catch (notifError) {
+        console.warn('Error fetching notifications:', notifError);
+      }
 
       setStats({
         totalUsers: totalActiveUsers + pendingCount,

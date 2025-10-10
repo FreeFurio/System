@@ -34,7 +34,6 @@ import SetTask from './pages/MarketingLead/SetTask';
 import OngoingTask from './pages/MarketingLead/OngoingTask';
 import SetSchedule from './pages/MarketingLead/SetSchedule';
 import OngoingSchedule from './pages/MarketingLead/OngoingSchedule';
-import PostedContent from './pages/MarketingLead/PostedContent';
 import PostedContents from './pages/MarketingLead/PostedContents';
 import Posting from './pages/MarketingLead/Posting';
 import SetTaskGraphicDesigner from './pages/MarketingLead/SetTaskGraphicDesigner';
@@ -130,7 +129,6 @@ function App() {
           <Route path="ongoing-task" element={<OngoingTask />} />
           <Route path="set-schedule" element={<SetSchedule />} />
           <Route path="ongoing-schedule" element={<OngoingSchedule />} />
-          <Route path="posted-content" element={<PostedContent />} />
           <Route path="posted-contents" element={<PostedContents />} />
         </Route>
         {/* Content Creator Routes */}

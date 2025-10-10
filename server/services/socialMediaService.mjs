@@ -332,6 +332,7 @@ class SocialMediaService {
   async postToTwitter(content, accountId = null) {
     try {
       console.log('🐦 Twitter posting using OAuth 2.0 user tokens from Firebase...');
+      console.log('🐦 Content received:', JSON.stringify(content, null, 2));
       
       // Get Twitter account token from Firebase
       const { ref, get } = await import('firebase/database');
@@ -353,7 +354,9 @@ class SocialMediaService {
           throw new Error('Twitter account not found');
         }
         
-        accessToken = snapshot.val().accessToken;
+        const accountData = snapshot.val();
+        accessToken = accountData.accessToken;
+        console.log('🐦 Using specific Twitter account:', accountData.username, 'ID:', accountId);
       } else {
         // Use first available account
         const accountsRef = ref(db, 'connectedAccounts/admin/twitter');
@@ -364,16 +367,26 @@ class SocialMediaService {
         }
         
         const accounts = Object.values(snapshot.val());
-        accessToken = accounts[0].accessToken;
+        const firstAccount = accounts[0];
+        accessToken = firstAccount.accessToken;
+        console.log('🐦 Using first Twitter account:', firstAccount.username, 'ID:', firstAccount.id);
+        console.log('🐦 Token age:', firstAccount.tokenTimestamp ? Math.round((Date.now() - firstAccount.tokenTimestamp) / (1000 * 60)) + ' minutes' : 'Unknown');
       }
       
       if (!accessToken) {
         throw new Error('No Twitter access token available');
       }
       
-      const tweetText = content.caption.length <= 280 
-        ? `${content.caption} ${content.hashtag}`
-        : `${content.caption.substring(0, 240)}... ${content.hashtag}`;
+      // Create tweet text with proper length handling
+      let tweetText;
+      if (content.caption && content.hashtag) {
+        const combinedText = `${content.caption} ${content.hashtag}`;
+        tweetText = combinedText.length <= 280 ? combinedText : `${content.caption.substring(0, 240)}... ${content.hashtag}`;
+      } else if (content.caption) {
+        tweetText = content.caption.length <= 280 ? content.caption : content.caption.substring(0, 277) + '...';
+      } else {
+        tweetText = content.headline || 'Test tweet';
+      }
 
       const tweetData = {
         text: tweetText
@@ -400,7 +413,18 @@ class SocialMediaService {
       };
 
     } catch (error) {
-      throw new Error(`Twitter posting failed: ${error.response?.data?.detail || error.response?.data?.errors?.[0]?.message || error.message}`);
+      console.error('🚨 Twitter API Error Details:');
+      console.error('Status:', error.response?.status);
+      console.error('Headers:', error.response?.headers);
+      console.error('Data:', JSON.stringify(error.response?.data, null, 2));
+      console.error('Message:', error.message);
+      
+      const errorDetail = error.response?.data?.detail || 
+                         error.response?.data?.errors?.[0]?.message || 
+                         error.response?.data?.title ||
+                         error.message;
+      
+      throw new Error(`Twitter posting failed: ${errorDetail}`);
     }
   }
 

@@ -1127,10 +1127,20 @@ class FirebaseService {
         const platformName = platform.name || platform;
         
         try {
-          // Get platform-specific content from selectedContent structure
-          const platformContent = content.selectedContent?.[platformName.toLowerCase()];
+          // Get platform-specific content from selectedContent structure or fallback to legacy format
+          let platformContent;
           
-          if (!platformContent) {
+          if (content.selectedContent?.[platformName.toLowerCase()]) {
+            // New multi-platform format
+            platformContent = content.selectedContent[platformName.toLowerCase()];
+          } else if (content.headline && content.caption && content.hashtag) {
+            // Legacy single-platform format
+            platformContent = {
+              headline: content.headline,
+              caption: content.caption,
+              hashtag: content.hashtag
+            };
+          } else {
             console.log(`⚠️ No content found for platform: ${platformName}`);
             continue;
           }

@@ -585,6 +585,95 @@ router.get('/facebook/pages', async (req, res) => {
 // Get posting history/analytics
 router.get('/history', socialMediaController.getPostingHistory);
 
+// Debug Twitter tokens in Firebase
+router.get('/twitter/debug-tokens', async (req, res) => {
+  try {
+    const { getDatabase, ref, get } = await import('firebase/database');
+    const { config } = await import('../config/config.mjs');
+    const { initializeApp } = await import('firebase/app');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const accountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const snapshot = await get(accountsRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ 
+        error: 'No Twitter accounts found in Firebase',
+        path: 'connectedAccounts/admin/twitter',
+        suggestion: 'Connect a Twitter account first'
+      });
+    }
+    
+    const accounts = snapshot.val();
+    const accountData = Object.entries(accounts).map(([id, data]) => ({
+      id,
+      username: data.username,
+      hasAccessToken: !!data.accessToken,
+      tokenLength: data.accessToken?.length || 0,
+      tokenAge: data.tokenTimestamp ? Math.round((Date.now() - data.tokenTimestamp) / (1000 * 60)) : null,
+      isExpired: data.tokenTimestamp ? (Date.now() - data.tokenTimestamp) > (2 * 60 * 60 * 1000) : true
+    }));
+    
+    res.json({ 
+      success: true,
+      accountCount: Object.keys(accounts).length,
+      accounts: accountData,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+// Test Twitter posting directly
+router.get('/twitter/test-post', async (req, res) => {
+  try {
+    const { getDatabase, ref, get } = await import('firebase/database');
+    const { config } = await import('../config/config.mjs');
+    const { initializeApp } = await import('firebase/app');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const accountsRef = ref(db, 'connectedAccounts/admin/twitter');
+    const snapshot = await get(accountsRef);
+    
+    if (!snapshot.exists()) {
+      return res.json({ error: 'No Twitter accounts connected' });
+    }
+    
+    const accounts = Object.values(snapshot.val());
+    const account = accounts[0];
+    
+    const testTweet = {
+      text: `Test tweet from system! ${new Date().toISOString().slice(0, 16)}`
+    };
+    
+    const response = await axios.post('https://api.twitter.com/2/tweets', testTweet, {
+      headers: {
+        'Authorization': `Bearer ${account.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      posted: true,
+      tweetId: response.data.data.id,
+      text: response.data.data.text
+    });
+  } catch (error) {
+    res.json({ 
+      success: false, 
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+      needsReauth: error.response?.status === 403 && error.response?.data?.title === 'Forbidden'
+    });
+  }
+});
+
 // Simple Facebook posting test
 router.get('/test-facebook-post', async (req, res) => {
   try {

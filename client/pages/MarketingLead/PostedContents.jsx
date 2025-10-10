@@ -29,10 +29,10 @@ const PostedContents = () => {
           endpoint = `${API_BASE_URL}/facebook-posts`;
           break;
         case 'instagram':
-          endpoint = `${API_BASE_URL}/instagram-posts`;
+          endpoint = `${API_BASE_URL}/instagram-data`;
           break;
         case 'twitter':
-          endpoint = `${API_BASE_URL}/twitter-posts`;
+          endpoint = `${API_BASE_URL}/twitter-data?v=${Date.now()}`;
           break;
         default:
           endpoint = `${API_BASE_URL}/facebook-posts`;
@@ -40,11 +40,14 @@ const PostedContents = () => {
       
       // Add refresh parameter if force refresh is requested
       if (forceRefresh) {
-        endpoint += '?refresh=true';
+        const separator = endpoint.includes('?') ? '&' : '?';
+        endpoint += `${separator}refresh=true`;
       }
       
       const response = await fetch(endpoint);
       const data = await response.json();
+      
+      console.log(`🐦 ${platform} API Response:`, data);
       
       if (data.success) {
         setPostedWorkflows(data.posts || []);
@@ -346,7 +349,7 @@ const PostedContents = () => {
                         whiteSpace: 'pre-wrap',
                         marginBottom: '12px'
                       }}>
-                        {`${(post.message || post.caption || '').substring(0, 100)}${(post.message || post.caption || '').length > 100 ? '...' : ''}`}
+                        {`${(post.message || post.caption || post.text || '').substring(0, 100)}${(post.message || post.caption || post.text || '').length > 100 ? '...' : ''}`}
                       </div>
                       
                       {/* Engagement Numbers */}
@@ -477,7 +480,7 @@ const PostedContents = () => {
                 whiteSpace: 'pre-wrap',
                 marginBottom: '16px'
               }}>
-                {selectedPost.message || selectedPost.caption || 'No content'}
+                {selectedPost.message || selectedPost.caption || selectedPost.text || 'No content'}
               </div>
               
               {/* Post Image */}

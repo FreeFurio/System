@@ -17,24 +17,31 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch workflows for content creator tasks
-        const workflowsRef = ref(db, 'workflows');
-        const workflowsSnapshot = await get(workflowsRef);
+        // Fetch workflows using API endpoint for real-time data
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
         
-        if (workflowsSnapshot.exists()) {
-          const workflows = workflowsSnapshot.val();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.data) {
+          const workflows = Array.isArray(data.data) ? data.data : [];
           let assignedTasks = 0;
           let completedTasks = 0;
           let pendingSubmissions = 0;
           let approvedContent = 0;
           const recentTasks = [];
 
-          Object.entries(workflows).forEach(([id, workflow]) => {
+          workflows.forEach((workflow) => {
+            if (!workflow) return;
+            
             // Count assigned tasks (content creation stage)
             if (workflow.currentStage === 'contentcreator' && workflow.status === 'content_creation') {
               assignedTasks++;
               recentTasks.push({
-                id,
+                id: workflow.id || Date.now() + Math.random(),
                 title: workflow.objectives || 'Content Task',
                 status: 'assigned',
                 deadline: workflow.deadline,
@@ -47,7 +54,7 @@ export default function Dashboard() {
               completedTasks++;
               pendingSubmissions++;
               recentTasks.push({
-                id,
+                id: workflow.id || Date.now() + Math.random(),
                 title: workflow.objectives || 'Content Task',
                 status: 'pending_approval',
                 submittedAt: workflow.contentCreator.submittedAt
@@ -58,7 +65,7 @@ export default function Dashboard() {
             if (workflow.marketingApproval && workflow.contentCreator) {
               approvedContent++;
               recentTasks.push({
-                id,
+                id: workflow.id || Date.now() + Math.random(),
                 title: workflow.objectives || 'Content Task',
                 status: 'approved',
                 approvedAt: workflow.marketingApproval.approvedAt
@@ -68,8 +75,8 @@ export default function Dashboard() {
 
           // Sort recent tasks by date and take latest 5
           recentTasks.sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.submittedAt || a.approvedAt);
-            const dateB = new Date(b.createdAt || b.submittedAt || b.approvedAt);
+            const dateA = new Date(a.createdAt || a.submittedAt || a.approvedAt || 0);
+            const dateB = new Date(b.createdAt || b.submittedAt || b.approvedAt || 0);
             return dateB - dateA;
           });
 
@@ -80,6 +87,8 @@ export default function Dashboard() {
             approvedContent,
             recentTasks: recentTasks.slice(0, 5)
           });
+        } else {
+          throw new Error('Invalid response format');
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

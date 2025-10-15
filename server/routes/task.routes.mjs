@@ -23,6 +23,7 @@ import {
     assignToGraphicDesigner,
     postNow
 } from '../controllers/task.controller.mjs';
+import FirebaseService from '../services/firebase.service.mjs';
 import { body } from 'express-validator';
 
 // Multer configuration for file uploads
@@ -267,6 +268,11 @@ router.delete(
 router.post(
     '/workflow/:workflowId/assign-to-graphic-designer',
     assignToGraphicDesigner
+)
+
+router.get(
+    '/workflow/:workflowId/post-now',
+    postNow
 )
 
 router.post(

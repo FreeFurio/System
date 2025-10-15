@@ -803,14 +803,21 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
+      console.log('🔄 updateWorkflowStatus success - Status updated to:', status);
       
-      // Auto-post to social media when status changes to 'posted'
+      // Auto-post to social media when status changes to 'posted' (run async to avoid blocking)
       if (status === 'posted' && currentWorkflow.status !== 'posted') {
         console.log('📢 Triggering auto-post for workflow:', workflowId);
-        await this.autoPostToSocialMedia(workflowId, updatedWorkflow);
+        // Run auto-posting in background to avoid blocking the status update
+        setImmediate(async () => {
+          try {
+            await this.autoPostToSocialMedia(workflowId, updatedWorkflow);
+          } catch (autoPostError) {
+            console.error('❌ Error in background auto-posting:', autoPostError);
+          }
+        });
       }
       
-      console.log('🔄 updateWorkflowStatus success - Status updated to:', status);
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error updating workflow status:', error);
@@ -1167,16 +1174,8 @@ class FirebaseService {
               console.log('📘 Facebook posting using Firebase page tokens...');
               
               // Get all active Facebook pages and post to each
-              const { ref: fbRef, get: fbGet } = await import('firebase/database');
-              const { getDatabase: fbGetDb } = await import('firebase/database');
-              const { initializeApp: fbInitApp } = await import('firebase/app');
-              const { config: fbConfig } = await import('../config/config.mjs');
-              
-              const fbApp = fbInitApp(fbConfig.firebase);
-              const fbDb = fbGetDb(fbApp, fbConfig.firebase.databaseURL);
-              
-              const pagesRef = fbRef(fbDb, 'connectedPages/admin');
-              const pagesSnapshot = await fbGet(pagesRef);
+              const pagesRef = ref(db, 'connectedPages/admin');
+              const pagesSnapshot = await get(pagesRef);
               
               if (pagesSnapshot.exists()) {
                 const pages = Object.values(pagesSnapshot.val());

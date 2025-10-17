@@ -1179,7 +1179,7 @@ class FirebaseService {
               
               if (pagesSnapshot.exists()) {
                 const pages = Object.values(pagesSnapshot.val());
-                const activePages = pages.filter(page => page.active === true);
+                const activePages = pages.filter(page => page.status === 'active');
                 
                 console.log(`📘 Posting to ${activePages.length} active Facebook pages`);
                 
@@ -1203,6 +1203,7 @@ class FirebaseService {
             case 'twitter':
               console.log('🐦 Twitter posting - checking credentials...');
               console.log('🐦 Twitter posting using OAuth 2.0 user tokens from Firebase...');
+              // Use immediate posting - same as manual endpoint
               result = await SocialMediaService.postToTwitter(postContent);
               break;
               

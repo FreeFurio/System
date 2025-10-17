@@ -261,6 +261,7 @@ router.get('/facebook-oauth', async (req, res) => {
     ].join(',');
     
     const sessionId = req.query.sessionId || Date.now().toString();
+    console.log('🔥 SERVER: Facebook OAuth initiated with session ID:', sessionId);
     
     const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
       `client_id=${appId}&` +
@@ -360,14 +361,21 @@ router.get('/get-auth-result/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     
-    const authResult = global.authResults?.[sessionId];
+    if (!global.authResults) {
+      global.authResults = {};
+    }
+    
+    console.log('🔥 SERVER: Looking for auth result with session ID:', sessionId);
+    console.log('🔥 SERVER: Available sessions:', Object.keys(global.authResults));
+    
+    const authResult = global.authResults[sessionId];
     
     if (authResult) {
-      // Clean up after retrieval
       delete global.authResults[sessionId];
       console.log('🔥 SERVER: Auth result retrieved for session:', sessionId);
       res.json({ success: true, data: authResult });
     } else {
+      console.log('🔥 SERVER: No auth result found for session:', sessionId);
       res.json({ success: false, message: 'No auth result found' });
     }
     
@@ -491,7 +499,26 @@ router.post('/store-connected-pages', async (req, res) => {
 
 router.get('/facebook-oauth-callback', async (req, res) => {
   try {
-    const { code, state } = req.query;
+    const { code, state, error, error_description } = req.query;
+    console.log('🔥 SERVER: Facebook callback received:', { code: !!code, state, error, error_description });
+    
+    if (error === 'access_denied' || req.url.includes('/cancel/')) {
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head><title>Authorization Cancelled</title></head>
+          <body>
+            <h1>❌ Authorization Cancelled</h1>
+            <p>You cancelled the Facebook authorization.</p>
+            <script>setTimeout(() => window.close(), 2000);</script>
+          </body>
+        </html>
+      `);
+    }
+    
+    if (error) {
+      throw new Error(`Facebook OAuth error: ${error} - ${error_description}`);
+    }
     
     if (!code) {
       throw new Error('Authorization code not received from Facebook');
@@ -532,6 +559,8 @@ router.get('/facebook-oauth-callback', async (req, res) => {
     
     const pages = pagesResponse.data.data || [];
     const sessionId = state || Date.now().toString();
+    console.log('🔥 SERVER: Facebook OAuth callback with session ID:', sessionId);
+    console.log('🔥 SERVER: Found', pages.length, 'pages');
     
     global.tempTokens = global.tempTokens || {};
     global.tempTokens[sessionId] = {
@@ -549,6 +578,10 @@ router.get('/facebook-oauth-callback', async (req, res) => {
     global.authResults = global.authResults || {};
     global.authResults[sessionId] = authData;
     
+    // Store with a generic key for frontend polling
+    global.authResults['latest'] = authData;
+    console.log('🔥 SERVER: Stored auth result for session:', sessionId, 'and as latest');
+    
     res.setHeader('Content-Security-Policy', "script-src 'unsafe-inline'");
     
     const html = `
@@ -561,19 +594,25 @@ router.get('/facebook-oauth-callback', async (req, res) => {
         <body>
           <h1>✅ Authorization Complete!</h1>
           <p>Found ${pages.length} pages. Closing automatically...</p>
+          <p>Session ID: ${sessionId}</p>
+          <p>Debug: ${JSON.stringify(pages.map(p => p.name))}</p>
           <script>
             const authData = ${JSON.stringify(authData)};
+            console.log('Auth data being sent:', authData);
+            console.log('Session ID:', '${sessionId}');
             
             try {
               if (window.opener && !window.opener.closed) {
+                console.log('Sending to parent window');
                 window.opener.postMessage(authData, '*');
               }
               localStorage.setItem('facebookAuthResult', JSON.stringify(authData));
+              console.log('Stored in localStorage');
             } catch (e) {
               console.log('Communication error:', e);
             }
             
-            setTimeout(() => window.close(), 1000);
+            setTimeout(() => window.close(), 2000);
           </script>
         </body>
       </html>
@@ -583,6 +622,7 @@ router.get('/facebook-oauth-callback', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Facebook OAuth Error:', error.response?.data || error.message);
+    console.error('❌ Facebook OAuth Error - Full error:', error);
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -590,6 +630,7 @@ router.get('/facebook-oauth-callback', async (req, res) => {
         <body>
           <h1>❌ Authorization Failed</h1>
           <p>${error.message}</p>
+          <p>State: ${req.query.state}</p>
           <script>setTimeout(() => window.close(), 3000);</script>
         </body>
       </html>

@@ -19,14 +19,19 @@ const SocialsAndInsights = () => {
   const [connectedPages, setConnectedPages] = useState([]);
   const [showFacebookModal, setShowFacebookModal] = useState(false);
   const [availablePages, setAvailablePages] = useState([]);
-  const [modalStep, setModalStep] = useState('connect'); // 'connect', 'loading', or 'select'
+  const [modalStep, setModalStep] = useState('connect');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState(null);
   const [connectedTwitterAccounts, setConnectedTwitterAccounts] = useState([]);
+  const [refreshingAccounts, setRefreshingAccounts] = useState(false);
+  const [refreshStep, setRefreshStep] = useState('');
+  const [refreshProgress, setRefreshProgress] = useState(0);
+  const [refreshingInsights, setRefreshingInsights] = useState(false);
+  const [insightsStep, setInsightsStep] = useState('');
+  const [insightsProgress, setInsightsProgress] = useState(0);
 
-  // Move handleMessage outside useEffect and use useCallback
   const handleMessage = useCallback((event) => {
     console.log('Message received:', event.data);
     
@@ -49,7 +54,6 @@ const SocialsAndInsights = () => {
     
     window.addEventListener('message', handleMessage);
     
-    // Also listen for localStorage changes (fallback communication)
     const handleStorageChange = (e) => {
       console.log('Storage event received:', e);
       if (e.key === 'facebookAuthResult') {
@@ -57,7 +61,6 @@ const SocialsAndInsights = () => {
           const authData = JSON.parse(e.newValue);
           console.log('Facebook auth data from localStorage:', authData);
           handleMessage({ data: authData });
-          // Clean up
           localStorage.removeItem('facebookAuthResult');
         } catch (error) {
           console.error('Error parsing localStorage auth data:', error);
@@ -65,7 +68,6 @@ const SocialsAndInsights = () => {
       }
     };
     
-    // Check for existing data on mount
     const checkExistingAuthData = () => {
       const existingData = localStorage.getItem('facebookAuthResult');
       if (existingData) {
@@ -83,30 +85,30 @@ const SocialsAndInsights = () => {
     window.addEventListener('storage', handleStorageChange);
     checkExistingAuthData();
     
-    // Poll API for auth results when in loading state
     const pollInterval = setInterval(async () => {
-      if (modalStep === 'loading' && currentSessionId) {
-        console.log('🔥 MAIN: Polling API for session ID:', currentSessionId);
-        try {
-          const response = await fetch(`${API_BASE_URL}/get-auth-result/${currentSessionId}`);
-          const result = await response.json();
-          
-          console.log('🔥 MAIN: API response:', result);
-          
-          if (result.success && result.data) {
-            console.log('🔥 MAIN: Found auth data via API:', result.data);
-            handleMessage({ data: result.data });
-          } else {
-            console.log('🔥 MAIN: No auth data found for session:', currentSessionId);
+      if (modalStep === 'loading') {
+        // Try both specific session ID and 'latest'
+        const sessionIds = currentSessionId ? [currentSessionId, 'latest'] : ['latest'];
+        
+        for (const sessionId of sessionIds) {
+          console.log('🔥 MAIN: Polling API for session ID:', sessionId);
+          try {
+            const response = await fetch(`${API_BASE_URL}/get-auth-result/${sessionId}`);
+            const result = await response.json();
+            
+            console.log('🔥 MAIN: API response for', sessionId, ':', result);
+            
+            if (result.success && result.data) {
+              console.log('🔥 MAIN: Found auth data via API:', result.data);
+              handleMessage({ data: result.data });
+              return; // Stop polling once found
+            }
+          } catch (error) {
+            console.log('❌ MAIN: Error polling API for', sessionId, ':', error);
           }
-        } catch (error) {
-          console.log('❌ MAIN: Error polling API:', error);
         }
         
-        // Also check localStorage as fallback
         checkExistingAuthData();
-      } else if (modalStep === 'loading') {
-        console.log('❌ MAIN: No session ID available for polling');
       }
     }, 1000);
     
@@ -124,19 +126,6 @@ const SocialsAndInsights = () => {
     }
   };
 
-  const handleSetupFacebookTokens = async () => {
-    try {
-      setLoading(true);
-      const setup = await adminService.setupFacebookTokens();
-      setTokenSetup(setup.data);
-      setShowTokenModal(true);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchConnectedPages = async () => {
     try {
       const response = await adminService.getConnectedPages();
@@ -150,7 +139,7 @@ const SocialsAndInsights = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/connected-twitter-accounts`);
       const data = await response.json();
-      console.log('Twitter accounts data:', data.accounts); // Debug log
+      console.log('Twitter accounts data:', data.accounts);
       setConnectedTwitterAccounts(data.accounts || []);
     } catch (err) {
       console.error('Error fetching Twitter accounts:', err);
@@ -162,12 +151,10 @@ const SocialsAndInsights = () => {
     setIsAuthenticating(true);
     setModalStep('loading');
     
-    // Generate session ID that will be used by OAuth callback
     const sessionId = Date.now().toString();
     setCurrentSessionId(sessionId);
     console.log('Generated session ID:', sessionId);
     
-    // Store reference to current window in popup
     window.facebookAuthParent = window;
     
     const popup = window.open(
@@ -187,7 +174,6 @@ const SocialsAndInsights = () => {
     console.log('Popup opened successfully:', popup);
     console.log('Parent window stored as:', window);
     
-    // Check if popup closes without sending message
     const checkClosed = setInterval(() => {
       if (popup.closed) {
         console.log('Popup closed without message');
@@ -270,11 +256,9 @@ const SocialsAndInsights = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch Facebook/Instagram insights using cached or fresh data
       const facebookInsights = await Promise.all(
         connectedPages.map(async (account) => {
           try {
-            // Use account engagement endpoint with refresh parameter
             const url = `${API_BASE_URL}/engagement/account/${account.id}${forceRefresh ? '?refresh=true' : ''}`;
             const response = await fetch(url);
             const data = await response.json();
@@ -305,7 +289,6 @@ const SocialsAndInsights = () => {
         })
       );
       
-      // Fetch Twitter insights using unified endpoint
       let twitterInsights = [];
       if (connectedTwitterAccounts.length > 0) {
         try {
@@ -314,7 +297,6 @@ const SocialsAndInsights = () => {
           const data = await response.json();
           
           if (data.success && data.insights) {
-            // Map insights to each connected Twitter account
             twitterInsights = connectedTwitterAccounts.map(account => ({
               account: { ...account, platform: 'twitter' },
               engagement: { 
@@ -345,6 +327,15 @@ const SocialsAndInsights = () => {
 
   return (
     <div style={{ padding: '0', maxWidth: '100%' }}>
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      
       {/* Header */}
       <div style={{
         marginBottom: '32px',
@@ -422,7 +413,8 @@ const SocialsAndInsights = () => {
             borderRadius: '12px',
             padding: '24px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            border: '1px solid #e5e7eb'
+            border: '1px solid #e5e7eb',
+            position: 'relative'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ 
@@ -436,10 +428,34 @@ const SocialsAndInsights = () => {
                 Connected Accounts
               </h2>
               <button
-                onClick={() => {
-                  fetchConnectedPages();
-                  fetchConnectedTwitterAccounts();
+                onClick={async () => {
+                  setRefreshingAccounts(true);
+                  setRefreshProgress(0);
+                  try {
+                    setRefreshStep('Refreshing Facebook pages...');
+                    setRefreshProgress(25);
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    await fetchConnectedPages();
+                    
+                    setRefreshStep('Refreshing Twitter accounts...');
+                    setRefreshProgress(50);
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    await fetchConnectedTwitterAccounts();
+                    
+                    setRefreshStep('Finalizing updates...');
+                    setRefreshProgress(75);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    setRefreshStep('Complete!');
+                    setRefreshProgress(100);
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                  } finally {
+                    setRefreshingAccounts(false);
+                    setRefreshStep('');
+                    setRefreshProgress(0);
+                  }
                 }}
+                disabled={refreshingAccounts}
                 style={{
                   background: '#10b981',
                   color: '#fff',
@@ -448,7 +464,8 @@ const SocialsAndInsights = () => {
                   borderRadius: '12px',
                   fontSize: '13px',
                   fontWeight: '600',
-                  cursor: 'pointer',
+                  cursor: refreshingAccounts ? 'not-allowed' : 'pointer',
+                  opacity: refreshingAccounts ? 0.6 : 1,
                   height: '36px',
                   transition: 'all 0.2s ease',
                   boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
@@ -456,109 +473,178 @@ const SocialsAndInsights = () => {
                   alignItems: 'center',
                   gap: '6px'
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
-                }}
               >
-                <FiRefreshCw size={14} />
-                Refresh
+                <FiRefreshCw size={14} style={{ animation: refreshingAccounts ? 'spin 1s linear infinite' : 'none' }} />
+                {refreshingAccounts ? 'Refreshing...' : 'Refresh'}
               </button>
             </div>
           
-          <div style={{ marginBottom: '30px' }}>
-            <h4 style={{ color: '#1877f2', marginBottom: '15px' }}>Facebook Pages</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {connectedPages.map(page => (
-                <SocialAccountCard
-                  key={page.id}
-                  platform="Facebook"
-                  status="Connected"
-                  accountInfo={`Page: ${page.name}`}
-                  color="#1877f2"
-                  account={page}
-                  onToggleActive={handleToggleActive}
-                  onDelete={handleDeleteAccount}
-                />
-              ))}
-              
-              <div style={{
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                padding: '20px',
-                background: '#f8f9fa',
-                textAlign: 'center'
-              }}>
-                <h4 style={{ color: '#1877f2', marginBottom: '10px' }}>Connect More Pages</h4>
-                <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
-                <button 
-                  onClick={() => {
-                    setModalStep('connect');
-                    setShowFacebookModal(true);
-                  }}
-                  style={{
-                    background: '#1877f2',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '12px 24px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}
-                >
-                  Connect Facebook Pages
-                </button>
+            <div style={{ marginBottom: '30px' }}>
+              <h4 style={{ color: '#1877f2', marginBottom: '15px', backgroundColor: 'inherit', background: 'none' }}>Facebook Pages</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                {connectedPages.map(page => (
+                  <SocialAccountCard
+                    key={page.id}
+                    platform="Facebook"
+                    status="Connected"
+                    accountInfo={`Page: ${page.name}`}
+                    color="#1877f2"
+                    account={page}
+                    onToggleActive={handleToggleActive}
+                    onDelete={handleDeleteAccount}
+                  />
+                ))}
+                
+                <div style={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  background: '#f8f9fa',
+                  textAlign: 'center'
+                }}>
+                  <h4 style={{ color: '#1877f2', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Connect More Pages</h4>
+                  <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
+                  <button 
+                    onClick={() => {
+                      setModalStep('connect');
+                      setShowFacebookModal(true);
+                    }}
+                    style={{
+                      background: '#1877f2',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Connect Facebook Pages
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div>
-            <h4 style={{ color: '#1da1f2', marginBottom: '15px' }}>Twitter Accounts</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {connectedTwitterAccounts.map(account => (
-                <SocialAccountCard
-                  key={account.id}
-                  platform="Twitter"
-                  status="Connected"
-                  accountInfo={`@${account.username} • ${account.followersCount} followers`}
-                  color="#1da1f2"
-                  account={{...account, platform: 'twitter', tokenTimestamp: account.tokenTimestamp}}
-                  onDelete={handleDeleteAccount}
-                />
-              ))}
-              
-              <div style={{
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                padding: '20px',
-                background: '#f8f9fa',
-                textAlign: 'center'
-              }}>
-                <h4 style={{ color: '#1da1f2', marginBottom: '10px' }}>Connect Twitter Account</h4>
-                <p style={{ color: '#666', margin: '10px 0' }}>Add your Twitter account to the system</p>
-                <button 
-                  onClick={handleTwitterConnect}
-                  style={{
-                    background: '#1da1f2',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '12px 24px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}
-                >
-                  Connect Twitter Account
-                </button>
+            
+            <div>
+              <h4 style={{ color: '#1da1f2', marginBottom: '15px', backgroundColor: 'inherit', background: 'none' }}>Twitter Accounts</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                {connectedTwitterAccounts.map(account => (
+                  <SocialAccountCard
+                    key={account.id}
+                    platform="Twitter"
+                    status="Connected"
+                    accountInfo={`@${account.username} • ${account.followersCount} followers`}
+                    color="#1da1f2"
+                    account={{...account, platform: 'twitter', tokenTimestamp: account.tokenTimestamp}}
+                    onDelete={handleDeleteAccount}
+                  />
+                ))}
+                
+                <div style={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  background: '#f8f9fa',
+                  textAlign: 'center'
+                }}>
+                  <h4 style={{ color: '#1da1f2', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Connect Twitter Account</h4>
+                  <p style={{ color: '#666', margin: '10px 0' }}>Add your Twitter account to the system</p>
+                  <button 
+                    onClick={handleTwitterConnect}
+                    style={{
+                      background: '#1da1f2',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Connect Twitter Account
+                  </button>
+                </div>
               </div>
             </div>
-            </div>
+            
+            {/* Loading Overlay for Connected Accounts */}
+            {refreshingAccounts && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(255,255,255,0.95)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                minHeight: '400px'
+              }}>
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid #e5e7eb',
+                    borderTop: '3px solid #10b981',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 15px'
+                  }}></div>
+                  
+                  <h4 style={{
+                    margin: '0 0 8px 0',
+                    color: '#1f2937',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    background: 'transparent'
+                  }}>
+                    Refreshing Accounts
+                  </h4>
+                  
+                  <p style={{
+                    margin: '0 0 15px 0',
+                    color: '#6b7280',
+                    fontSize: '13px'
+                  }}>
+                    {refreshStep}
+                  </p>
+                  
+                  <div style={{
+                    width: '200px',
+                    height: '6px',
+                    background: '#e5e7eb',
+                    borderRadius: '3px',
+                    overflow: 'hidden',
+                    margin: '0 auto 8px'
+                  }}>
+                    <div style={{
+                      width: `${refreshProgress}%`,
+                      height: '100%',
+                      background: '#10b981',
+                      borderRadius: '3px',
+                      transition: 'width 0.3s ease'
+                    }}></div>
+                  </div>
+                  
+                  <p style={{
+                    margin: 0,
+                    color: '#9ca3af',
+                    fontSize: '11px',
+                    fontWeight: '500'
+                  }}>
+                    {refreshProgress}% Complete
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -571,7 +657,9 @@ const SocialsAndInsights = () => {
             borderRadius: '12px',
             padding: '24px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            border: '1px solid #e5e7eb'
+            border: '1px solid #e5e7eb',
+            position: 'relative',
+            minHeight: '400px'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ 
@@ -585,8 +673,33 @@ const SocialsAndInsights = () => {
                 Analytics & Insights
               </h2>
               <button
-                onClick={() => fetchInsights(true)}
-                disabled={loading}
+                onClick={async () => {
+                  setRefreshingInsights(true);
+                  setInsightsProgress(0);
+                  try {
+                    setInsightsStep('Fetching Facebook insights...');
+                    setInsightsProgress(25);
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    
+                    setInsightsStep('Fetching Twitter insights...');
+                    setInsightsProgress(50);
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    
+                    setInsightsStep('Processing analytics data...');
+                    setInsightsProgress(75);
+                    await fetchInsights(true);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    setInsightsStep('Complete!');
+                    setInsightsProgress(100);
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                  } finally {
+                    setRefreshingInsights(false);
+                    setInsightsStep('');
+                    setInsightsProgress(0);
+                  }
+                }}
+                disabled={refreshingInsights}
                 style={{
                   background: '#10b981',
                   color: '#fff',
@@ -595,8 +708,8 @@ const SocialsAndInsights = () => {
                   borderRadius: '12px',
                   fontSize: '13px',
                   fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
+                  cursor: refreshingInsights ? 'not-allowed' : 'pointer',
+                  opacity: refreshingInsights ? 0.6 : 1,
                   height: '36px',
                   transition: 'all 0.2s ease',
                   boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
@@ -604,73 +717,145 @@ const SocialsAndInsights = () => {
                   alignItems: 'center',
                   gap: '6px'
                 }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
-                }}
               >
-                <FiRefreshCw size={14} />
-                {loading ? 'Refreshing...' : 'Refresh Data'}
+                <FiRefreshCw size={14} style={{ animation: refreshingInsights ? 'spin 1s linear infinite' : 'none' }} />
+                {refreshingInsights ? 'Refreshing...' : 'Refresh Data'}
               </button>
             </div>
           
-            {loading && (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '40px', 
-                color: '#6b7280',
-                fontSize: '14px'
-              }}>
-                Loading insights...
-              </div>
+            {!refreshingInsights && (
+              <>
+                {loading && (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    padding: '40px', 
+                    color: '#6b7280',
+                    fontSize: '14px'
+                  }}>
+                    Loading insights...
+                  </div>
+                )}
+              
+                {error && (
+                  <div style={{ 
+                    background: '#fef2f2', 
+                    border: '1px solid #fecaca', 
+                    borderRadius: '8px', 
+                    padding: '15px', 
+                    color: '#dc2626',
+                    marginBottom: '20px',
+                    fontSize: '14px'
+                  }}>
+                    Error: {error}
+                  </div>
+                )}
+              
+                {insights && insights.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {insights.map((accountData) => (
+                      <AccountInsightCard
+                        key={accountData.account.id}
+                        account={accountData.account}
+                        engagement={accountData.engagement}
+                      />
+                    ))}
+                  </div>
+                )}
+              
+                {insights && insights.length === 0 && (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    padding: '40px', 
+                    color: '#9ca3af',
+                    fontSize: '14px'
+                  }}>
+                    No connected accounts found. Please connect your social media accounts first.
+                  </div>
+                )}
+              </>
             )}
-          
-            {error && (
-              <div style={{ 
-                background: '#fef2f2', 
-                border: '1px solid #fecaca', 
-                borderRadius: '8px', 
-                padding: '15px', 
-                color: '#dc2626',
-                marginBottom: '20px',
-                fontSize: '14px'
+            
+            {/* Loading Overlay for Insights */}
+            {refreshingInsights && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: '#fff',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                minHeight: '300px'
               }}>
-                Error: {error}
-              </div>
-            )}
-          
-            {insights && insights.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {insights.map((accountData) => (
-                  <AccountInsightCard
-                    key={accountData.account.id}
-                    account={accountData.account}
-                    engagement={accountData.engagement}
-                  />
-                ))}
-              </div>
-            )}
-          
-            {insights && insights.length === 0 && (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '40px', 
-                color: '#9ca3af',
-                fontSize: '14px'
-              }}>
-                No connected accounts found. Please connect your social media accounts first.
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid #e5e7eb',
+                    borderTop: '3px solid #10b981',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 15px'
+                  }}></div>
+                  
+                  <h4 style={{
+                    margin: '0 0 8px 0',
+                    color: '#1f2937',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    background: 'transparent'
+                  }}>
+                    Refreshing Insights
+                  </h4>
+                  
+                  <p style={{
+                    margin: '0 0 15px 0',
+                    color: '#6b7280',
+                    fontSize: '13px'
+                  }}>
+                    {insightsStep}
+                  </p>
+                  
+                  <div style={{
+                    width: '200px',
+                    height: '6px',
+                    background: '#e5e7eb',
+                    borderRadius: '3px',
+                    overflow: 'hidden',
+                    margin: '0 auto 8px'
+                  }}>
+                    <div style={{
+                      width: `${insightsProgress}%`,
+                      height: '100%',
+                      background: '#10b981',
+                      borderRadius: '3px',
+                      transition: 'width 0.3s ease'
+                    }}></div>
+                  </div>
+                  
+                  <p style={{
+                    margin: 0,
+                    color: '#9ca3af',
+                    fontSize: '11px',
+                    fontWeight: '500'
+                  }}>
+                    {insightsProgress}% Complete
+                  </p>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
 
+      {/* Facebook Modal */}
       {showFacebookModal && (
         <div style={{
           position: 'fixed',
@@ -770,7 +955,7 @@ const SocialsAndInsights = () => {
                       alignItems: 'center'
                     }}>
                       <div>
-                        <h4 style={{ margin: '0 0 5px 0' }}>{page.name}</h4>
+                        <h4 style={{ margin: '0 0 5px 0', background: 'transparent' }}>{page.name}</h4>
                         <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
                           {page.category} • {page.fan_count || 0} fans
                         </p>
@@ -811,67 +996,7 @@ const SocialsAndInsights = () => {
         </div>
       )}
 
-      {showTokenModal && tokenSetup && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: '#fff',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto'
-          }}>
-            <h3 style={{ marginBottom: '20px' }}>Facebook Token Setup</h3>
-            <p style={{ marginBottom: '15px' }}>Click the link below to authorize Facebook and get page tokens:</p>
-            <a 
-              href={tokenSetup.authUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-block',
-                background: '#1877f2',
-                color: '#fff',
-                padding: '10px 20px',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                marginBottom: '15px'
-              }}
-            >
-              Authorize Facebook
-            </a>
-            <p style={{ fontSize: '14px', color: '#666' }}>
-              {tokenSetup.instructions}
-            </p>
-            <button 
-              onClick={() => setShowTokenModal(false)}
-              style={{
-                background: '#6c757d',
-                color: '#fff',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginTop: '20px'
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* Delete Modal */}
       {showDeleteModal && accountToDelete && (
         <div style={{
           position: 'fixed',

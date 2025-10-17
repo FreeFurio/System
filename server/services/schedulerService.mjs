@@ -13,6 +13,9 @@ class SchedulerService {
     // Check for workflows to post every minute
     this.scheduleWorkflowPosting();
     
+    // Auto-refresh insights at 12:00 AM daily
+    this.scheduleInsightsRefresh();
+    
     console.log('✅ Scheduler service initialized');
   }
 
@@ -28,6 +31,38 @@ class SchedulerService {
     job.start();
     
     console.log('📅 Workflow posting scheduler started (runs every minute)');
+  }
+
+  // Schedule insights refresh at 12:00 AM
+  scheduleInsightsRefresh() {
+    const job = cron.schedule('0 0 * * *', async () => {
+      await this.triggerInsightsRefresh();
+    }, {
+      scheduled: false
+    });
+
+    this.jobs.set('insights-refresh', job);
+    job.start();
+    
+    console.log('📅 Insights refresh scheduler started (runs at 12:00 AM)');
+  }
+
+  // Trigger the same refresh function as the button
+  async triggerInsightsRefresh() {
+    try {
+      console.log('🔄 Auto-refreshing insights at 12:00 AM...');
+      
+      const axios = await import('axios');
+      
+      // Call the same endpoint as the refresh button with force refresh
+      await axios.default.post('http://localhost:3000/api/v1/admin/refresh-insights', {
+        accountId: 'admin'
+      });
+      
+      console.log('✅ Insights auto-refresh completed');
+    } catch (error) {
+      console.error('❌ Error in auto-refresh:', error.message);
+    }
   }
 
   // Check for workflows that need to be posted

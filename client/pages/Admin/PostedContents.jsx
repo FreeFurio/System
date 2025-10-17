@@ -299,7 +299,7 @@ const PostedContents = () => {
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                     {post.profilePicture ? (
                       <img 
-                        src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(post.profilePicture)}`}
+                        src={post.profilePicture}
                         alt={post.pageName}
                         style={{
                           width: '32px',
@@ -421,7 +421,7 @@ const PostedContents = () => {
             }}>
               {selectedPost.profilePicture ? (
                 <img 
-                  src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.profilePicture)}`}
+                  src={selectedPost.profilePicture}
                   alt={selectedPost.pageName}
                   style={{
                     width: '40px',
@@ -489,7 +489,7 @@ const PostedContents = () => {
               {(selectedPost.image || selectedPost.mediaUrl) && (
                 <div style={{ marginBottom: '16px' }}>
                   <img 
-                    src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.image || selectedPost.mediaUrl)}`}
+                    src={selectedPost.image || selectedPost.mediaUrl}
                     alt="Post content" 
                     style={{ 
                       width: '100%', 

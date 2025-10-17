@@ -3037,7 +3037,7 @@ router.get('/platform-availability', async (req, res) => {
       const pages = Object.values(pagesSnapshot.val());
       console.log('🔍 All pages:', pages.map(p => ({ id: p.id, name: p.name, active: p.active, hasInstagram: !!p.instagramBusinessAccount })));
       
-      const activePages = pages.filter(page => page.active === true);
+      const activePages = pages.filter(page => page.status === 'active');
       console.log('✅ Active pages:', activePages.map(p => ({ id: p.id, name: p.name, hasInstagram: !!p.instagramBusinessAccount })));
       
       if (activePages.length > 0) {

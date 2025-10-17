@@ -299,16 +299,18 @@ const PostedContents = () => {
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                     {post.profilePicture ? (
                       <img 
-                        src={post.profilePicture} 
+                        src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(post.profilePicture)}`}
                         alt={post.pageName}
-                        crossOrigin="anonymous"
-                        referrerPolicy="no-referrer"
                         style={{
                           width: '32px',
                           height: '32px',
                           borderRadius: '50%',
                           marginRight: '8px',
                           objectFit: 'cover'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
                         }}
                       />
                     ) : null}
@@ -419,16 +421,18 @@ const PostedContents = () => {
             }}>
               {selectedPost.profilePicture ? (
                 <img 
-                  src={selectedPost.profilePicture} 
+                  src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.profilePicture)}`}
                   alt={selectedPost.pageName}
-                  crossOrigin="anonymous"
-                  referrerPolicy="no-referrer"
                   style={{
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
                     marginRight: '12px',
                     objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
                   }}
                 />
               ) : null}
@@ -485,10 +489,8 @@ const PostedContents = () => {
               {(selectedPost.image || selectedPost.mediaUrl) && (
                 <div style={{ marginBottom: '16px' }}>
                   <img 
-                    src={selectedPost.image || selectedPost.mediaUrl} 
+                    src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.image || selectedPost.mediaUrl)}`}
                     alt="Post content" 
-                    crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
                     style={{ 
                       width: '100%', 
                       maxHeight: '400px', 

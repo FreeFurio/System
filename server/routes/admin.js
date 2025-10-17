@@ -150,13 +150,14 @@ router.get('/engagement/account/:accountId', async (req, res) => {
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
     
-    // If not refresh, try to get cached data first
+    // If not refresh, try to get cached data first (but never cache historical data)
     if (!refresh) {
       const cachedInsightsRef = ref(db, `cachedInsights/admin/account/${accountId}`);
       const cachedSnapshot = await get(cachedInsightsRef);
       
       if (cachedSnapshot.exists()) {
         const cachedData = cachedSnapshot.val();
+        console.log('📋 Using cached insights data (historical data will be fresh)');
         return res.json({ 
           success: true, 
           data: cachedData.data,
@@ -166,7 +167,7 @@ router.get('/engagement/account/:accountId', async (req, res) => {
       }
     }
     
-    console.log('🚀 Admin API: Fetching engagement for account:', accountId);
+    console.log('🚀 Admin API: Fetching FRESH engagement for account:', accountId, 'refresh=', refresh);
     
     // Check if this request involves Twitter and log rate limit status
     const twitterAllowed = await insightsService.isTwitterCallAllowed();
@@ -176,12 +177,14 @@ router.get('/engagement/account/:accountId', async (req, res) => {
     }
     const engagement = await insightsService.getAccountSpecificEngagement(accountId);
     
-    // Cache the insights in Firebase
+    // Cache the insights in Firebase (this should NOT affect historical data)
+    console.log(`🔍 CACHING to cachedInsights/admin/account/${accountId} - this should NOT affect dailyHistory`);
     const cachedInsightsRef = ref(db, `cachedInsights/admin/account/${accountId}`);
     await set(cachedInsightsRef, {
       data: engagement,
       lastUpdated: new Date().toISOString()
     });
+    console.log(`✅ CACHED insights data - historical data preserved in connectedPages/admin/${accountId}/dailyHistory`);
     
     res.json({ success: true, data: engagement });
   } catch (error) {

@@ -37,6 +37,18 @@ const AccountInsightCard = ({ account, engagement }) => {
   
   // Twitter-specific rendering
   if (account.platform === 'twitter') {
+    const twitterChartData = twitterData?.historicalData && twitterData.historicalData.length > 0
+      ? [
+          { date: '', total: null, time: '', invisible: true },
+          ...twitterData.historicalData,
+          { date: '', total: null, time: '', invisible: true }
+        ]
+      : [
+          { date: '', total: null, time: '', invisible: true },
+          { date: 'Current', total: twitterData?.totalEngagement || 0, time: '12:00 AM' },
+          { date: '', total: null, time: '', invisible: true }
+        ];
+    
     return (
       <div style={{
         border: '1px solid #e0e0e0',
@@ -96,18 +108,22 @@ const AccountInsightCard = ({ account, engagement }) => {
         {twitterData ? (
           <div>
             <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#1da1f2', fontSize: '14px' }}>Twitter Engagement</h4>
+              <h4 style={{ margin: '0 0 10px 0', color: '#1da1f2', fontSize: '14px' }}>Twitter Engagement History</h4>
               <div style={{ height: '150px', marginBottom: '10px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={[
-                    { name: '', total: null, invisible: true },
-                    { name: 'Current', total: twitterData.totalEngagement || 0 },
-                    { name: '', total: null, invisible: true }
-                  ]} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                  <LineChart data={twitterChartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
+                    <XAxis dataKey="date" domain={['dataMin', 'dataMax']} type="category" />
                     <YAxis domain={[0, 'dataMax + 10']} tickFormatter={(value) => Math.round(value)} />
-                    <Tooltip />
+                    <Tooltip 
+                      formatter={(value, name) => [value, 'Total Engagement']}
+                      labelFormatter={(label, payload) => {
+                        if (payload && payload[0] && payload[0].payload.time) {
+                          return `${label} at ${payload[0].payload.time}`;
+                        }
+                        return label;
+                      }}
+                    />
                     <Line 
                       type="monotone" 
                       dataKey="total" 
@@ -118,7 +134,7 @@ const AccountInsightCard = ({ account, engagement }) => {
                         if (props.payload?.invisible) {
                           return null;
                         }
-                        return <circle cx={props.cx} cy={props.cy} r={6} fill="#1da1f2" />;
+                        return <circle key={`twitter-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#1da1f2" />;
                       }}
                     />
                   </LineChart>
@@ -281,7 +297,7 @@ const AccountInsightCard = ({ account, engagement }) => {
                     if (props.payload?.invisible) {
                       return null;
                     }
-                    return <circle cx={props.cx} cy={props.cy} r={6} fill="#1877f2" />;
+                    return <circle key={`facebook-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#1877f2" />;
                   }}
                 />
               </LineChart>
@@ -309,7 +325,7 @@ const AccountInsightCard = ({ account, engagement }) => {
                       if (props.payload?.invisible) {
                         return null;
                       }
-                      return <circle cx={props.cx} cy={props.cy} r={6} fill="#e4405f" />;
+                      return <circle key={`instagram-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#e4405f" />;
                     }}
                   />
                 </LineChart>

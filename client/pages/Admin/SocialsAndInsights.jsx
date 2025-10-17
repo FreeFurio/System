@@ -121,8 +121,8 @@ const SocialsAndInsights = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'insights') {
-      fetchInsights();
+    if (tab === 'insights' && !insights) {
+      fetchInsights(); // Only fetch if no cached data exists
     }
   };
 

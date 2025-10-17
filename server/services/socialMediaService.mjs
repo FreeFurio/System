@@ -404,27 +404,30 @@ class SocialMediaService {
   sanitizeTwitterContent(content) {
     const sanitized = { ...content };
     
-    // Clean headline
+    // Clean headline - remove ALL quotes and problematic characters
     if (sanitized.headline) {
       sanitized.headline = sanitized.headline
-        .replace(/["“”]/g, '') // Remove quotes that cause 403
+        .replace(/["'`“”‘’]/g, '') // Remove all types of quotes
+        .replace(/[—–]/g, '-') // Replace em/en dashes
         .replace(/[\u2000-\u206F\u2E00-\u2E7F\u3000-\u303F]/g, ' ') // Remove special unicode
         .replace(/\s+/g, ' ') // Normalize whitespace
         .trim();
     }
     
-    // Clean caption
+    // Clean caption - remove ALL quotes and problematic characters
     if (sanitized.caption) {
       sanitized.caption = sanitized.caption
-        .replace(/["“”]/g, '') // Remove quotes that cause 403
+        .replace(/["'`“”‘’]/g, '') // Remove all types of quotes
+        .replace(/[—–]/g, '-') // Replace em/en dashes
         .replace(/[\u2000-\u206F\u2E00-\u2E7F\u3000-\u303F]/g, ' ') // Remove special unicode
         .replace(/\s+/g, ' ') // Normalize whitespace
         .trim();
     }
     
-    // Clean hashtags
+    // Clean hashtags - be more permissive but remove quotes
     if (sanitized.hashtag) {
       sanitized.hashtag = sanitized.hashtag
+        .replace(/["'`“”‘’]/g, '') // Remove quotes
         .replace(/[^#\w\s]/g, '') // Keep only hashtags, words, and spaces
         .replace(/\s+/g, ' ')
         .trim();

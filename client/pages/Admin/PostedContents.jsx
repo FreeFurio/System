@@ -449,11 +449,11 @@ const PostedContents = () => {
                 fontSize: '16px',
                 marginRight: '12px'
               }}>
-                {selectedPost.pageName.charAt(0)}
+                {(selectedPost.pageName || selectedPost.name || 'U').charAt(0)}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '600', fontSize: '15px', color: '#1c1e21' }}>
-                  {selectedPost.pageName}
+                  {selectedPost.pageName || selectedPost.name || 'Unknown'}
                 </div>
                 <div style={{ fontSize: '13px', color: '#65676b' }}>
                   {formatDate(selectedPost.createdTime)} · 🌐

@@ -2463,12 +2463,22 @@ router.get('/twitter-data', async (req, res) => {
           headers: { 'Authorization': `Bearer ${account.accessToken}` },
           params: {
             max_results: 10,
-            'tweet.fields': 'created_at,public_metrics,text'
+            'tweet.fields': 'created_at,public_metrics,text,attachments',
+            'expansions': 'attachments.media_keys',
+            'media.fields': 'media_key,type,url,preview_image_url'
           }
         });
         
         const tweets = tweetsResponse.data.data || [];
+        const media = tweetsResponse.data.includes?.media || [];
+        
         tweets.forEach((tweet, index) => {
+          let mediaUrl = null;
+          if (tweet.attachments?.media_keys) {
+            const tweetMedia = media.find(m => tweet.attachments.media_keys.includes(m.media_key));
+            mediaUrl = tweetMedia?.url || tweetMedia?.preview_image_url || null;
+          }
+          
           allPosts.push({
             id: tweet.id,
             text: tweet.text,
@@ -2478,7 +2488,8 @@ router.get('/twitter-data', async (req, res) => {
             replies: tweet.public_metrics?.reply_count || 0,
             username: account.username,
             name: account.name,
-            profilePicture: account.profilePicture
+            profilePicture: account.profilePicture,
+            mediaUrl: mediaUrl
           });
         });
       } catch (error) {
@@ -2923,7 +2934,9 @@ router.post('/refresh-insights', async (req, res) => {
               headers: { 'Authorization': `Bearer ${account.accessToken}` },
               params: {
                 max_results: 10,
-                'tweet.fields': 'created_at,public_metrics'
+                'tweet.fields': 'created_at,public_metrics,text,attachments',
+                'expansions': 'attachments.media_keys',
+                'media.fields': 'media_key,type,url,preview_image_url'
               }
             });
             

@@ -2977,6 +2977,31 @@ router.post('/refresh-insights', async (req, res) => {
   }
 });
 
+// Image proxy endpoint for CORS issues
+router.get('/proxy-image', async (req, res) => {
+  try {
+    const { url } = req.query;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL parameter required' });
+    }
+    
+    const response = await axios.get(url, {
+      responseType: 'stream',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    
+    res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    response.data.pipe(res);
+    
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to proxy image' });
+  }
+});
+
 // Check platform availability for task creation
 router.get('/platform-availability', async (req, res) => {
   try {

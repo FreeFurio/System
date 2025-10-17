@@ -696,7 +696,13 @@ class InsightsService {
       const { initializeApp } = await import('firebase/app');
       const { config } = await import('../config/config.mjs');
       
-      const app = initializeApp(config.firebase);
+      // Use a consistent Firebase app instance
+      let app;
+      try {
+        app = (await import('firebase/app')).getApp();
+      } catch {
+        app = initializeApp(config.firebase);
+      }
       const db = getDatabase(app, config.firebase.databaseURL);
       
       const pageRef = ref(db, `connectedPages/admin/${accountId}`);
@@ -856,102 +862,111 @@ class InsightsService {
         }
       }
       
-      // Get historical data from Firebase
+      // Get historical data from Firebase and add today's data
       let historicalData = [];
       const currentTimestamp = new Date();
-      const currentDateKey = currentTimestamp.toDateString(); // "Mon Oct 05 2025"
+      const currentDateKey = currentTimestamp.toDateString();
       
       try {
-        const { set } = await import('firebase/database');
-        const accountRef = ref(db, `connectedPages/admin/${accountId}`);
-        const accountSnapshot = await get(accountRef);
+        const { push } = await import('firebase/database');
         
-        // Get existing engagement history from account node
-        const existingHistory = accountSnapshot.val()?.engagementHistory || {};
+        // Check cached insights first, then fallback to original paths
+        const possiblePaths = [
+          `cachedInsights/admin/account/${accountId}/data/facebook/historicalData`,
+          `connectedPages/admin/${accountId}/data/facebook/historicalData`,
+          `${accountId}/data/facebook/historicalData`,
+          `connectedPages/${accountId}/data/facebook/historicalData`
+        ];
         
-        // Clean up old indexed structure (0, 1, 2...) and convert to dateKey structure
-        const cleanHistory = {};
-        Object.values(existingHistory).forEach(point => {
-          if (point && point.dateKey) {
-            cleanHistory[point.dateKey] = point;
+        let existingHistory = {};
+        let historyRef;
+        let actualPath = '';
+        
+        for (const path of possiblePaths) {
+          console.log(`🔍 CHECKING PATH: ${path}`);
+          const testRef = ref(db, path);
+          const testSnapshot = await get(testRef);
+          
+          if (testSnapshot.exists()) {
+            console.log(`✅ FOUND DATA AT: ${path}`);
+            console.log(`✅ DATA:`, JSON.stringify(testSnapshot.val(), null, 2));
+            existingHistory = testSnapshot.val();
+            historyRef = testRef;
+            actualPath = path;
+            break;
+          } else {
+            console.log(`❌ NO DATA AT: ${path}`);
           }
-        });
-        
-        // If we cleaned up old structure, save it immediately
-        if (Object.keys(cleanHistory).length > 0 && Object.keys(cleanHistory).length !== Object.keys(existingHistory).length) {
-          const historyRef = ref(db, `connectedPages/admin/${accountId}/engagementHistory`);
-          await set(historyRef, cleanHistory);
-          console.log('🧹 Cleaned up old indexed structure');
         }
         
-        historicalData = Object.values(cleanHistory).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        // If no existing data found, use the primary path
+        if (!historyRef) {
+          actualPath = `connectedPages/admin/${accountId}/data/facebook/historicalData`;
+          historyRef = ref(db, actualPath);
+          console.log(`🔍 NO EXISTING DATA FOUND, USING: ${actualPath}`);
+        }
         
-        // Update today's data point to use correct total engagement
-        let dataUpdated = false;
+        console.log(`🔍 FINAL PATH: ${actualPath}`);
         
-        historicalData = historicalData.map(point => {
-          // Only update today's data point, preserve historical data
-          if (point.dateKey === currentDateKey) {
-            dataUpdated = true;
-            return { ...point, total: totalEngagement };
-          }
-          return point;
-        });
+        // Handle both array and object formats for checking existing entries
+        const historyEntries = Array.isArray(existingHistory) ? existingHistory : Object.values(existingHistory);
+        console.log(`🔍 FOUND ${historyEntries.length} EXISTING ENTRIES`);
         
-        // Check if we already have data for today
-        const todayExists = historicalData.some(point => 
-          new Date(point.timestamp).toDateString() === currentDateKey
-        );
+        // DEBUG: Log existing history structure
+        console.log(`🔍 FINAL HISTORY COUNT: ${historyEntries.length}`);
+        console.log(`🔍 EXISTING DATES: ${historyEntries.map(e => e?.dateKey || 'NO_DATE_KEY').join(', ')}`);
         
-        // Add new data point if it's a new day
+        // Check if today's entry already exists
+        const todayExists = historyEntries.some(entry => entry?.dateKey === currentDateKey);
+        console.log(`🔍 TODAY CHECK - Date: ${currentDateKey}, Exists: ${todayExists}`);
+        
         if (!todayExists) {
-          const newDataPoint = {
+          const todayData = {
+            dateKey: currentDateKey,
             date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            time: '12:00 AM',
-            total: totalEngagement,
+            time: currentTimestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
             timestamp: currentTimestamp.toISOString(),
-            dateKey: currentDateKey
+            total: totalEngagement
           };
           
-          historicalData.push(newDataPoint);
-          dataUpdated = true;
-          
-          // Keep only last 30 days of data
-          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-          historicalData = historicalData.filter(point => new Date(point.timestamp) > thirtyDaysAgo);
-          
-          console.log('📊 New daily data point added for', currentDateKey);
+          console.log(`🔍 ADDING NEW ENTRY:`, todayData);
+          const { set } = await import('firebase/database');
+          const newEntryRef = ref(db, `${actualPath}/${Date.now()}`);
+          await set(newEntryRef, todayData);
+          console.log(`✅ Added new history entry: ${currentDateKey}`);
+        } else {
+          console.log(`📅 Today's entry already exists: ${currentDateKey}`);
         }
         
-        // Save to Firebase if data was updated (either new day or updated existing day)
-        if (dataUpdated) {
-          const { update, set } = await import('firebase/database');
-          const updatedHistory = {};
-          historicalData.forEach((point) => {
-            updatedHistory[point.dateKey] = point;
-          });
-          
-          const historyRef = ref(db, `connectedPages/admin/${accountId}/engagementHistory`);
-          await set(historyRef, updatedHistory);
-          
-          console.log(`💾 Firebase updated with engagement data: ${totalEngagement} for ${currentDateKey}`);
+        // Get updated history for display
+        const updatedSnapshot = await get(historyRef);
+        const updatedHistory = updatedSnapshot.val() || {};
+        
+        // Handle both array and object formats for logging
+        const updatedEntries = Array.isArray(updatedHistory) ? updatedHistory : Object.values(updatedHistory);
+        console.log(`🔍 AFTER PUSH - Updated history count: ${updatedEntries.length}`);
+        console.log(`🔍 AFTER PUSH - Updated dates: ${updatedEntries.map(e => e.dateKey).join(', ')}`);
+        
+        // Handle both array (cached) and object (original) formats
+        const historyData = updatedHistory;
+        if (Array.isArray(historyData)) {
+          historicalData = historyData
+            .filter(point => point && typeof point === 'object' && point.timestamp)
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+            .slice(-30);
         } else {
-          console.log('📊 No data changes, skipping Firebase update');
+          historicalData = Object.values(historyData)
+            .filter(point => point && typeof point === 'object' && point.timestamp)
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+            .slice(-30);
         }
+        
+        console.log(`📊 FINAL - Total history entries: ${historicalData.length}`);
+        console.log(`📊 FINAL - History dates: ${historicalData.map(h => h?.dateKey || 'NO_DATE').join(', ')}`);
         
       } catch (historyError) {
-        console.log('Could not manage historical data:', historyError.message);
-        // Only create initial data if historicalData is empty
-        if (historicalData.length === 0) {
-          const totalEngagement = totalReactions + totalComments + totalShares;
-          historicalData = [{
-            date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            time: '12:00 AM',
-            total: totalEngagement, // Using total engagement for fallback data
-            timestamp: currentTimestamp.toISOString(),
-            dateKey: currentDateKey
-          }];
-        }
+        console.error('❌ HISTORY ERROR:', historyError.message);
+        console.error('❌ HISTORY ERROR STACK:', historyError.stack);
       }
       
       const fbEngagement = {
@@ -1014,72 +1029,91 @@ class InsightsService {
           const totalComments = igPosts.reduce((sum, post) => sum + (post.comments_count || 0), 0);
           const totalEngagementIG = totalLikes + totalComments;
           
-          // Save Instagram historical data like Facebook
+          // Get Instagram historical data and add today's entry
           let igHistoricalData = [];
           try {
-            const igAccountRef = ref(db, `connectedPages/admin/${accountId}/instagramEngagementHistory`);
-            const igSnapshot = await get(igAccountRef);
+            const { push } = await import('firebase/database');
             
-            const existingIGHistory = igSnapshot.val() || {};
-            const cleanIGHistory = {};
-            Object.values(existingIGHistory).forEach(point => {
-              if (point && point.dateKey) {
-                cleanIGHistory[point.dateKey] = point;
+            // Check cached insights first for Instagram data
+            const igHistoryPath = `cachedInsights/admin/account/${accountId}/data/instagram/historicalData`;
+            const fallbackIgPath = `connectedPages/admin/${accountId}/data/instagram/historicalData`;
+            const igHistoryRef = ref(db, igHistoryPath);
+            
+            console.log(`🔍 READING IG HISTORICAL DATA FROM: ${igHistoryPath}`);
+            let igHistorySnapshot = await get(igHistoryRef);
+            let existingIgHistory = {};
+            let actualIgPath = igHistoryPath;
+            
+            if (!igHistorySnapshot.exists()) {
+              console.log(`🔍 TRYING FALLBACK IG PATH: ${fallbackIgPath}`);
+              const fallbackRef = ref(db, fallbackIgPath);
+              const fallbackSnapshot = await get(fallbackRef);
+              if (fallbackSnapshot.exists()) {
+                existingIgHistory = fallbackSnapshot.val();
+                actualIgPath = fallbackIgPath;
               }
-            });
+            } else {
+              existingIgHistory = igHistorySnapshot.val();
+            }
             
-            igHistoricalData = Object.values(cleanIGHistory).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            // Handle both array and object formats for Instagram history
+            const igHistoryEntries = Array.isArray(existingIgHistory) ? existingIgHistory : Object.values(existingIgHistory);
+            console.log(`🔍 FOUND ${igHistoryEntries.length} EXISTING IG ENTRIES`);
             
-            let igDataUpdated = false;
-            igHistoricalData = igHistoricalData.map(point => {
-              if (point.dateKey === currentDateKey) {
-                igDataUpdated = true;
-                return { ...point, total: totalEngagementIG };
-              }
-              return point;
-            });
+            // DEBUG: Log existing Instagram history structure
+            console.log(`🔍 FINAL IG HISTORY COUNT: ${igHistoryEntries.length}`);
+            console.log(`🔍 EXISTING IG DATES: ${igHistoryEntries.map(e => e?.dateKey || 'NO_DATE_KEY').join(', ')}`);
             
-            const igTodayExists = igHistoricalData.some(point => 
-              new Date(point.timestamp).toDateString() === currentDateKey
-            );
+            // Check if today's Instagram entry already exists
+            const todayExists = igHistoryEntries.some(entry => entry?.dateKey === currentDateKey);
+            console.log(`🔍 IG TODAY CHECK - Date: ${currentDateKey}, Exists: ${todayExists}`);
             
-            if (!igTodayExists) {
-              const newIGDataPoint = {
+            if (!todayExists) {
+              const todayIgData = {
+                dateKey: currentDateKey,
                 date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                time: '12:00 AM',
-                total: totalEngagementIG,
+                time: currentTimestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                 timestamp: currentTimestamp.toISOString(),
-                dateKey: currentDateKey
+                total: totalEngagementIG
               };
               
-              igHistoricalData.push(newIGDataPoint);
-              igDataUpdated = true;
-              
-              const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-              igHistoricalData = igHistoricalData.filter(point => new Date(point.timestamp) > thirtyDaysAgo);
+              console.log(`🔍 IG ADDING NEW ENTRY:`, todayIgData);
+              const { set } = await import('firebase/database');
+              const newIgEntryRef = ref(db, `${actualIgPath}/${Date.now()}`);
+              await set(newIgEntryRef, todayIgData);
+              console.log(`✅ Added Instagram history entry: ${currentDateKey}`);
+            } else {
+              console.log(`📅 Today's Instagram entry already exists: ${currentDateKey}`);
             }
             
-            if (igDataUpdated) {
-              const { set } = await import('firebase/database');
-              const updatedIGHistory = {};
-              igHistoricalData.forEach((point) => {
-                updatedIGHistory[point.dateKey] = point;
-              });
+            // Get updated Instagram history for display
+            const updatedIgSnapshot = await get(igHistoryRef);
+            const updatedIgHistory = updatedIgSnapshot.val() || {};
+            
+            // Handle both array and object formats for Instagram logging
+            const updatedIgEntries = Array.isArray(updatedIgHistory) ? updatedIgHistory : Object.values(updatedIgHistory);
+            console.log(`🔍 IG AFTER PUSH - Updated history count: ${updatedIgEntries.length}`);
+            console.log(`🔍 IG AFTER PUSH - Updated dates: ${updatedIgEntries.map(e => e.dateKey).join(', ')}`);
+            
+            // Handle both array (cached) and object (original) formats for Instagram
+            const igHistoryData = updatedIgHistory;
+            if (Array.isArray(igHistoryData)) {
+              igHistoricalData = igHistoryData
+                .filter(point => point && typeof point === 'object' && point.timestamp)
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                .slice(-30);
+            } else {
+              igHistoricalData = Object.values(igHistoryData)
+                .filter(point => point && typeof point === 'object' && point.timestamp)
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                .slice(-30);
+            }
               
-              await set(igAccountRef, updatedIGHistory);
-              console.log(`💾 Instagram historical data saved: ${totalEngagementIG} for ${currentDateKey}`);
-            }
+            console.log(`📊 IG FINAL - Total history entries: ${igHistoricalData.length}`);
+            console.log(`📊 IG FINAL - History dates: ${igHistoricalData.map(h => h?.dateKey || 'NO_DATE').join(', ')}`);
           } catch (igHistoryError) {
-            console.log('Could not manage Instagram historical data:', igHistoryError.message);
-            if (igHistoricalData.length === 0) {
-              igHistoricalData = [{
-                date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                time: '12:00 AM',
-                total: totalEngagementIG,
-                timestamp: currentTimestamp.toISOString(),
-                dateKey: currentDateKey
-              }];
-            }
+            console.error('❌ IG HISTORY ERROR:', igHistoryError.message);
+            console.error('❌ IG HISTORY ERROR STACK:', igHistoryError.stack);
           }
           
           igEngagement = {

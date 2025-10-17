@@ -297,9 +297,9 @@ const PostedContents = () => {
                 {/* Minimal Card Header */}
                 <div style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                    {post.profilePicture ? (
+                    {post.pageId ? (
                       <img 
-                        src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(post.profilePicture)}`}
+                        src={`https://graph.facebook.com/v23.0/${post.pageId}/picture?type=small`}
                         alt={post.pageName}
                         style={{
                           width: '32px',
@@ -419,9 +419,9 @@ const PostedContents = () => {
               padding: '16px',
               borderBottom: '1px solid #e4e6ea'
             }}>
-              {selectedPost.profilePicture ? (
+              {selectedPost.pageId ? (
                 <img 
-                  src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.profilePicture)}`}
+                  src={`https://graph.facebook.com/v23.0/${selectedPost.pageId}/picture?type=normal`}
                   alt={selectedPost.pageName}
                   style={{
                     width: '40px',

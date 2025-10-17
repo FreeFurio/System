@@ -301,7 +301,7 @@ const PostedContents = () => {
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                         {post.pageId ? (
                           <img 
-                            src={`https://graph.facebook.com/v23.0/${post.pageId}/picture?type=small`}
+                            src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(`https://graph.facebook.com/v23.0/${post.pageId}/picture?type=small`)}`}
                             alt={post.pageName}
                             style={{
                               width: '32px',
@@ -423,7 +423,7 @@ const PostedContents = () => {
             }}>
               {selectedPost.pageId ? (
                 <img 
-                  src={`https://graph.facebook.com/v23.0/${selectedPost.pageId}/picture?type=normal`}
+                  src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(`https://graph.facebook.com/v23.0/${selectedPost.pageId}/picture?type=normal`)}`}
                   alt={selectedPost.pageName}
                   style={{
                     width: '40px',

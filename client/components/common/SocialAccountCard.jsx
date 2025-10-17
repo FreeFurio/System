@@ -70,7 +70,7 @@ const SocialAccountCard = ({
             }}>
               {platform.charAt(0)}
             </div>
-            <h4 style={{ color: color, margin: 0, display: 'flex', alignItems: 'center' }}>
+            <h4 style={{ color: color, margin: 0, display: 'flex', alignItems: 'center', backgroundColor: 'transparent' }}>
               {platform}
               <span style={{
                 marginLeft: '10px',

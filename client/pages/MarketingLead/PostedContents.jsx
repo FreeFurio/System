@@ -299,18 +299,20 @@ const PostedContents = () => {
                     {/* Minimal Card Header */}
                     <div style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                        {post.profilePicture ? (
+                        {post.pageId ? (
                           <img 
-                            src={post.profilePicture} 
+                            src={`https://graph.facebook.com/v23.0/${post.pageId}/picture?type=small`}
                             alt={post.pageName}
-                            crossOrigin="anonymous"
-                            referrerPolicy="no-referrer"
                             style={{
                               width: '32px',
                               height: '32px',
                               borderRadius: '50%',
                               marginRight: '8px',
                               objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
                             }}
                           />
                         ) : null}
@@ -419,18 +421,20 @@ const PostedContents = () => {
               padding: '16px',
               borderBottom: '1px solid #e4e6ea'
             }}>
-              {selectedPost.profilePicture ? (
+              {selectedPost.pageId ? (
                 <img 
-                  src={selectedPost.profilePicture} 
+                  src={`https://graph.facebook.com/v23.0/${selectedPost.pageId}/picture?type=normal`}
                   alt={selectedPost.pageName}
-                  crossOrigin="anonymous"
-                  referrerPolicy="no-referrer"
                   style={{
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
                     marginRight: '12px',
                     objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
                   }}
                 />
               ) : null}
@@ -487,10 +491,8 @@ const PostedContents = () => {
               {(selectedPost.image || selectedPost.mediaUrl) && (
                 <div style={{ marginBottom: '16px' }}>
                   <img 
-                    src={selectedPost.image || selectedPost.mediaUrl} 
+                    src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.image || selectedPost.mediaUrl)}`}
                     alt="Post content" 
-                    crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
                     style={{ 
                       width: '100%', 
                       maxHeight: '400px', 

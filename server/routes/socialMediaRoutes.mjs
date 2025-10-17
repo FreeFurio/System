@@ -717,4 +717,42 @@ router.get('/test-facebook-post', async (req, res) => {
   }
 });
 
+// Test automation posting flow
+router.get('/test-automation-twitter', async (req, res) => {
+  try {
+    const { default: FirebaseService } = await import('../services/firebase.service.mjs');
+    
+    // Create a mock workflow similar to automation
+    const mockWorkflow = {
+      contentCreator: {
+        content: {
+          headline: 'Test Automation Tweet',
+          caption: `Testing automation flow! 🚀 ${new Date().toISOString().slice(0, 16)}`,
+          hashtag: '#test #automation #twitter'
+        }
+      },
+      graphicDesigner: {
+        designUrl: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1080&h=1080&fit=crop&crop=center'
+      },
+      selectedPlatforms: [{ name: 'twitter' }]
+    };
+    
+    console.log('🧪 Testing automation Twitter posting flow...');
+    await FirebaseService.autoPostToSocialMedia('test-automation', mockWorkflow);
+    
+    res.json({ 
+      success: true, 
+      message: 'Automation Twitter test completed',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Automation test failed:', error);
+    res.json({ 
+      success: false, 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 export default router;

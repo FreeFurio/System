@@ -99,7 +99,7 @@ class SocialMediaService {
         }
         
         const pages = pagesSnapshot.val();
-        const activePage = Object.entries(pages).find(([id, data]) => data.active === true);
+        const activePage = Object.entries(pages).find(([id, data]) => data.status === 'active');
         
         if (!activePage) {
           throw new Error('No active Facebook pages found');
@@ -209,7 +209,7 @@ class SocialMediaService {
         
         const pages = pagesSnapshot.val();
         const pageWithInstagram = Object.entries(pages).find(([id, data]) => 
-          data.active === true && data.instagramBusinessAccount
+          data.status === 'active' && data.instagramBusinessAccount
         );
         
         if (!pageWithInstagram) {
@@ -353,6 +353,8 @@ class SocialMediaService {
       
       // Sanitize and validate content
       const sanitizedContent = this.sanitizeTwitterContent(content);
+      console.log('🧹 Content before sanitization:', content);
+      console.log('🧹 Content after sanitization:', sanitizedContent);
       
       // Create unique tweet text to prevent duplicate detection
       let tweetText = this.createUniqueTwitterText(sanitizedContent);
@@ -361,10 +363,11 @@ class SocialMediaService {
         text: tweetText
       };
       
-      // Handle image upload if provided
+      // Handle image upload if provided - upload and use immediately
       if (content.imageUrl) {
         console.log('📷 Uploading image for Twitter post...');
         const mediaId = await this.uploadTwitterMedia(content.imageUrl);
+        console.log('📎 Media uploaded, creating tweet immediately...');
         tweetData.media = { media_ids: [String(mediaId)] };
       }
       
@@ -401,14 +404,25 @@ class SocialMediaService {
   sanitizeTwitterContent(content) {
     const sanitized = { ...content };
     
-    // Remove potentially problematic characters and patterns
-    if (sanitized.caption) {
-      sanitized.caption = sanitized.caption
+    // Clean headline
+    if (sanitized.headline) {
+      sanitized.headline = sanitized.headline
+        .replace(/["“”]/g, '') // Remove quotes that cause 403
         .replace(/[\u2000-\u206F\u2E00-\u2E7F\u3000-\u303F]/g, ' ') // Remove special unicode
         .replace(/\s+/g, ' ') // Normalize whitespace
         .trim();
     }
     
+    // Clean caption
+    if (sanitized.caption) {
+      sanitized.caption = sanitized.caption
+        .replace(/["“”]/g, '') // Remove quotes that cause 403
+        .replace(/[\u2000-\u206F\u2E00-\u2E7F\u3000-\u303F]/g, ' ') // Remove special unicode
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim();
+    }
+    
+    // Clean hashtags
     if (sanitized.hashtag) {
       sanitized.hashtag = sanitized.hashtag
         .replace(/[^#\w\s]/g, '') // Keep only hashtags, words, and spaces
@@ -421,7 +435,12 @@ class SocialMediaService {
 
   // Create unique Twitter text to prevent duplicate detection
   createUniqueTwitterText(content) {
-    const timestamp = new Date().toISOString().slice(11, 16); // HH:MM format
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    }); // Format: "3:06 PM"
     
     let baseText = '';
     if (content.caption && content.hashtag) {

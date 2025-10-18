@@ -10,6 +10,8 @@ import {
   login,
   validateOTPRegistration,
   resetPassword,
+  forgotPassword,
+  resetPasswordWithToken
 } from '../controllers/auth.controller.mjs';
 import FirebaseService from '../services/firebase.service.mjs';
 import { body } from 'express-validator';
@@ -109,6 +111,32 @@ router.post(
 // ========================
 // 2.3) PASSWORD RESET
 // ========================
+router.post(
+  '/forgot-password',
+  [
+    body('email')
+      .isEmail()
+      .withMessage('Valid email is required')
+  ],
+  forgotPassword
+);
+
+router.post(
+  '/reset-password-token',
+  [
+    body('token')
+      .notEmpty()
+      .withMessage('Reset token is required'),
+    body('newPassword')
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters long'),
+    body('confirmPassword')
+      .notEmpty()
+      .withMessage('Confirm password is required')
+  ],
+  resetPasswordWithToken
+);
+
 router.post(
   '/reset-password',
   [

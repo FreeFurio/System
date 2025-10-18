@@ -350,6 +350,14 @@ class FirebaseService {
         user: 'Graphic Designer'
       });
       
+      // Import io for real-time notifications
+      const { io } = await import('../server.mjs');
+      io.emit('marketingNotification', {
+        type: 'design_submitted',
+        message: `Design submitted for approval: ${workflow.objectives}`,
+        timestamp: new Date().toISOString()
+      });
+      
       console.log('🎨 submitDesign success - Design submitted with canvas data preserved');
       return updatedWorkflow;
     } catch (error) {
@@ -422,6 +430,15 @@ class FirebaseService {
       
       await set(workflowRef, updatedWorkflow);
       
+      // Create notification for Marketing Lead
+      await this.createMarketingNotification({
+        type: status === 'posted' ? 'design_approved_and_posted' : 'design_approved_ready_for_posting',
+        message: status === 'posted' 
+          ? `Design approved and automatically posted: ${workflow.objectives}`
+          : `Design approved and ready for posting: ${workflow.objectives}`,
+        user: approvedBy
+      });
+      
       // Auto-post if deadline has passed
       if (status === 'posted') {
         console.log('📢 Triggering auto-post for approved design');
@@ -472,6 +489,13 @@ class FirebaseService {
       });
       
       await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for Marketing Lead
+      await this.createMarketingNotification({
+        type: 'design_rejected_returned',
+        message: `Design rejected and returned to Graphic Designer: ${workflow.objectives}`,
+        user: rejectedBy
+      });
       
       // Verify the update was successful
       const verifySnapshot = await get(workflowRef);
@@ -610,6 +634,14 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for Marketing Lead
+      await this.createMarketingNotification({
+        type: 'task_assigned_to_designer',
+        message: `Task assigned to Graphic Designer: ${workflow.objectives}`,
+        user: 'Marketing Lead'
+      });
+      
       console.log('🎨 assignToGraphicDesigner success - Task assigned to graphic designer');
       return updatedWorkflow;
     } catch (error) {
@@ -648,6 +680,13 @@ class FirebaseService {
         message: `Your content has been approved: ${workflow.objectives}`,
         workflowId: workflowId,
         user: 'Content Creator'
+      });
+      
+      // Create notification for Marketing Lead
+      await this.createMarketingNotification({
+        type: 'content_approved_ready_for_design',
+        message: `Content approved and ready for design assignment: ${workflow.objectives}`,
+        user: approvedBy
       });
       
       console.log('✅ approveContent success - Content approved, ready for design assignment');
@@ -689,6 +728,13 @@ class FirebaseService {
         message: `Your content has been rejected: ${workflow.objectives}. Please review feedback and resubmit.`,
         workflowId: workflowId,
         user: 'Content Creator'
+      });
+      
+      // Create notification for Marketing Lead
+      await this.createMarketingNotification({
+        type: 'content_rejected_returned',
+        message: `Content rejected and returned to Content Creator: ${workflow.objectives}`,
+        user: rejectedBy
       });
       
       console.log('❌ rejectContent success - Content rejected and returned to content creator');
@@ -929,6 +975,19 @@ class FirebaseService {
     }
   }
 
+  static async getMarketingNotifications() {
+    console.log('📬 getMarketingNotifications called');
+    try {
+      const snapshot = await get(ref(db, 'notification/marketing'));
+      const result = snapshot.val();
+      console.log('📬 getMarketingNotifications result:', result ? Object.keys(result).length + ' notifications found' : 'No notifications found');
+      return result;
+    } catch (error) {
+      console.error('❌ Error getting marketing notifications:', error);
+      throw new Error('Failed to get marketing notifications');
+    }
+  }
+
   // ========================
   // 6) APPROVAL OPERATIONS
   // ========================
@@ -1107,6 +1166,137 @@ class FirebaseService {
   }
 
   // ========================
+  // PASSWORD RESET OPERATIONS
+  // ========================
+  
+  static async findUserByEmail(email) {
+    console.log('🔍 findUserByEmail called with email:', email);
+    try {
+      const roles = ['Admin', 'ContentCreator', 'MarketingLead', 'GraphicDesigner'];
+      
+      for (const role of roles) {
+        const nodeRef = ref(db, role);
+        const snapshot = await get(nodeRef);
+        
+        if (snapshot.exists()) {
+          const users = snapshot.val();
+          const user = Object.values(users).find(
+            u => u.email && u.email.toLowerCase() === email.toLowerCase()
+          );
+          
+          if (user) {
+            console.log('🔍 findUserByEmail found user:', user.username, 'in role:', role);
+            return { ...user, role };
+          }
+        }
+      }
+      
+      console.log('🔍 findUserByEmail user not found');
+      return null;
+    } catch (error) {
+      console.error('❌ Error finding user by email:', error);
+      throw new Error('Failed to find user');
+    }
+  }
+  
+  static async savePasswordResetToken(username, tokenData) {
+    console.log('💾 savePasswordResetToken called with username:', username);
+    try {
+      const safeUsername = safeKey(username);
+      const tokenRef = ref(db, `passwordResetTokens/${safeUsername}`);
+      await set(tokenRef, tokenData);
+      console.log('💾 savePasswordResetToken success');
+      return true;
+    } catch (error) {
+      console.error('❌ Error saving password reset token:', error);
+      throw new Error('Failed to save password reset token');
+    }
+  }
+  
+  static async getPasswordResetToken(token) {
+    console.log('📖 getPasswordResetToken called');
+    try {
+      const tokensRef = ref(db, 'passwordResetTokens');
+      const snapshot = await get(tokensRef);
+      
+      if (!snapshot.exists()) {
+        return null;
+      }
+      
+      const tokens = snapshot.val();
+      const tokenEntry = Object.values(tokens).find(t => t.token === token);
+      
+      console.log('📖 getPasswordResetToken result:', tokenEntry ? 'Found' : 'Not found');
+      return tokenEntry || null;
+    } catch (error) {
+      console.error('❌ Error getting password reset token:', error);
+      throw new Error('Failed to get password reset token');
+    }
+  }
+  
+  static async markPasswordResetTokenUsed(token) {
+    console.log('✅ markPasswordResetTokenUsed called');
+    try {
+      const tokensRef = ref(db, 'passwordResetTokens');
+      const snapshot = await get(tokensRef);
+      
+      if (!snapshot.exists()) {
+        return false;
+      }
+      
+      const tokens = snapshot.val();
+      const tokenKey = Object.keys(tokens).find(key => tokens[key].token === token);
+      
+      if (tokenKey) {
+        const tokenRef = ref(db, `passwordResetTokens/${tokenKey}/used`);
+        await set(tokenRef, true);
+        console.log('✅ markPasswordResetTokenUsed success');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('❌ Error marking token as used:', error);
+      throw new Error('Failed to mark token as used');
+    }
+  }
+
+  // ========================
+  // 7) DEADLINE MONITORING
+  // ========================
+  
+  static async checkDeadlineApproaching() {
+    console.log('⏰ checkDeadlineApproaching called');
+    try {
+      const snapshot = await get(ref(db, 'workflows'));
+      const workflows = snapshot.val();
+      
+      if (!workflows) return;
+      
+      const now = new Date();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      for (const [workflowId, workflow] of Object.entries(workflows)) {
+        if (workflow.deadline && workflow.status !== 'posted') {
+          const deadline = new Date(workflow.deadline);
+          const timeUntilDeadline = deadline.getTime() - now.getTime();
+          
+          // Notify if deadline is within 24 hours
+          if (timeUntilDeadline > 0 && timeUntilDeadline <= twentyFourHours) {
+            await this.createMarketingNotification({
+              type: 'deadline_approaching',
+              message: `Deadline approaching for: ${workflow.objectives} (Due: ${workflow.deadline})`,
+              user: 'System'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error checking deadline approaching:', error);
+    }
+  }
+  
+  // ========================
   // 8) SOCIAL MEDIA AUTO-POSTING
   // ========================
   
@@ -1245,6 +1435,17 @@ class FirebaseService {
       };
       
       await set(workflowRef, updatedWorkflow);
+      
+      // Create notification for successful posting
+      const successfulPosts = results.filter(r => r.success);
+      if (successfulPosts.length > 0) {
+        await this.createMarketingNotification({
+          type: 'content_posted_successfully',
+          message: `Content posted successfully to ${successfulPosts.length} platform(s): ${workflow.objectives}`,
+          user: 'System'
+        });
+      }
+      
       console.log('📢 Auto-posting completed for workflow:', workflowId);
       
     } catch (error) {

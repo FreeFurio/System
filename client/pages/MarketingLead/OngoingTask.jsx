@@ -2,7 +2,81 @@ import React, { useEffect, useState, useRef } from 'react';
 import { io } from "socket.io-client";
 import { cachedFetch } from '../../utils/apiCache';
 import { FiTrash2, FiTarget, FiUser, FiCalendar, FiBarChart, FiSmartphone, FiClock, FiEdit3, FiStar, FiFileText, FiHash, FiTrendingUp, FiEye, FiCheckCircle, FiSend, FiClipboard } from 'react-icons/fi';
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
+
+const SEORadial = ({ score, label }) => {
+  const getColor = (score) => {
+    if (score >= 85) return '#10b981';
+    if (score >= 75) return '#f59e0b';
+    return '#ef4444';
+  };
+  
+  const getQuality = (score) => {
+    if (score >= 85) return 'Excellent';
+    if (score >= 75) return 'Good';
+    return 'Needs Work';
+  };
+  
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
+  return (
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      marginBottom: '16px'
+    }}>
+      <div style={{ position: 'relative', marginBottom: '8px' }}>
+        <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth="6"
+            fill="transparent"
+          />
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            stroke={getColor(score)}
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+          />
+        </svg>
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '18px',
+          fontWeight: '700',
+          color: getColor(score)
+        }}>
+          {score}
+        </div>
+      </div>
+      
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '2px' }}>
+          {label}
+        </div>
+        <div style={{ fontSize: '11px', color: getColor(score), fontWeight: '500' }}>
+          {getQuality(score)}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SEOBar = ({ score, label, width = '100%' }) => {
   const getColor = (score) => {
@@ -39,9 +113,13 @@ const SEOBar = ({ score, label, width = '100%' }) => {
 const MultiPlatformContentModal = ({ task }) => {
   const [activeTab, setActiveTab] = useState('facebook');
   
-  const getPlatformEmoji = (platform) => {
-    const emojis = { facebook: '🔵', instagram: '🟣', twitter: '🔵' };
-    return emojis[platform] || '📱';
+  const getPlatformIcon = (platform, size = 20) => {
+    const icons = {
+      facebook: <FaFacebook size={size} color="#1877f2" />,
+      instagram: <FaInstagram size={size} color="#e4405f" />,
+      twitter: <FaTwitter size={size} color="#1da1f2" />
+    };
+    return icons[platform] || <FaFacebook size={size} color="#6b7280" />;
   };
   
   const getPlatformDisplayName = (platform) => {
@@ -108,34 +186,37 @@ const MultiPlatformContentModal = ({ task }) => {
             key={platform}
             onClick={() => setActiveTab(platform)}
             style={{
-              padding: '8px 16px',
-              background: activeTab === platform 
-                ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                : '#f8f9fa',
-              color: activeTab === platform ? '#fff' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
+              padding: '12px 24px',
+              background: '#ffffff',
+              color: activeTab === platform ? '#1f2937' : '#6b7280',
+              border: activeTab === platform ? '2px solid #fdba74' : '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '8px'
             }}
           >
-            {getPlatformEmoji(platform)} {getPlatformDisplayName(platform)}
+            {getPlatformIcon(platform, 16)} {getPlatformDisplayName(platform)}
           </button>
         ))}
       </div>
       
       {selectedContent[activeTab] && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📰 Headline</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.4 }}>
@@ -143,17 +224,29 @@ const MultiPlatformContentModal = ({ task }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.headlineScore || 0} label="Headline" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>📝 Caption</div>
               <div style={{ fontSize: '15px', color: '#374151', lineHeight: 1.5 }}>
@@ -161,17 +254,29 @@ const MultiPlatformContentModal = ({ task }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.captionScore || 0} label="Caption SEO" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.captionScore || 0} label="Content" />
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: '#f8fafc'
+              background: '#f8fafc',
+              minHeight: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>🏷️ Hashtags</div>
               <div style={{ fontSize: '15px', color: '#3b82f6', fontWeight: 600 }}>
@@ -179,8 +284,16 @@ const MultiPlatformContentModal = ({ task }) => {
               </div>
             </div>
             
-            <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-              <SEOBar score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall SEO Score" />
+            <div style={{ 
+              padding: '0', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px'
+            }}>
+              <SEORadial score={seoAnalysis[activeTab]?.overallScore || 0} label="Overall" />
             </div>
           </div>
         </div>
@@ -535,27 +648,17 @@ const DeleteModal = ({ isOpen, onConfirm, onCancel, taskTitle, taskType }) => {
 };
 
 const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
-  const getCardHeight = () => {
-    if (type === 'Graphic Designer') {
-      return isDeleting ? '438px' : '438px';
-    }
-    return isDeleting ? '339px' : '320px';
-  };
   const [contentExpanded, setContentExpanded] = useState(false);
+  const [showDesignModal, setShowDesignModal] = useState(false);
+  const isDesignApproval = task.status === 'design_approval';
   
-  console.log('TaskCard render - contentExpanded:', contentExpanded, 'task.content:', !!task.content, 'type:', type);
-  console.log('Full task object:', task);
-  
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'content_creation': return '#f59e0b';
-      case 'content_approval': return '#f59e0b';
-      case 'ready_for_design_assignment': return '#10b981';
-      case 'design_creation': return '#3b82f6';
-      case 'design_approval': return '#f59e0b';
-      case 'posted': return '#10b981';
-      default: return '#6b7280';
-    }
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const getStatusText = (status) => {
@@ -568,15 +671,6 @@ const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
       case 'posted': return 'Posted';
       default: return 'In Progress';
     }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const getTaskIcon = () => {
@@ -601,24 +695,21 @@ const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        height: getCardHeight()
+        minHeight: '400px'
       }}>
         <div style={{
           textAlign: 'center',
-          color: '#dc2626',
-          background: 'transparent'
+          color: '#dc2626'
         }}>
           <h3 style={{
             fontSize: '24px',
             fontWeight: '700',
-            margin: '0 0 8px 0',
-            background: 'transparent'
+            margin: '0 0 8px 0'
           }}>Deleted</h3>
           <p style={{
             fontSize: '16px',
             margin: 0,
-            opacity: 0.8,
-            background: 'transparent'
+            opacity: 0.8
           }}>Task has been removed</p>
         </div>
       </div>
@@ -627,24 +718,14 @@ const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
   
   return (
     <div style={{
-      background: '#fff',
+      background: '#ffffff',
       borderRadius: '16px',
       padding: '24px',
       marginBottom: '20px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
       border: '1px solid #e5e7eb',
-      transition: 'all 0.3s ease',
-      minHeight: getCardHeight()
-    }}
-    onMouseEnter={e => {
-      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
-      e.currentTarget.style.transform = 'translateY(-2px)';
-    }}
-    onMouseLeave={e => {
-      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
-      e.currentTarget.style.transform = 'translateY(0)';
-    }}
-    >
+      transition: 'all 0.2s ease'
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', background: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
@@ -775,7 +856,41 @@ const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
       </div>
       
 
-      
+      {/* View Design Button for Design Approvals */}
+      {isDesignApproval && (
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+          <button
+            onClick={() => setShowDesignModal(true)}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto',
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+            }}
+            onMouseLeave={e => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+            }}
+          >
+            🖼️ View Design
+          </button>
+        </div>
+      )}
+
       {/* Content Section for tasks with submitted content */}
       {task.contentCreator?.content && (
         <div style={{
@@ -788,7 +903,9 @@ const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '18px' }}>✨</span>
-              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>Submitted Content</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e !important', background: 'transparent !important' }}>
+                {isDesignApproval ? 'Content Used for Design' : 'Submitted Content'}
+              </span>
             </div>
             <button
               onClick={() => setContentExpanded(!contentExpanded)}
@@ -876,6 +993,77 @@ const TaskCard = ({ task, type, onEdit, onDelete, isDeleting }) => {
         </button>
       </div>
 
+      {/* Design Modal */}
+      {showDesignModal && isDesignApproval && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '24px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Submitted Design</h3>
+              <button
+                onClick={() => setShowDesignModal(false)}
+                style={{
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                ✕ Close
+              </button>
+            </div>
+            {(task.graphicDesigner?.designUrl || task.graphicDesigner?.designs?.designUrl) ? (
+              <img 
+                src={task.graphicDesigner?.designUrl || task.graphicDesigner?.designs?.designUrl} 
+                alt="Submitted Design" 
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                  border: '1px solid #e5e7eb'
+                }}
+              />
+            ) : (
+              <div style={{
+                padding: '40px',
+                textAlign: 'center',
+                color: '#6b7280',
+                fontSize: '16px'
+              }}>
+                No design image available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -44,12 +44,29 @@ const contentCreatorNotification = async (req, res, next) => {
     }
 }
 
+const marketingNotification = async (req, res, next) => {
+    console.log('📬 marketingNotification controller called');
+    try {
+        const notification = await FirebaseService.getMarketingNotifications();
+        console.log('📬 marketingNotification controller - notifications retrieved:', notification ? Object.keys(notification).length : 0);
+
+        res.status(200).json({
+            status: 'success',
+            data: notification
+        });
+    } catch (error) {
+        console.error('❌ marketingNotification controller error:', error);
+        next(error);
+    }
+}
+
 // ========================
 // 4) EXPORTS
 // ========================
 
 export {
     adminNotification,
-    contentCreatorNotification
+    contentCreatorNotification,
+    marketingNotification
 };
 

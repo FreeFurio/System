@@ -275,6 +275,13 @@ const submitContent = async (req, res, next) => {
             user: 'Content Creator'
         });
         
+        // Emit real-time notification to Marketing Lead
+        io.emit('marketingNotification', {
+            type: 'content_submitted',
+            message: notificationMessage,
+            timestamp: new Date().toISOString()
+        });
+        
         io.emit('workflowUpdated', updatedWorkflow);
         
         res.status(200).json({
@@ -360,6 +367,13 @@ const approveContent = async (req, res, next) => {
             type: 'content_approved',
             message: `Content approved and ready for design assignment`,
             user: approvedBy
+        });
+        
+        // Emit real-time notification to Marketing Lead
+        io.emit('marketingNotification', {
+            type: 'content_approved',
+            message: `Content approved and ready for design assignment`,
+            timestamp: new Date().toISOString()
         });
         
         io.emit('workflowUpdated', updatedWorkflow);

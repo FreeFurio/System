@@ -32,17 +32,21 @@ const ForgotPassword = () => {
     }
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/forgot-password`, {
+      const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3000';
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      if (response.ok) {
+      const result = await response.json();
+      
+      if (response.ok && result.status === 'success') {
         setToastMessage('Password reset instructions sent to your email.');
         setToastType('success');
         setShowToast(true);
+        setTimeout(() => navigate('/login'), 3000);
       } else {
-        setToastMessage('Failed to send reset email. Please try again.');
+        setToastMessage(result.message || 'Failed to send reset email. Please try again.');
         setToastType('error');
         setShowToast(true);
       }
@@ -82,6 +86,10 @@ const ForgotPassword = () => {
       </form>
       
       <div className="form-footer">
+        <span>Already have a reset code?</span>
+        <button className="link" onClick={() => navigate('/reset-password')}>
+          Enter Reset Code
+        </button>
         <button className="back-button" onClick={() => navigate('/login')}>
           Back to Login
         </button>

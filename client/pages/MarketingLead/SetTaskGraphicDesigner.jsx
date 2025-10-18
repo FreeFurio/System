@@ -58,13 +58,13 @@ const SEORadial = ({ score, label, size = 60 }) => {
 const MultiPlatformContentModal = ({ workflow }) => {
   const [activeTab, setActiveTab] = useState('facebook');
   
-  const getPlatformIcon = (platform) => {
-    const icons = { 
-      facebook: <FaFacebook color="#1877f2" size={16} />, 
-      instagram: <FaInstagram color="#e4405f" size={16} />, 
-      twitter: <FaTwitter color="#1da1f2" size={16} /> 
+  const getPlatformIcon = (platform, size = 20) => {
+    const icons = {
+      facebook: <FaFacebook size={size} color="#1877f2" />,
+      instagram: <FaInstagram size={size} color="#e4405f" />,
+      twitter: <FaTwitter size={size} color="#1da1f2" />
     };
-    return icons[platform] || <FaFacebook color="#6b7280" size={16} />;
+    return icons[platform] || <FaFacebook size={size} color="#6b7280" />;
   };
   
   const getPlatformDisplayName = (platform) => {
@@ -79,11 +79,10 @@ const MultiPlatformContentModal = ({ workflow }) => {
   if (availablePlatforms.length === 0) {
     return (
       <div style={{
-        background: 'transparent',
-        padding: '20px',
-        borderRadius: '12px',
-        marginBottom: '20px',
-        border: '1px solid #e5e7eb',
+        marginTop: '0px',
+        padding: '32px',
+        background: '#f8f9fa',
+        borderRadius: '8px',
         textAlign: 'center'
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
@@ -94,15 +93,31 @@ const MultiPlatformContentModal = ({ workflow }) => {
   
   return (
     <div style={{
+      marginTop: '0px',
+      padding: '0px',
       background: 'transparent',
-      padding: '20px',
-      borderRadius: '12px',
-      marginBottom: '20px',
-      border: '1px solid #e5e7eb'
+      borderRadius: '0px',
+      border: 'none'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-        <span style={{ fontSize: '18px' }}>✨</span>
-        <span style={{ fontSize: '16px', fontWeight: '700', color: '#0c4a6e' }}>Multi-Platform Content</span>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start',
+        marginBottom: '24px',
+        paddingBottom: '12px',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#374151', 
+          fontSize: '16px', 
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          📝 Multi-Platform Content
+        </h4>
       </div>
       
       <div style={{ 
@@ -130,17 +145,17 @@ const MultiPlatformContentModal = ({ workflow }) => {
               gap: '8px'
             }}
           >
-            {getPlatformIcon(platform)} {getPlatformDisplayName(platform)}
+            {getPlatformIcon(platform, 16)} {getPlatformDisplayName(platform)}
           </button>
         ))}
       </div>
       
       {selectedContent[activeTab] && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '12px',
+              borderRadius: '8px',
               border: '1px solid #e5e7eb',
               background: '#f8fafc',
               minHeight: '140px',
@@ -157,7 +172,7 @@ const MultiPlatformContentModal = ({ workflow }) => {
             <div style={{ 
               padding: '0', 
               background: '#f8fafc', 
-              borderRadius: '12px',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -167,10 +182,10 @@ const MultiPlatformContentModal = ({ workflow }) => {
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', marginBottom: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '12px',
+              borderRadius: '8px',
               border: '1px solid #e5e7eb',
               background: '#f8fafc',
               minHeight: '140px',
@@ -187,7 +202,7 @@ const MultiPlatformContentModal = ({ workflow }) => {
             <div style={{ 
               padding: '0', 
               background: '#f8fafc', 
-              borderRadius: '12px',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -197,10 +212,10 @@ const MultiPlatformContentModal = ({ workflow }) => {
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '0', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '0', alignItems: 'start' }}>
             <div style={{
               padding: '16px',
-              borderRadius: '12px',
+              borderRadius: '8px',
               border: '1px solid #e5e7eb',
               background: '#f8fafc',
               minHeight: '140px',
@@ -217,7 +232,7 @@ const MultiPlatformContentModal = ({ workflow }) => {
             <div style={{ 
               padding: '0', 
               background: '#f8fafc', 
-              borderRadius: '12px',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -516,6 +531,8 @@ export default function SetTaskGraphicDesigner() {
             </h3>
             <MultiPlatformContentModal workflow={workflow} />
           </div>
+
+
 
 
           

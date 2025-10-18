@@ -418,6 +418,104 @@ const login = async (req, res, next) => {
 // 2.3) PASSWORD RESET
 // ========================
 
+const forgotPassword = async (req, res, next) => {
+  console.log('📧 forgotPassword called with body:', { email: req.body.email });
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return next(new AppError('Email is required', 400));
+    }
+    
+    // Find user by email
+    const user = await FirebaseService.findUserByEmail(email);
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.status(200).json({
+        status: 'success',
+        message: 'If an account with that email exists, password reset instructions have been sent.'
+      });
+    }
+    
+    // Generate reset token
+    const resetToken = EmailService.generateOTP(); // Reuse OTP generation
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
+    
+    // Save reset token
+    await FirebaseService.savePasswordResetToken(user.username, {
+      token: resetToken,
+      email: user.email,
+      expiresAt,
+      used: false
+    });
+    
+    // Send reset email
+    await EmailService.sendPasswordResetEmail(email, resetToken);
+    
+    console.log('✅ forgotPassword - Reset email sent successfully');
+    res.status(200).json({
+      status: 'success',
+      message: 'If an account with that email exists, password reset instructions have been sent.'
+    });
+  } catch (error) {
+    console.error('❌ forgotPassword - Error occurred:', error);
+    next(error);
+  }
+};
+
+const resetPasswordWithToken = async (req, res, next) => {
+  console.log('🔒 resetPasswordWithToken called');
+  try {
+    const { token, newPassword, confirmPassword } = req.body;
+    
+    if (!token || !newPassword || !confirmPassword) {
+      return next(new AppError('All fields are required', 400));
+    }
+    
+    if (newPassword !== confirmPassword) {
+      return next(new AppError('Passwords do not match', 400));
+    }
+    
+    if (newPassword.length < 8) {
+      return next(new AppError('Password must be at least 8 characters long', 400));
+    }
+    
+    // Verify reset token
+    const resetData = await FirebaseService.getPasswordResetToken(token);
+    if (!resetData || resetData.used) {
+      return next(new AppError('Invalid or expired reset token', 400));
+    }
+    
+    // Check if token is expired
+    if (new Date(resetData.expiresAt) < new Date()) {
+      return next(new AppError('Reset token has expired', 400));
+    }
+    
+    // Find user and update password
+    const user = await FirebaseService.findUserByEmail(resetData.email);
+    if (!user) {
+      return next(new AppError('User not found', 404));
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const userRef = `${user.role}/${user.username.toLowerCase()}`;
+    
+    await FirebaseService.updateUserPassword(userRef, hashedPassword);
+    
+    // Mark token as used
+    await FirebaseService.markPasswordResetTokenUsed(token);
+    
+    console.log('✅ resetPasswordWithToken - Password updated successfully');
+    res.status(200).json({
+      status: 'success',
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ resetPasswordWithToken - Error occurred:', error);
+    next(error);
+  }
+};
+
 const resetPassword = async (req, res, next) => {
   console.log('🔒 resetPassword called with body:', { username: req.body.username, newPassword: '[HIDDEN]' });
   try {
@@ -472,5 +570,6 @@ export {
   login,
   validateOTPRegistration,
   resetPassword,
-
+  forgotPassword,
+  resetPasswordWithToken
 };

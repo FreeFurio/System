@@ -4,7 +4,8 @@
 import express from 'express';
 import { 
     adminNotification,
-    contentCreatorNotification
+    contentCreatorNotification,
+    marketingNotification
 } from '../controllers/notification.controller.mjs';
 import { body } from 'express-validator';
 
@@ -26,6 +27,11 @@ router.get(
 router.get(
     '/contentcreator',
     contentCreatorNotification
+);
+
+router.get(
+    '/marketing',
+    marketingNotification
 );
 
 // ========================

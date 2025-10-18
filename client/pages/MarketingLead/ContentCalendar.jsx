@@ -83,6 +83,27 @@ export default function ContentCalendar() {
           });
         }
 
+        // Fetch Posting Content (Ready to Post)
+        const postingRef = ref(db, 'workflows');
+        const postingSnapshot = await get(postingRef);
+        if (postingSnapshot.exists()) {
+          Object.entries(postingSnapshot.val()).forEach(([id, workflow]) => {
+            if (workflow.status === 'posting') {
+              const date = workflow.deadline || workflow.updatedAt;
+              const dateKey = formatDateKey(date);
+              if (!data[dateKey]) data[dateKey] = [];
+              data[dateKey].push({
+                id,
+                type: 'posting',
+                title: workflow.objectives || 'Ready to Post',
+                status: 'posting',
+                description: `Ready for posting`,
+                scheduledTime: workflow.scheduledTime
+              });
+            }
+          });
+        }
+
         // Fetch Posted/Scheduled Content
         const postedRef = ref(db, 'workflows');
         const postedSnapshot = await get(postedRef);
@@ -164,16 +185,11 @@ export default function ContentCalendar() {
             item.type === 'approval' ? '#dbeafe' :
             item.type === 'approved' ? '#d1fae5' :
             item.type === 'rejected' ? '#fee2e2' :
+            item.type === 'posting' ? '#fbbf24' :
             item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6'
         }}
       >
-        {
-          item.type === 'ongoing' ? 'IN PROGRESS' :
-          item.type === 'approval' ? 'PENDING' :
-          item.type === 'approved' ? 'APPROVED' :
-          item.type === 'rejected' ? 'REJECTED' :
-          item.type === 'scheduled' ? 'POSTED' : item.type.toUpperCase()
-        }
+        {item.title}
       </div>
     ));
   };
@@ -410,6 +426,7 @@ export default function ContentCalendar() {
                   item.type === 'approval' ? '#dbeafe' :
                   item.type === 'approved' ? '#d1fae5' :
                   item.type === 'rejected' ? '#fee2e2' :
+                  item.type === 'posting' ? '#fbbf24' :
                   item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6',
                 color: 
                   item.type === 'ongoing' ? '#92400e' :
@@ -528,6 +545,7 @@ export default function ContentCalendar() {
                           item.type === 'approval' ? '#dbeafe' :
                           item.type === 'approved' ? '#d1fae5' :
                           item.type === 'rejected' ? '#fee2e2' :
+                          item.type === 'posting' ? '#fbbf24' :
                           item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6',
                         display: 'flex',
                         alignItems: 'center',

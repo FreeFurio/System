@@ -10,6 +10,7 @@ import Layout from './components/common/Layout';
 import LoginForm from './pages/Login/LoginForm';
 import ForgotPassword from './pages/Login/ForgotPassword';
 import ResetPassword from './pages/Login/ResetPassword';
+import ResetPasswordWithToken from './pages/Login/ResetPasswordWithToken';
 import "./styles/Register.css";
 import "./styles/LoginForm.css";
 import "./styles/text-backgrounds.css";
@@ -80,6 +81,7 @@ function App() {
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordWithToken />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/upload-test" element={<UploadTest />} />

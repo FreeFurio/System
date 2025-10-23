@@ -88,7 +88,7 @@ export default function ContentCalendar() {
         const postingSnapshot = await get(postingRef);
         if (postingSnapshot.exists()) {
           Object.entries(postingSnapshot.val()).forEach(([id, workflow]) => {
-            if (workflow.status === 'posting') {
+            if (workflow.status === 'design_approved') {
               const date = workflow.deadline || workflow.updatedAt;
               const dateKey = formatDateKey(date);
               if (!data[dateKey]) data[dateKey] = [];
@@ -185,7 +185,7 @@ export default function ContentCalendar() {
             item.type === 'approval' ? '#dbeafe' :
             item.type === 'approved' ? '#d1fae5' :
             item.type === 'rejected' ? '#fee2e2' :
-            item.type === 'posting' ? '#fbbf24' :
+            item.type === 'posting' ? '#e9d5ff' :
             item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6'
         }}
       >
@@ -368,7 +368,7 @@ export default function ContentCalendar() {
         </div>
         <div className="legend-item">
           <span className="indicator scheduled"></span>
-          <span>Scheduled Posts</span>
+          <span>Posting</span>
         </div>
       </div>
 
@@ -426,13 +426,14 @@ export default function ContentCalendar() {
                   item.type === 'approval' ? '#dbeafe' :
                   item.type === 'approved' ? '#d1fae5' :
                   item.type === 'rejected' ? '#fee2e2' :
-                  item.type === 'posting' ? '#fbbf24' :
+                  item.type === 'posting' ? '#e9d5ff' :
                   item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6',
                 color: 
                   item.type === 'ongoing' ? '#92400e' :
                   item.type === 'approval' ? '#1e40af' :
                   item.type === 'approved' ? '#065f46' :
                   item.type === 'rejected' ? '#991b1b' :
+                  item.type === 'posting' ? '#5b21b6' :
                   item.type === 'scheduled' ? '#5b21b6' : '#374151'
               }}>
                 {
@@ -545,7 +546,7 @@ export default function ContentCalendar() {
                           item.type === 'approval' ? '#dbeafe' :
                           item.type === 'approved' ? '#d1fae5' :
                           item.type === 'rejected' ? '#fee2e2' :
-                          item.type === 'posting' ? '#fbbf24' :
+                          item.type === 'posting' ? '#e9d5ff' :
                           item.type === 'scheduled' ? '#e9d5ff' : '#f3f4f6',
                         display: 'flex',
                         alignItems: 'center',

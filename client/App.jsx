@@ -39,6 +39,7 @@ import PostedContents from './pages/MarketingLead/PostedContents';
 import Posting from './pages/MarketingLead/Posting';
 import SetTaskGraphicDesigner from './pages/MarketingLead/SetTaskGraphicDesigner';
 import UnifiedSetTask from './pages/MarketingLead/UnifiedSetTask';
+import WorkflowBoard from './pages/MarketingLead/WorkflowBoard';
 import ContentCreatorLayout from './pages/ContentCreator/ContentCreatorLayout';
 import ContentCreatorDashboard from './pages/ContentCreator/Dashboard';
 import CreateContent from './pages/ContentCreator/CreateContent';
@@ -121,17 +122,18 @@ function App() {
         <Route path="/marketing" element={<MarketingLeadLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="workflow-board" element={<WorkflowBoard />} />
           <Route path="content-calendar" element={<ContentCalendar />} />
+          <Route path="posted-contents" element={<PostedContents />} />
+          <Route path="set-task" element={<SetTask />} />
           <Route path="approval" element={<ApprovalOfContents />} />
           <Route path="approved" element={<ApprovedContents />} />
           <Route path="posting" element={<Posting />} />
-          <Route path="set-task" element={<SetTask />} />
           <Route path="set-task-graphic-designer" element={<SetTaskGraphicDesigner />} />
           <Route path="set-task-unified" element={<UnifiedSetTask />} />
           <Route path="ongoing-task" element={<OngoingTask />} />
           <Route path="set-schedule" element={<SetSchedule />} />
           <Route path="ongoing-schedule" element={<OngoingSchedule />} />
-          <Route path="posted-contents" element={<PostedContents />} />
         </Route>
         {/* Content Creator Routes */}
         <Route path="/content" element={<ContentCreatorLayout />}>

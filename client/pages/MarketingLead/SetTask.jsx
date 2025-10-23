@@ -108,9 +108,9 @@ export default function SetTask() {
       .then(() => {
         setTaskSubmitted(true);
         
-        // Redirect to Ongoing Task tab after successful submission
+        // Redirect to Workflow Board after successful submission
         setTimeout(() => {
-          navigate('/marketing/ongoing-task');
+          navigate('/marketing/workflow-board');
         }, 2500);
       })
       .catch((err) => {

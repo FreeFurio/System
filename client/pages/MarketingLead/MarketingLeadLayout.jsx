@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiEdit, FiImage, FiClipboard, FiClock, FiRepeat, FiCheckCircle, FiThumbsUp, FiSend, FiChevronDown, FiMenu, FiEdit2, FiPenTool } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiHome, FiCalendar, FiSend, FiPlus, FiGrid, FiMenu } from 'react-icons/fi';
 import NotificationBell from '../../components/common/NotificationBell';
 import { useUser } from '../../components/common/UserContext';
 import { DarkModeProvider } from '../../components/common/DarkModeContext';
@@ -9,32 +9,21 @@ import '../../styles/Admin.css'; // Use exact admin styles
 
 const sidebarItems = [
   { label: 'Dashboard', path: '/marketing/dashboard', icon: FiHome },
-  { label: 'Content Calendar', path: '/marketing/content-calendar', icon: FiCalendar },
-  { 
-    label: 'Set Task', 
-    hasDropdown: true,
-    icon: FiEdit,
-    subItems: [
-      { label: 'Content Creator', path: '/marketing/set-task', icon: FiEdit2 },
-      { label: 'Graphic Designer', path: '/marketing/set-task-graphic-designer', icon: FiPenTool }
-    ]
-  },
-  { label: 'Ongoing Task', path: '/marketing/ongoing-task', icon: FiClipboard },
-  { label: 'Approval of Contents', path: '/marketing/approval', icon: FiCheckCircle },
-  { label: 'Approved Contents', path: '/marketing/approved', icon: FiThumbsUp },
-  { label: 'Posting', path: '/marketing/posting', icon: FiClock },
+  { label: 'Workflow Board', path: '/marketing/workflow-board', icon: FiGrid },
   { label: 'Posted Contents', path: '/marketing/posted-contents', icon: FiSend },
+  { label: 'Content Calendar', path: '/marketing/content-calendar', icon: FiCalendar },
+  { label: 'Create Task', path: '/marketing/set-task', icon: FiPlus },
 ];
 
 export default function MarketingLeadLayout() {
   const { user, setUser } = useUser();
   // Remove local variables, use user context directly
   const [showProfile, setShowProfile] = useState(false);
-  const [showSetTaskDropdown, setShowSetTaskDropdown] = useState(false);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const profileRef = useRef(null);
-  const setTaskRef = useRef(null);
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,9 +32,7 @@ export default function MarketingLeadLayout() {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfile(false);
       }
-      if (setTaskRef.current && !setTaskRef.current.contains(event.target)) {
-        setShowSetTaskDropdown(false);
-      }
+
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -242,107 +229,29 @@ export default function MarketingLeadLayout() {
               minHeight: 0,
               padding: '0 12px'
             }}>
-              {sidebarItems.map((item, index) => (
-                <div key={item.path || index} style={{ position: 'relative' }}>
-                  {item.hasDropdown ? (
-                    <div ref={setTaskRef}>
-                      <button
-                        onClick={() => setShowSetTaskDropdown(!showSetTaskDropdown)}
-                        className={`nav-item${(location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? ' active' : ''}`}
-                        style={{
-                          width: '100%',
-                          padding: '12px 24px',
-                          fontWeight: 600,
-                          borderRadius: 8,
-                          color: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '#fff' : '#222',
-                          background: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
-                          marginBottom: 4,
-                          textDecoration: 'none',
-                          transition: 'background 0.2s, color 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          border: 'none',
-                          cursor: 'pointer',
-                          boxShadow: (location.pathname === '/marketing/set-task' || location.pathname === '/marketing/set-task-graphic-designer') ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none'
-                        }}
-                      >
-                        <item.icon size={18} style={{ marginRight: 12 }} />
-                        {item.label}
-                        <FiChevronDown 
-                          size={16} 
-                          style={{ 
-                            transform: showSetTaskDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.2s ease',
-                            marginLeft: 'auto'
-                          }} 
-                        />
-                      </button>
-                      {showSetTaskDropdown && (
-                        <div style={{
-                          background: '#f8fafc',
-                          borderRadius: 8,
-                          marginTop: 8,
-                          marginBottom: 8
-                        }}>
-                          {item.subItems.map(subItem => (
-                            <button
-                              key={subItem.path}
-                              onClick={() => {
-                                navigate(subItem.path);
-                              }}
-                              style={{
-                                width: '100%',
-                                padding: '10px 20px',
-                                border: 'none',
-                                background: location.pathname === subItem.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
-                                color: location.pathname === subItem.path ? '#fff' : '#6b7280',
-                                textAlign: 'left',
-                                cursor: 'pointer',
-                                fontSize: 14,
-                                fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                transition: 'all 0.2s ease',
-                                borderRadius: 6,
-                                margin: '4px 8px',
-                                boxShadow: location.pathname === subItem.path ? '0 2px 6px rgba(245, 158, 11, 0.2)' : 'none'
-                              }}
-
-                            >
-                              <subItem.icon size={16} />
-                              {subItem.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      onClick={() => setShowSetTaskDropdown(false)}
-                      className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
-                      style={{
-                        padding: '14px 20px',
-                        fontWeight: 600,
-                        borderRadius: 12,
-                        color: location.pathname === item.path ? '#fff' : '#374151',
-                        background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
-                        marginBottom: 6,
-                        textDecoration: 'none',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
-                        fontSize: 15
-                      }}
-                    >
-                      <item.icon size={18} style={{ marginRight: 12 }} />
-                      {item.label}
-                    </Link>
-                  )}
-                </div>
+              {sidebarItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`nav-item${location.pathname === item.path ? ' active' : ''}`}
+                  style={{
+                    padding: '14px 20px',
+                    fontWeight: 600,
+                    borderRadius: 12,
+                    color: location.pathname === item.path ? '#fff' : '#374151',
+                    background: location.pathname === item.path ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                    marginBottom: 6,
+                    textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    boxShadow: location.pathname === item.path ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+                    fontSize: 15
+                  }}
+                >
+                  <item.icon size={20} style={{ marginRight: 14 }} />
+                  {item.label}
+                </Link>
               ))}
             </nav>
           </div>

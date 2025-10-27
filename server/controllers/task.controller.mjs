@@ -3,6 +3,7 @@
 // ========================
 
 import FirebaseService from '../services/firebase.service.mjs';
+import redisService from '../services/redis.service.mjs';
 import { AppError } from '../utils/errorHandler.mjs';
 import { io } from '../server.mjs';
 import AIService from '../services/aiService.mjs';
@@ -34,17 +35,23 @@ const createWorkflow = async (req, res, next) => {
             user: 'System'
         });
         
-        io.emit('newWorkflow', {
+        const newWorkflow = {
             id: workflowId,
             ...workflowData,
             status: 'content_creation',
             currentStage: 'contentcreator'
-        });
+        };
+        
+        // Invalidate Redis cache
+        await redisService.del('workflows:all');
+        
+        // Broadcast to all connected clients
+        io.emit('workflow:created', newWorkflow);
 
         res.status(200).json({
             status: 'success',
             message: 'Workflow created successfully',
-            data: { id: workflowId, ...workflowData }
+            data: newWorkflow
         });
     } catch (error) {
         console.error('❌ createWorkflow - Error:', error);
@@ -275,14 +282,13 @@ const submitContent = async (req, res, next) => {
             user: 'Content Creator'
         });
         
-        // Emit real-time notification to Marketing Lead
-        io.emit('marketingNotification', {
-            type: 'content_submitted',
+        // Broadcast to Marketing Lead
+        io.emit('workflow:content_submitted', {
+            workflowId,
+            workflow: updatedWorkflow,
             message: notificationMessage,
             timestamp: new Date().toISOString()
         });
-        
-        io.emit('workflowUpdated', updatedWorkflow);
         
         res.status(200).json({
             status: 'success',
@@ -369,14 +375,17 @@ const approveContent = async (req, res, next) => {
             user: approvedBy
         });
         
-        // Emit real-time notification to Marketing Lead
-        io.emit('marketingNotification', {
-            type: 'content_approved',
-            message: `Content approved and ready for design assignment`,
+        // Invalidate Redis cache
+        await redisService.del('workflows:all');
+        
+        // Broadcast to all users (Content Creator + Graphic Designer)
+        io.emit('workflow:content_approved', {
+            workflowId,
+            workflow: updatedWorkflow,
+            approvedBy,
+            message: 'Content approved and ready for design assignment',
             timestamp: new Date().toISOString()
         });
-        
-        io.emit('workflowUpdated', updatedWorkflow);
         
         res.status(200).json({
             status: 'success',
@@ -397,7 +406,15 @@ const rejectContent = async (req, res, next) => {
         
         const updatedWorkflow = await FirebaseService.rejectContent(workflowId, rejectedBy, feedback);
         
-        io.emit('workflowUpdated', updatedWorkflow);
+        // Broadcast to Content Creator
+        io.emit('workflow:content_rejected', {
+            workflowId,
+            workflow: updatedWorkflow,
+            rejectedBy,
+            feedback,
+            message: 'Content rejected - revisions needed',
+            timestamp: new Date().toISOString()
+        });
         
         res.status(200).json({
             status: 'success',
@@ -438,7 +455,15 @@ const deleteWorkflow = async (req, res, next) => {
         
         await FirebaseService.deleteWorkflow(workflowId);
         
-        io.emit('workflowDeleted', { workflowId });
+        // Invalidate Redis cache
+        await redisService.del('workflows:all');
+        
+        // Broadcast to all users
+        io.emit('workflow:deleted', {
+            workflowId,
+            message: 'Workflow deleted',
+            timestamp: new Date().toISOString()
+        });
         
         res.status(200).json({
             status: 'success',
@@ -489,7 +514,13 @@ const submitDesign = async (req, res, next) => {
         
         const updatedWorkflow = await FirebaseService.submitDesign(workflowId, designData);
         
-        io.emit('workflowUpdated', updatedWorkflow);
+        // Broadcast to Marketing Lead
+        io.emit('workflow:design_submitted', {
+            workflowId,
+            workflow: updatedWorkflow,
+            message: 'Design submitted for approval',
+            timestamp: new Date().toISOString()
+        });
         
         res.status(200).json({
             status: 'success',
@@ -510,7 +541,14 @@ const approveDesign = async (req, res, next) => {
         
         const updatedWorkflow = await FirebaseService.approveDesign(workflowId, approvedBy);
         
-        io.emit('workflowUpdated', updatedWorkflow);
+        // Broadcast to all users
+        io.emit('workflow:design_approved', {
+            workflowId,
+            workflow: updatedWorkflow,
+            approvedBy,
+            message: 'Design approved and ready to post',
+            timestamp: new Date().toISOString()
+        });
         
         res.status(200).json({
             status: 'success',
@@ -531,7 +569,15 @@ const rejectDesign = async (req, res, next) => {
         
         const updatedWorkflow = await FirebaseService.rejectDesign(workflowId, rejectedBy, feedback);
         
-        io.emit('workflowUpdated', updatedWorkflow);
+        // Broadcast to Graphic Designer
+        io.emit('workflow:design_rejected', {
+            workflowId,
+            workflow: updatedWorkflow,
+            rejectedBy,
+            feedback,
+            message: 'Design rejected - revisions needed',
+            timestamp: new Date().toISOString()
+        });
         
         res.status(200).json({
             status: 'success',
@@ -551,7 +597,13 @@ const assignToGraphicDesigner = async (req, res, next) => {
         
         const updatedWorkflow = await FirebaseService.assignToGraphicDesigner(workflowId);
         
-        io.emit('workflowUpdated', updatedWorkflow);
+        // Broadcast to Graphic Designer
+        io.emit('workflow:assigned_to_designer', {
+            workflowId,
+            workflow: updatedWorkflow,
+            message: 'New design task assigned',
+            timestamp: new Date().toISOString()
+        });
         
         res.status(200).json({
             status: 'success',
@@ -616,7 +668,21 @@ const getWorkflowById = async (workflowId) => {
 const getAllWorkflows = async (req, res, next) => {
     console.log('📋 getAllWorkflows called');
     try {
+        const cacheKey = 'workflows:all';
+        const cached = await redisService.get(cacheKey);
+        
+        if (cached) {
+            console.log('✅ Returning cached workflows');
+            return res.status(200).json({
+                status: 'success',
+                data: cached,
+                cached: true
+            });
+        }
+        
         const workflows = await FirebaseService.getAllWorkflows();
+        await redisService.set(cacheKey, workflows, 60);
+        
         res.status(200).json({
             status: 'success',
             data: workflows

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setGeneratedContents } from '../../store/slices/contentSlice';
 import { createContent } from '../../services/contentService';
 import { FiEdit3, FiZap, FiTarget, FiRefreshCw, FiUser, FiCalendar, FiClock, FiSmartphone, FiClipboard } from 'react-icons/fi';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
@@ -145,6 +147,7 @@ const TaskDetailsSidebar = ({ task }) => {
 };
 
 export default function CreateContent() {
+  const dispatch = useDispatch();
   const [input, setInput] = useState('');
   const [numContents, setNumContents] = useState(3);
   const [loading, setLoading] = useState(false);
@@ -209,8 +212,13 @@ export default function CreateContent() {
       setTimeout(() => {
         if (res.success) {
           const finalTaskId = res.taskId || finalId;
-          const outputUrl = finalTaskId ? `/content/output?taskId=${finalTaskId}` : '/content/output';
-          navigate(outputUrl, { state: { contents: res.contents, taskId: finalTaskId } });
+          dispatch(setGeneratedContents({
+            contents: res.contents,
+            taskId: finalTaskId,
+            workflowId: finalId,
+            fromDraftEdit: false
+          }));
+          navigate('/content/output');
         } else {
           setError('Failed to create content.');
         }

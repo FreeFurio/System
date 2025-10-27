@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { useDesign } from '../../store/hooks';
+import { setDesignTask, updateCanvasData, clearDesign } from '../../store/slices/designSlice';
 import ImageEditorWrapper from '../../components/ImageEditor/ImageEditorWrapper';
 import TemplatedEditor from '../../components/PhotopeaEditor/PhotopeaEditor';
 import { FiClipboard } from 'react-icons/fi';
 
 export default function GraphicCreation() {
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const taskId = searchParams.get('taskId');
-  const [workflow, setWorkflow] = useState(null);
+  const urlTaskId = searchParams.get('taskId');
+  
+  const reduxDesign = useDesign();
+  const taskId = urlTaskId || reduxDesign.taskId;
+  const [workflow, setWorkflow] = useState(reduxDesign.workflow);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [designData, setDesignData] = useState(null);
   const [fetchError, setFetchError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedEditor, setSelectedEditor] = useState('original');
-  const [canvasJsonData, setCanvasJsonData] = useState(null);
+  const [isLoading, setIsLoading] = useState(!reduxDesign.workflow);
+  const [selectedEditor, setSelectedEditor] = useState(reduxDesign.selectedEditor);
+  const [canvasJsonData, setCanvasJsonData] = useState(reduxDesign.canvasData);
   
   console.log('🔄 Current selectedEditor:', selectedEditor);
 
@@ -29,12 +36,12 @@ export default function GraphicCreation() {
       setIsLoading(false);
     }
 
-    // Handle messages from iframe
     const handleMessage = (event) => {
       if (event.data && typeof event.data === 'string') {
         if (event.data.startsWith('CANVAS_JSON:')) {
           const jsonData = event.data.replace('CANVAS_JSON:', '');
           setCanvasJsonData(jsonData);
+          dispatch(updateCanvasData(jsonData));
         }
       }
     };
@@ -83,6 +90,11 @@ export default function GraphicCreation() {
         
         if (foundWorkflow) {
           setWorkflow(foundWorkflow);
+          dispatch(setDesignTask({
+            taskId,
+            workflow: foundWorkflow,
+            canvasData: foundWorkflow.graphicDesigner?.canvasData
+          }));
           setIsLoading(false);
         } else {
           // Try fetching from all workflows if not found in graphic designer stage
@@ -94,6 +106,11 @@ export default function GraphicCreation() {
             const allFoundWorkflow = allData.data.find(w => w.id === taskId);
             if (allFoundWorkflow) {
               setWorkflow(allFoundWorkflow);
+              dispatch(setDesignTask({
+                taskId,
+                workflow: allFoundWorkflow,
+                canvasData: allFoundWorkflow.graphicDesigner?.canvasData
+              }));
               setIsLoading(false);
             } else {
               setFetchError(`Task with ID ${taskId} not found`);
@@ -189,6 +206,7 @@ export default function GraphicCreation() {
       if (result.status === 'success') {
         setDesignData(result.data);
         console.log('🎨 Design draft saved successfully:', result.data);
+        dispatch(clearDesign());
         setSuccess(true);
         setTimeout(() => {
           navigate('/graphic/finalized-design', {
@@ -228,6 +246,7 @@ export default function GraphicCreation() {
 
       const result = await submitResponse.json();
       if (result.status === 'success') {
+        dispatch(clearDesign());
         setSuccess(true);
         setTimeout(() => navigate('/graphic/task'), 1500);
       } else {
@@ -339,8 +358,11 @@ export default function GraphicCreation() {
           <ImageEditorWrapper 
             onSave={handleDesignSave}
             onExport={handleDesignExport}
-            initialCanvasData={workflow?.graphicDesigner?.canvasData}
-            onBackToTasks={() => navigate('/graphic/task')}
+            initialCanvasData={reduxDesign.canvasData || workflow?.graphicDesigner?.canvasData}
+            onBackToTasks={() => {
+              dispatch(clearDesign());
+              navigate('/graphic/task');
+            }}
             taskInfo={workflow}
           />
         ) : (

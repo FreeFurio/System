@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 import { FiClock, FiUser, FiCalendar, FiTarget, FiCheckCircle, FiEye, FiSmartphone, FiCheck, FiX } from 'react-icons/fi';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
+import { useWorkflows, useAppDispatch } from '../../store/hooks';
+import { approveContent, rejectContent } from '../../store/actions/workflowActions';
 // Temporary inline styles until design system is properly imported
 const componentStyles = {
   pageContainer: { padding: '0', maxWidth: '100%', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' },
@@ -638,33 +640,19 @@ const ContentApprovalCard = ({ workflow, onApprove, onReject }) => {
 };
 
 export default function ApprovalOfContents() {
-  const [workflows, setWorkflows] = useState([]);
+  const dispatch = useAppDispatch();
+  const { items: allWorkflows, loading: workflowsLoading } = useWorkflows();
   const [loading, setLoading] = useState(true);
   const hasFetched = useRef(false);
+  
+  const workflows = allWorkflows.filter(w => 
+    w.status === 'content_approval' || w.status === 'design_approval'
+  );
 
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
-    
     fetchContentApprovals();
-    
-    const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
-    socket.on("workflowUpdated", (data) => {
-      if (data.status === 'content_approval' || data.status === 'design_approval') {
-        setWorkflows(prev => {
-          const existing = prev.find(w => w.id === data.id);
-          if (existing) {
-            return prev.map(w => w.id === data.id ? data : w);
-          } else {
-            return [data, ...prev];
-          }
-        });
-      } else {
-        setWorkflows(prev => prev.filter(w => w.id !== data.id));
-      }
-    });
-    
-    return () => socket.disconnect();
   }, []);
 
   const fetchContentApprovals = async () => {
@@ -690,19 +678,8 @@ export default function ApprovalOfContents() {
 
   const handleApprove = async (workflowId) => {
     try {
-      const workflow = workflows.find(w => w.id === workflowId);
-      const isDesignApproval = workflow?.status === 'design_approval';
-      
-      const endpoint = isDesignApproval ? 'approve-design' : 'approve-content';
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflowId}/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approvedBy: 'Marketing Lead' })
-      });
-      
-      if (response.ok) {
-        window.location.href = `/marketing/approved`;
-      }
+      await dispatch(approveContent(workflowId, 'Marketing Lead'));
+      window.location.href = `/marketing/approved`;
     } catch (error) {
       console.error('Error approving:', error);
     }
@@ -720,26 +697,12 @@ export default function ApprovalOfContents() {
     if (!feedback.trim()) return;
     
     try {
-      const workflow = workflows.find(w => w.id === rejectModal.workflowId);
-      const isDesignRejection = workflow?.status === 'design_approval';
-      const endpoint = isDesignRejection ? 'reject-design' : 'reject-content';
-      
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${rejectModal.workflowId}/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rejectedBy: 'Marketing Lead', feedback })
-      });
-      
-      if (response.ok) {
-        setWorkflows(prev => prev.filter(w => w.id !== rejectModal.workflowId));
-        setRejectModal({ show: false, workflowId: null });
-      }
+      await dispatch(rejectContent(rejectModal.workflowId, 'Marketing Lead', feedback));
+      setRejectModal({ show: false, workflowId: null });
     } catch (error) {
       console.error('Error rejecting:', error);
     }
   };
-
-  const allWorkflows = workflows;
 
   if (loading) {
     return (
@@ -776,7 +739,7 @@ export default function ApprovalOfContents() {
           margin: '8px 0 0 0',
           fontWeight: '400'
         }}>
-          Review and approve submissions from content creators and graphics designers ({allWorkflows.length} items)
+          Review and approve submissions from content creators and graphics designers ({workflows.length} items)
         </p>
       </div>
 

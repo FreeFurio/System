@@ -26,6 +26,8 @@ export default function GraphicCreation() {
   const [canvasJsonData, setCanvasJsonData] = useState(reduxDesign.canvasData);
   
   console.log('🔄 Current selectedEditor:', selectedEditor);
+  console.log('🎨 Redux Design State:', reduxDesign);
+  console.log('🎨 Canvas Data from Redux:', reduxDesign.canvasData);
 
 
 
@@ -40,14 +42,28 @@ export default function GraphicCreation() {
       if (event.data && typeof event.data === 'string') {
         if (event.data.startsWith('CANVAS_JSON:')) {
           const jsonData = event.data.replace('CANVAS_JSON:', '');
+          console.log('💾 Saving canvas data to Redux:', jsonData.substring(0, 100) + '...');
           setCanvasJsonData(jsonData);
           dispatch(updateCanvasData(jsonData));
+          console.log('✅ Canvas data dispatched to Redux');
         }
       }
     };
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    
+    // Auto-save canvas data every 3 seconds
+    const autoSaveInterval = setInterval(() => {
+      const iframe = document.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage('GET_CANVAS_JSON', '*');
+      }
+    }, 3000);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearInterval(autoSaveInterval);
+    };
   }, [taskId]);
 
   const fetchWorkflow = async () => {
@@ -93,7 +109,7 @@ export default function GraphicCreation() {
           dispatch(setDesignTask({
             taskId,
             workflow: foundWorkflow,
-            canvasData: foundWorkflow.graphicDesigner?.canvasData
+            canvasData: reduxDesign.canvasData || foundWorkflow.graphicDesigner?.canvasData
           }));
           setIsLoading(false);
         } else {
@@ -109,7 +125,7 @@ export default function GraphicCreation() {
               dispatch(setDesignTask({
                 taskId,
                 workflow: allFoundWorkflow,
-                canvasData: allFoundWorkflow.graphicDesigner?.canvasData
+                canvasData: reduxDesign.canvasData || allFoundWorkflow.graphicDesigner?.canvasData
               }));
               setIsLoading(false);
             } else {

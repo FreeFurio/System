@@ -11,7 +11,7 @@ const COLUMNS = [
   { id: 'content_approval', title: 'Content Review', statuses: ['content_approval'] },
   { id: 'design_creation', title: 'Graphics Designer Task', statuses: ['ready_for_design_assignment', 'design_creation', 'design_rejected'] },
   { id: 'design_approval', title: 'Design Review', statuses: ['design_approval'] },
-  { id: 'design_approved', title: 'Posting', statuses: ['design_approved'] }
+  { id: 'design_approved', title: 'Posting', statuses: ['design_approved', 'posted'] }
 ];
 
 const DroppableColumn = ({ column, children }) => {

@@ -479,17 +479,6 @@ export default function OutputContent() {
     }
   }, [processedContents.length, autoSaved, isDraftEdit]);
 
-  if (!processedContents.length) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>No content generated</h2>
-        <button onClick={() => navigate('/content/create')} style={{ padding: '12px 24px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px' }}>
-          Create Content
-        </button>
-      </div>
-    );
-  }
-
   if (showSuccess) {
     return (
       <div style={{ padding: '0', maxWidth: '100%' }}>
@@ -531,6 +520,17 @@ export default function OutputContent() {
             }}>Redirecting to ongoing approval...</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!processedContents.length) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h2>No content generated</h2>
+        <button onClick={() => navigate('/content/create')} style={{ padding: '12px 24px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px' }}>
+          Create Content
+        </button>
       </div>
     );
   }

@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 import { config } from '../config/config.mjs';
 import EmailService from '../services/email.service.mjs';
 import FirebaseService from '../services/firebase.service.mjs';
+import sessionService from '../services/session.service.mjs';
 import {AppError} from '../utils/errorHandler.mjs';
 import { io } from '../server.mjs';
 
@@ -384,9 +385,14 @@ const login = async (req, res, next) => {
     // Update last login timestamp
     await FirebaseService.updateUserLastLogin(user.username, user.role);
 
+    // Create Redis session
+    console.log('🔑 login - Creating Redis session');
+    const sessionId = await sessionService.createSession(user.username, user, 3600); // 1 hour
+    console.log('✅ login - Redis session created:', sessionId);
+
     console.log('🔑 login - Generating JWT token');
     const token = jwt.sign(
-      { id: user.username, role: user.role },
+      { id: user.username, role: user.role, sessionId },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
@@ -396,6 +402,7 @@ const login = async (req, res, next) => {
     res.status(200).json({
       status: 'success',
       token,
+      sessionId,
       data: {
         user: {
           username: user.username,

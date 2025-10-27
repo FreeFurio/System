@@ -299,13 +299,13 @@ const DraftModal = ({ draft, isOpen, onClose, onEdit }) => {
                       Option {index + 1} - SEO Score: {content.seoScore}/100
                     </div>
                     <div style={{ fontSize: '13px', marginBottom: '8px' }}>
-                      <strong>📰 Headline:</strong> {content.headline}
+                      <strong>📰 Headline:</strong> {content.headline || 'N/A'}
                     </div>
                     <div style={{ fontSize: '13px', marginBottom: '8px' }}>
-                      <strong>📝 Caption:</strong> {content.caption.substring(0, 100)}...
+                      <strong>📝 Caption:</strong> {content.caption?.substring(0, 100) || 'N/A'}...
                     </div>
                     <div style={{ fontSize: '13px', color: '#6366f1' }}>
-                      <strong>#️⃣ Hashtags:</strong> {content.hashtag}
+                      <strong>#️⃣ Hashtags:</strong> {content.hashtag || 'N/A'}
                     </div>
                   </div>
                 ))}

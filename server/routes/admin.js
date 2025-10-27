@@ -1,6 +1,7 @@
 import express from 'express';
 import axios from 'axios';
 import insightsService from '../services/insightsService.js';
+import redisService from '../services/redis.service.mjs';
 
 const router = express.Router();
 
@@ -49,41 +50,22 @@ router.get('/account', async (req, res) => {
 
 router.get('/engagement/facebook', async (req, res) => {
   try {
-    const { ref, get, set } = await import('firebase/database');
-    const { getDatabase } = await import('firebase/database');
-    const { initializeApp } = await import('firebase/app');
-    const { config } = await import('../config/config.mjs');
-    
-    const app = initializeApp(config.firebase);
-    const db = getDatabase(app, config.firebase.databaseURL);
-    
     const { refresh } = req.query;
     
-    // If not refresh, try to get cached data first
+    // Check Redis cache first
     if (!refresh) {
-      const cachedInsightsRef = ref(db, 'cachedInsights/admin/facebook');
-      const cachedSnapshot = await get(cachedInsightsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          data: cachedData.data,
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
+      const cached = await redisService.get('insights:facebook');
+      if (cached) {
+        console.log('✅ Returning cached Facebook engagement from Redis');
+        return res.json({ success: true, data: cached, cached: true });
       }
     }
     
     console.log('🚀 Admin API: Fetching Facebook engagement...');
     const engagement = await insightsService.getRecentPostsEngagement();
     
-    // Cache the insights in Firebase
-    const cachedInsightsRef = ref(db, 'cachedInsights/admin/facebook');
-    await set(cachedInsightsRef, {
-      data: engagement,
-      lastUpdated: new Date().toISOString()
-    });
+    // Cache in Redis (60s TTL)
+    await redisService.set('insights:facebook', engagement, 60);
     
     res.json({ success: true, data: engagement });
   } catch (error) {
@@ -94,41 +76,22 @@ router.get('/engagement/facebook', async (req, res) => {
 
 router.get('/engagement/instagram', async (req, res) => {
   try {
-    const { ref, get, set } = await import('firebase/database');
-    const { getDatabase } = await import('firebase/database');
-    const { initializeApp } = await import('firebase/app');
-    const { config } = await import('../config/config.mjs');
-    
-    const app = initializeApp(config.firebase);
-    const db = getDatabase(app, config.firebase.databaseURL);
-    
     const { refresh } = req.query;
     
-    // If not refresh, try to get cached data first
+    // Check Redis cache first
     if (!refresh) {
-      const cachedInsightsRef = ref(db, 'cachedInsights/admin/instagram');
-      const cachedSnapshot = await get(cachedInsightsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          data: cachedData.data,
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
+      const cached = await redisService.get('insights:instagram');
+      if (cached) {
+        console.log('✅ Returning cached Instagram engagement from Redis');
+        return res.json({ success: true, data: cached, cached: true });
       }
     }
     
     console.log('🚀 Admin API: Fetching Instagram engagement...');
     const engagement = await insightsService.getInstagramPostsEngagement();
     
-    // Cache the insights in Firebase
-    const cachedInsightsRef = ref(db, 'cachedInsights/admin/instagram');
-    await set(cachedInsightsRef, {
-      data: engagement,
-      lastUpdated: new Date().toISOString()
-    });
+    // Cache in Redis (60s TTL)
+    await redisService.set('insights:instagram', engagement, 60);
     
     res.json({ success: true, data: engagement });
   } catch (error) {
@@ -142,49 +105,20 @@ router.get('/engagement/account/:accountId', async (req, res) => {
     const { accountId } = req.params;
     const { refresh } = req.query;
     
-    const { ref, get, set } = await import('firebase/database');
-    const { getDatabase } = await import('firebase/database');
-    const { initializeApp } = await import('firebase/app');
-    const { config } = await import('../config/config.mjs');
-    
-    const app = initializeApp(config.firebase);
-    const db = getDatabase(app, config.firebase.databaseURL);
-    
-    // If not refresh, try to get cached data first (but never cache historical data)
+    // Check Redis cache first
     if (!refresh) {
-      const cachedInsightsRef = ref(db, `cachedInsights/admin/account/${accountId}`);
-      const cachedSnapshot = await get(cachedInsightsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        console.log('📋 Using cached insights data (historical data will be fresh)');
-        return res.json({ 
-          success: true, 
-          data: cachedData.data,
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
+      const cached = await redisService.get(`insights:account:${accountId}`);
+      if (cached) {
+        console.log('✅ Returning cached account engagement from Redis');
+        return res.json({ success: true, data: cached, cached: true });
       }
     }
     
-    console.log('🚀 Admin API: Fetching FRESH engagement for account:', accountId, 'refresh=', refresh);
-    
-    // Check if this request involves Twitter and log rate limit status
-    const twitterAllowed = await insightsService.isTwitterCallAllowed();
-    if (!twitterAllowed) {
-      const timeRemaining = 15 - ((new Date() - insightsService.twitterRateLimit?.lastCall || new Date()) / (1000 * 60));
-      console.log(`⏳ Twitter Insights Rate Limited - ${Math.ceil(timeRemaining)} minutes remaining (account-specific insights)`);
-    }
+    console.log('🚀 Admin API: Fetching engagement for account:', accountId);
     const engagement = await insightsService.getAccountSpecificEngagement(accountId);
     
-    // Cache the insights in Firebase (this should NOT affect historical data)
-    console.log(`🔍 CACHING to cachedInsights/admin/account/${accountId} - this should NOT affect dailyHistory`);
-    const cachedInsightsRef = ref(db, `cachedInsights/admin/account/${accountId}`);
-    await set(cachedInsightsRef, {
-      data: engagement,
-      lastUpdated: new Date().toISOString()
-    });
-    console.log(`✅ CACHED insights data - historical data preserved in connectedPages/admin/${accountId}/dailyHistory`);
+    // Cache in Redis (60s TTL)
+    await redisService.set(`insights:account:${accountId}`, engagement, 60);
     
     res.json({ success: true, data: engagement });
   } catch (error) {
@@ -281,6 +215,13 @@ router.get('/facebook-oauth', async (req, res) => {
 
 router.get('/connected-pages', async (req, res) => {
   try {
+    // Check Redis cache
+    const cached = await redisService.get('facebook:pages');
+    if (cached) {
+      console.log('✅ Returning cached Facebook pages from Redis');
+      return res.json({ success: true, pages: cached, cached: true });
+    }
+    
     const { ref, get } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
@@ -347,6 +288,9 @@ router.get('/connected-pages', async (req, res) => {
         };
       })
     );
+    
+    // Cache in Redis (60s TTL)
+    await redisService.set('facebook:pages', pagesWithInstagram, 60);
     
     res.json({
       success: true,
@@ -439,6 +383,9 @@ router.post('/connect-selected-page', async (req, res) => {
     }
     
     await set(pageRef, pageData);
+    
+    // Invalidate caches
+    await redisService.del('facebook:pages');
     
     res.json({
       success: true,
@@ -1069,31 +1016,24 @@ router.get('/debug-token', async (req, res) => {
 // Get Facebook posts with engagement data
 router.get('/facebook-posts', async (req, res) => {
   try {
-    const { ref, get, set } = await import('firebase/database');
+    const { refresh } = req.query;
+    
+    // Check Redis cache first
+    if (!refresh) {
+      const cached = await redisService.get('facebook:posts');
+      if (cached) {
+        console.log('✅ Returning cached Facebook posts from Redis');
+        return res.json({ success: true, posts: cached, cached: true });
+      }
+    }
+    
+    const { ref, get } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
-    
-    const { refresh } = req.query;
-    
-    // If not refresh, try to get cached data first
-    if (!refresh) {
-      const cachedPostsRef = ref(db, 'cachedPosts/admin/facebook');
-      const cachedSnapshot = await get(cachedPostsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          posts: cachedData.posts || [],
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
-      }
-    }
     
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
@@ -1148,12 +1088,8 @@ router.get('/facebook-posts', async (req, res) => {
     // Sort by creation time (newest first)
     allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
-    // Cache the posts in Firebase
-    const cachedPostsRef = ref(db, 'cachedPosts/admin/facebook');
-    await set(cachedPostsRef, {
-      posts: allPosts,
-      lastUpdated: new Date().toISOString()
-    });
+    // Cache in Redis (60s TTL)
+    await redisService.set('facebook:posts', allPosts, 60);
     
     res.json({ success: true, posts: allPosts });
   } catch (error) {
@@ -1178,6 +1114,11 @@ router.patch('/account/:accountId/toggle-active', async (req, res) => {
     
     const accountRef = ref(db, `connectedPages/admin/${accountId}`);
     await update(accountRef, { active });
+    
+    // Invalidate caches
+    await redisService.del('facebook:pages');
+    await redisService.del('facebook:posts');
+    await redisService.del('instagram:posts');
     
     res.json({
       success: true,
@@ -1204,6 +1145,11 @@ router.delete('/account/:accountId', async (req, res) => {
     
     const accountRef = ref(db, `connectedPages/admin/${accountId}`);
     await remove(accountRef);
+    
+    // Invalidate caches
+    await redisService.del('facebook:pages');
+    await redisService.del('facebook:posts');
+    await redisService.del('instagram:posts');
     
     res.json({
       success: true,
@@ -2024,31 +1970,24 @@ router.get('/instagram-data', async (req, res) => {
 // Get Instagram posts from all connected pages
 router.get('/instagram-posts', async (req, res) => {
   try {
-    const { ref, get, set } = await import('firebase/database');
+    const { refresh } = req.query;
+    
+    // Check Redis cache first
+    if (!refresh) {
+      const cached = await redisService.get('instagram:posts');
+      if (cached) {
+        console.log('✅ Returning cached Instagram posts from Redis');
+        return res.json({ success: true, posts: cached, cached: true });
+      }
+    }
+    
+    const { ref, get } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
-    
-    const { refresh } = req.query;
-    
-    // If not refresh, try to get cached data first
-    if (!refresh) {
-      const cachedPostsRef = ref(db, 'cachedPosts/admin/instagram');
-      const cachedSnapshot = await get(cachedPostsRef);
-      
-      if (cachedSnapshot.exists()) {
-        const cachedData = cachedSnapshot.val();
-        return res.json({ 
-          success: true, 
-          posts: cachedData.posts || [],
-          cached: true,
-          lastUpdated: cachedData.lastUpdated
-        });
-      }
-    }
     
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
@@ -2125,12 +2064,8 @@ router.get('/instagram-posts', async (req, res) => {
     // Sort by creation time (newest first)
     allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
-    // Cache the posts in Firebase
-    const cachedPostsRef = ref(db, 'cachedPosts/admin/instagram');
-    await set(cachedPostsRef, {
-      posts: allPosts,
-      lastUpdated: new Date().toISOString()
-    });
+    // Cache in Redis (60s TTL)
+    await redisService.set('instagram:posts', allPosts, 60);
     
     res.json({ success: true, posts: allPosts });
     
@@ -2290,6 +2225,13 @@ router.get('/twitter-callback', async (req, res) => {
 // Get connected Twitter accounts
 router.get('/connected-twitter-accounts', async (req, res) => {
   try {
+    // Check Redis cache
+    const cached = await redisService.get('twitter:accounts');
+    if (cached) {
+      console.log('✅ Returning cached Twitter accounts from Redis');
+      return res.json({ success: true, accounts: cached, cached: true });
+    }
+    
     const { ref, get } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
@@ -2303,20 +2245,22 @@ router.get('/connected-twitter-accounts', async (req, res) => {
     
     const accounts = snapshot.exists() ? Object.values(snapshot.val()) : [];
     
-    res.json({
-      success: true,
-      accounts: accounts.map(account => ({
-        id: account.id,
-        name: account.name,
-        username: account.username,
-        profilePicture: account.profilePicture,
-        followersCount: account.followersCount,
-        connectedAt: account.connectedAt,
-        status: account.status,
-        platform: 'twitter',
-        tokenTimestamp: account.tokenTimestamp
-      }))
-    });
+    const formattedAccounts = accounts.map(account => ({
+      id: account.id,
+      name: account.name,
+      username: account.username,
+      profilePicture: account.profilePicture,
+      followersCount: account.followersCount,
+      connectedAt: account.connectedAt,
+      status: account.status,
+      platform: 'twitter',
+      tokenTimestamp: account.tokenTimestamp
+    }));
+    
+    // Cache in Redis (60s TTL)
+    await redisService.set('twitter:accounts', formattedAccounts, 60);
+    
+    res.json({ success: true, accounts: formattedAccounts });
     
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -2338,6 +2282,10 @@ router.delete('/twitter-account/:accountId', async (req, res) => {
     
     const accountRef = ref(db, `connectedAccounts/admin/twitter/${accountId}`);
     await remove(accountRef);
+    
+    // Invalidate caches
+    await redisService.del('twitter:accounts');
+    await redisService.del('twitter:data');
     
     res.json({
       success: true,
@@ -2412,42 +2360,24 @@ router.get('/debug-firebase-twitter', async (req, res) => {
 // Unified Twitter data endpoint (posts + insights in one call)
 router.get('/twitter-data', async (req, res) => {
   try {
-    const { ref, get, set } = await import('firebase/database');
+    const { refresh } = req.query;
+    
+    // Check Redis cache first
+    if (!refresh) {
+      const cached = await redisService.get('twitter:data');
+      if (cached) {
+        console.log('✅ Returning cached Twitter data from Redis');
+        return res.json({ success: true, ...cached, cached: true });
+      }
+    }
+    
+    const { ref, get } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
-    
-    const { refresh } = req.query;
-    
-    // If not refresh, try cached data first
-    if (!refresh) {
-      const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter/posts');
-      const cachedPostsSnapshot = await get(cachedPostsRef);
-      
-      if (cachedPostsSnapshot.exists()) {
-        const cachedPosts = cachedPostsSnapshot.val();
-        const postsArray = Object.values(cachedPosts || {});
-        
-        const insights = {
-          totalTweets: postsArray.length,
-          totalLikes: postsArray.reduce((sum, post) => sum + (post.likes || 0), 0),
-          totalRetweets: postsArray.reduce((sum, post) => sum + (post.retweets || 0), 0),
-          totalReplies: postsArray.reduce((sum, post) => sum + (post.replies || 0), 0)
-        };
-        insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
-        insights.avgEngagementPerTweet = postsArray.length > 0 ? Math.round(insights.totalEngagement / postsArray.length) : 0;
-        
-        return res.json({ 
-          success: true, 
-          posts: postsArray,
-          insights,
-          postsCount: postsArray.length
-        });
-      }
-    }
     
     // Fetch fresh data from Twitter API
     const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
@@ -2499,73 +2429,19 @@ router.get('/twitter-data', async (req, res) => {
         console.error(`Error fetching tweets for ${account.username}:`, error.message);
         // If rate limited, return cached data
         if (error.response?.status === 429) {
-          const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter/posts');
-          const cachedPostsSnapshot = await get(cachedPostsRef);
-          
-          if (cachedPostsSnapshot.exists()) {
-            const cachedPosts = cachedPostsSnapshot.val();
-            const postsArray = Object.values(cachedPosts || {});
-            
-            const insights = {
-              totalTweets: postsArray.length,
-              totalLikes: postsArray.reduce((sum, post) => sum + (post.likes || 0), 0),
-              totalRetweets: postsArray.reduce((sum, post) => sum + (post.retweets || 0), 0),
-              totalReplies: postsArray.reduce((sum, post) => sum + (post.replies || 0), 0)
-            };
-            insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
-            insights.avgEngagementPerTweet = postsArray.length > 0 ? Math.round(insights.totalEngagement / postsArray.length) : 0;
-            
-            return res.json({ 
-              success: true, 
-              posts: postsArray,
-              insights,
-              postsCount: postsArray.length,
-              rateLimited: true
-            });
+          const cached = await redisService.get('twitter:data');
+          if (cached) {
+            return res.json({ success: true, ...cached, rateLimited: true });
           }
         }
       }
     }
     
-    // Only cache if we got posts
-    if (allPosts.length > 0) {
-      const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter');
-      const postsObject = {};
-      allPosts.forEach((post, index) => {
-        postsObject[index] = post;
-      });
-      
-      await set(cachedPostsRef, {
-        posts: postsObject,
-        lastUpdated: new Date().toISOString()
-      });
-    }
-    
     // If no posts fetched, return cached data
     if (allPosts.length === 0) {
-      const cachedPostsRef = ref(db, 'cachedPosts/admin/twitter/posts');
-      const cachedPostsSnapshot = await get(cachedPostsRef);
-      
-      if (cachedPostsSnapshot.exists()) {
-        const cachedPosts = cachedPostsSnapshot.val();
-        const postsArray = Object.values(cachedPosts || {});
-        
-        const insights = {
-          totalTweets: postsArray.length,
-          totalLikes: postsArray.reduce((sum, post) => sum + (post.likes || 0), 0),
-          totalRetweets: postsArray.reduce((sum, post) => sum + (post.retweets || 0), 0),
-          totalReplies: postsArray.reduce((sum, post) => sum + (post.replies || 0), 0)
-        };
-        insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
-        insights.avgEngagementPerTweet = postsArray.length > 0 ? Math.round(insights.totalEngagement / postsArray.length) : 0;
-        
-        return res.json({ 
-          success: true, 
-          posts: postsArray,
-          insights,
-          postsCount: postsArray.length,
-          rateLimited: true
-        });
+      const cached = await redisService.get('twitter:data');
+      if (cached) {
+        return res.json({ success: true, ...cached, rateLimited: true });
       }
     }
     
@@ -2579,12 +2455,12 @@ router.get('/twitter-data', async (req, res) => {
     insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
     insights.avgEngagementPerTweet = allPosts.length > 0 ? Math.round(insights.totalEngagement / allPosts.length) : 0;
     
-    res.json({ 
-      success: true, 
-      posts: allPosts,
-      insights,
-      postsCount: allPosts.length
-    });
+    const responseData = { posts: allPosts, insights, postsCount: allPosts.length };
+    
+    // Cache in Redis (60s TTL)
+    await redisService.set('twitter:data', responseData, 60);
+    
+    res.json({ success: true, ...responseData });
 
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

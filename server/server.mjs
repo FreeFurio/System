@@ -24,6 +24,7 @@ import adminRouter from './routes/admin.js';
 import { config } from './config/config.mjs';
 import errorHandler from './utils/errorHandler.mjs';
 import schedulerService from './services/schedulerService.mjs';
+import redisService from './services/redis.service.mjs';
 import { createServer } from 'http';
 import { Server as SocketIOServer} from 'socket.io';
 import fs from 'fs';
@@ -251,8 +252,12 @@ app.use(errorHandler);
 // 6) START SERVER
 // ========================
 const port = config.server.port || 3000;
-server.listen(port, () => {
+server.listen(port, async () => {
   console.log(`App running on port ${port}...`);
+  
+  // Initialize Redis
+  console.log('🔄 Connecting to Redis...');
+  await redisService.connect();
   
   // DEBUG: Check if dist folder exists
   const distPath = path.join(__dirname, '../client/dist');

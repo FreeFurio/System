@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { io } from "socket.io-client";
 import { FiEye, FiUser, FiCalendar, FiTarget, FiEdit3, FiClock, FiSmartphone, FiBarChart, FiFileText } from 'react-icons/fi';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
+import { useWorkflows, useAppDispatch } from '../../store/hooks';
+import { fetchWorkflows } from '../../store/actions/workflowActions';
 
 const SEORadial = ({ score, label, size = 60 }) => {
   const getColor = (score) => {
@@ -552,47 +553,15 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
 };
 
 export default function Task() {
-  const [workflows, setWorkflows] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const { items: allWorkflows, loading: workflowsLoading } = useWorkflows();
   const navigate = useNavigate();
+  
+  const workflows = allWorkflows?.filter(w => w.currentStage === 'contentcreator') || [];
 
   useEffect(() => {
-    setLoading(true);
-    console.log('🔍 Fetching workflows from:', `${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/contentcreator`);
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/contentcreator`)
-      .then(res => {
-        console.log('🔍 Response status:', res.status);
-        return res.json();
-      })
-      .then(data => {
-        console.log("🔍 Content Creator workflows API response:", data);
-        if (data.status === 'success') {
-          setWorkflows(Array.isArray(data.data) ? data.data : []);
-        } else {
-          console.error('🔍 API returned error:', data.message);
-          setWorkflows([]);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('🔍 Error fetching workflows:', err);
-        setWorkflows([]);
-        setLoading(false);
-      });
-
-    const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
-    socket.on("newWorkflow", (data) => {
-      if (data.currentStage === 'contentcreator') {
-        setWorkflows(prev => [data, ...(Array.isArray(prev) ? prev : [])]);
-      }
-    });
-    socket.on("workflowUpdated", (data) => {
-      setWorkflows(prev => prev.map(workflow => 
-        workflow.id === data.id ? data : workflow
-      ));
-    });
-    return () => socket.disconnect();
-  }, []);
+    dispatch(fetchWorkflows());
+  }, [dispatch]);
 
   const handleCreateContent = (workflow) => {
     console.log('🔍 Task Debug - Navigating with workflow.id:', workflow.id);
@@ -649,7 +618,7 @@ export default function Task() {
             Assigned Tasks
           </h2>
         
-          {loading ? (
+          {workflowsLoading ? (
             <div style={{ 
               textAlign: 'center', 
               padding: '40px', 

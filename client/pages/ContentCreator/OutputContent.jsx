@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { useContent } from '../../store/hooks';
+import { setGeneratedContents, setAvailablePlatforms, selectPlatformContent as selectPlatformContentAction, updateSelectedContent as updateSelectedContentAction, clearContent } from '../../store/slices/contentSlice';
 import DraftService from '../../services/draftService';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 
@@ -164,23 +167,21 @@ const SelectionProgress = ({ getSelectionProgress, setShowFinalPreview }) => {
 };
 
 export default function OutputContent() {
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { contents = [], taskId: stateTaskId, fromDraftEdit } = location.state || {};
-  const isDraftEdit = fromDraftEdit === true;
+  const { contents: stateContents = [], taskId: stateTaskId, fromDraftEdit: stateDraftEdit } = location.state || {};
   
-  const urlTaskId = searchParams.get('taskId');
-  const taskId = stateTaskId || urlTaskId;
+  const reduxContent = useContent();
+  const contents = stateContents.length > 0 ? stateContents : reduxContent.generatedContents;
+  const taskId = stateTaskId || reduxContent.taskId;
+  const isDraftEdit = stateDraftEdit || reduxContent.fromDraftEdit;
   
-  // Multi-platform state management
   const [activeTab, setActiveTab] = useState('facebook');
-  const [selectedContent, setSelectedContent] = useState({
-    facebook: { headline: '', caption: '', hashtag: '' },
-    instagram: { headline: '', caption: '', hashtag: '' },
-    twitter: { headline: '', caption: '', hashtag: '' }
-  });
-  const [availablePlatforms, setAvailablePlatforms] = useState(['facebook', 'instagram', 'twitter']);
+  const selectedContent = reduxContent.selectedContent;
+  const selectedIds = reduxContent.selectedIds;
+  const availablePlatforms = reduxContent.availablePlatforms.length > 0 ? reduxContent.availablePlatforms : ['facebook', 'instagram', 'twitter'];
   
   // Process multi-platform contents
   const processMultiPlatformContents = (contents) => {
@@ -237,14 +238,23 @@ export default function OutputContent() {
   };
 
   const processedContents = processMultiPlatformContents(contents);
-  const [selectedIds, setSelectedIds] = useState({});
   
-  // Set up available platforms from processed contents
+  useEffect(() => {
+    if (stateContents.length > 0) {
+      dispatch(setGeneratedContents({
+        contents: stateContents,
+        taskId: stateTaskId,
+        workflowId: stateTaskId,
+        fromDraftEdit: stateDraftEdit || false
+      }));
+    }
+  }, []);
+  
   useEffect(() => {
     if (processedContents.length > 0) {
       const firstContent = processedContents[0];
       const platforms = firstContent.targetPlatforms || ['facebook'];
-      setAvailablePlatforms(platforms);
+      dispatch(setAvailablePlatforms(platforms));
       if (platforms.length > 0 && !platforms.includes(activeTab)) {
         setActiveTab(platforms[0]);
       }
@@ -281,19 +291,8 @@ export default function OutputContent() {
     setModalContent(null);
   };
 
-  // Platform-specific content selection
   const selectPlatformContent = (platform, type, content, contentId) => {
-    setSelectedContent(prev => ({
-      ...prev,
-      [platform]: {
-        ...prev[platform],
-        [type]: content
-      }
-    }));
-    setSelectedIds(prev => ({
-      ...prev,
-      [`${platform}-${type}`]: contentId
-    }));
+    dispatch(selectPlatformContentAction({ platform, type, content, contentId }));
   };
   
   // Check if content is selected for a platform
@@ -376,7 +375,6 @@ export default function OutputContent() {
       
       const data = await response.json();
       if (response.ok && data.status === 'success') {
-        // Mark draft as submitted if editing from draft
         if (isDraftEdit && taskId) {
           try {
             await fetch(`${import.meta.env.VITE_API_URL}/api/v1/drafts/${Date.now()}/submit`, {
@@ -389,6 +387,7 @@ export default function OutputContent() {
           }
         }
         
+        dispatch(clearContent());
         setShowFinalPreview(false);
         setShowSuccess(true);
         setTimeout(() => {
@@ -689,12 +688,10 @@ export default function OutputContent() {
                           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
                             <button
                               onClick={() => {
-                                setSelectedContent(prev => ({
-                                  ...prev,
-                                  [platform]: {
-                                    ...prev[platform],
-                                    headline: tempContent[`${platform}-headline`] || content.headline
-                                  }
+                                dispatch(updateSelectedContentAction({
+                                  platform,
+                                  type: 'headline',
+                                  content: tempContent[`${platform}-headline`] || content.headline
                                 }));
                                 setEditingContent(prev => ({ ...prev, [`${platform}-headline`]: false }));
                               }}
@@ -779,12 +776,10 @@ export default function OutputContent() {
                           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
                             <button
                               onClick={() => {
-                                setSelectedContent(prev => ({
-                                  ...prev,
-                                  [platform]: {
-                                    ...prev[platform],
-                                    caption: tempContent[`${platform}-caption`] || content.caption
-                                  }
+                                dispatch(updateSelectedContentAction({
+                                  platform,
+                                  type: 'caption',
+                                  content: tempContent[`${platform}-caption`] || content.caption
                                 }));
                                 setEditingContent(prev => ({ ...prev, [`${platform}-caption`]: false }));
                               }}
@@ -868,12 +863,10 @@ export default function OutputContent() {
                           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
                             <button
                               onClick={() => {
-                                setSelectedContent(prev => ({
-                                  ...prev,
-                                  [platform]: {
-                                    ...prev[platform],
-                                    hashtag: tempContent[`${platform}-hashtag`] || content.hashtag
-                                  }
+                                dispatch(updateSelectedContentAction({
+                                  platform,
+                                  type: 'hashtag',
+                                  content: tempContent[`${platform}-hashtag`] || content.hashtag
                                 }));
                                 setEditingContent(prev => ({ ...prev, [`${platform}-hashtag`]: false }));
                               }}

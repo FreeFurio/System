@@ -90,6 +90,32 @@ router.post(
 );
 
 router.post(
+  '/logout',
+  async (req, res, next) => {
+    try {
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Session ID required'
+        });
+      }
+      
+      const sessionService = (await import('../services/session.service.mjs')).default;
+      await sessionService.destroySession(sessionId);
+      
+      res.status(200).json({
+        status: 'success',
+        message: 'Logged out successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
   '/check-username',
   [
     body('username')

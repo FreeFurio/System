@@ -3,8 +3,14 @@ import { db } from '../../services/firebase';
 import { ref, get } from 'firebase/database';
 import { FiUsers, FiTrendingUp, FiTarget, FiActivity, FiBarChart2, FiCalendar, FiCheckCircle, FiClock } from 'react-icons/fi';
 import { componentStyles, statusColors } from '../../styles/designSystem';
+import { useWorkflows, useNotifications, useAppDispatch } from '../../store/hooks';
+import { fetchWorkflows } from '../../store/actions/workflowActions';
 
 const MarketingDashboard = () => {
+  const dispatch = useAppDispatch();
+  const { items: workflows, loading: workflowsLoading } = useWorkflows();
+  const { items: notifications, unread } = useNotifications();
+  
   const [stats, setStats] = useState({
     pendingContent: 0,
     approvedContent: 0,
@@ -22,55 +28,37 @@ const MarketingDashboard = () => {
   const [activePostsTab, setActivePostsTab] = useState('facebook');
 
   useEffect(() => {
+    dispatch(fetchWorkflows());
     fetchDashboardData();
-  }, []);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (workflows && workflows.length > 0) {
+      calculateStats();
+    }
+  }, [workflows]);
+
+  const calculateStats = () => {
+    const pendingContent = workflows.filter(w => w.status === 'content_approval').length;
+    const approvedContent = workflows.filter(w => w.status === 'ready_for_design_assignment').length;
+    const ongoingTasks = workflows.filter(w => 
+      w.status === 'content_creation' || w.status === 'graphic_design'
+    ).length;
+    
+    setStats(prev => ({
+      ...prev,
+      pendingContent,
+      approvedContent,
+      ongoingTasks
+    }));
+  };
 
   const fetchDashboardData = async () => {
     try {
-      let pendingContent = 0;
-      let approvedContent = 0;
       let postedContent = 0;
-      let ongoingTasks = 0;
       let recentActivity = [];
       
-      // Get all workflows data
-      try {
-        const workflowsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
-        if (workflowsResponse.ok) {
-          const workflowsData = await workflowsResponse.json();
-          
-          if (workflowsData.status === 'success' && workflowsData.data) {
-            const workflows = workflowsData.data;
-            
-            // Count by status
-            pendingContent = workflows.filter(w => w.status === 'content_approval').length;
-            approvedContent = workflows.filter(w => w.status === 'ready_for_design_assignment').length;
-            ongoingTasks = workflows.filter(w => 
-              w.status === 'content_creation' || w.status === 'graphic_design'
-            ).length;
-            
-            // Count cached posts from Firebase
-            let facebookPosts = 0, instagramPosts = 0, twitterPosts = 0;
-            
-            const cachedPostsRef = ref(db, 'cachedPosts/admin');
-            const cachedSnapshot = await get(cachedPostsRef);
-            
-            if (cachedSnapshot.exists()) {
-              const cachedData = cachedSnapshot.val();
-              
-              facebookPosts = cachedData.facebook?.posts ? Object.keys(cachedData.facebook.posts).length : 0;
-              instagramPosts = cachedData.instagram?.posts ? Object.keys(cachedData.instagram.posts).length : 0;
-              twitterPosts = cachedData.twitter?.posts ? Object.keys(cachedData.twitter.posts).length : 0;
-              
-              console.log('📊 Dashboard Firebase counts:', { facebookPosts, instagramPosts, twitterPosts });
-            }
-            
-            postedContent = facebookPosts + instagramPosts + twitterPosts;
-          }
-        }
-      } catch (workflowError) {
-        console.warn('Error fetching workflows:', workflowError);
-      }
+
 
       // Get recent posts from actual social media accounts
       let recentPosts = [];
@@ -121,56 +109,31 @@ const MarketingDashboard = () => {
         console.warn('Error fetching recent posts:', postsError);
       }
 
-      try {
-        const workflowsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
-        if (workflowsResponse.ok) {
-          const workflowsData = await workflowsResponse.json();
-          
-          if (workflowsData.status === 'success' && workflowsData.data) {
-            const workflows = workflowsData.data;
-            
-            // Count by status
-            pendingContent = workflows.filter(w => w.status === 'content_approval').length;
-            approvedContent = workflows.filter(w => w.status === 'ready_for_design_assignment').length;
-            ongoingTasks = workflows.filter(w => 
-              w.status === 'content_creation' || w.status === 'graphic_design'
-            ).length;
-            
-            // Count cached posts from Firebase
-            let facebookPosts = 0, instagramPosts = 0, twitterPosts = 0;
-            
-            const cachedPostsRef = ref(db, 'cachedPosts/admin');
-            const cachedSnapshot = await get(cachedPostsRef);
-            
-            if (cachedSnapshot.exists()) {
-              const cachedData = cachedSnapshot.val();
-              
-              facebookPosts = cachedData.facebook?.posts ? Object.keys(cachedData.facebook.posts).length : 0;
-              instagramPosts = cachedData.instagram?.posts ? Object.keys(cachedData.instagram.posts).length : 0;
-              twitterPosts = cachedData.twitter?.posts ? Object.keys(cachedData.twitter.posts).length : 0;
-              
-              console.log('📊 Dashboard Firebase counts:', { facebookPosts, instagramPosts, twitterPosts });
-            }
-            
-            postedContent = facebookPosts + instagramPosts + twitterPosts;
-            
-            setStats({
-              pendingContent,
-              approvedContent,
-              ongoingTasks,
-              postedContent,
-              facebookPosts,
-              instagramPosts,
-              twitterPosts,
-              recentActivity,
-              recentPosts
-            });
-            setRecentPostsData(recentPosts);
-          }
-        }
-      } catch (workflowError) {
-        console.warn('Error fetching workflows:', workflowError);
+      let facebookPosts = 0, instagramPosts = 0, twitterPosts = 0;
+      
+      const cachedPostsRef = ref(db, 'cachedPosts/admin');
+      const cachedSnapshot = await get(cachedPostsRef);
+      
+      if (cachedSnapshot.exists()) {
+        const cachedData = cachedSnapshot.val();
+        
+        facebookPosts = cachedData.facebook?.posts ? Object.keys(cachedData.facebook.posts).length : 0;
+        instagramPosts = cachedData.instagram?.posts ? Object.keys(cachedData.instagram.posts).length : 0;
+        twitterPosts = cachedData.twitter?.posts ? Object.keys(cachedData.twitter.posts).length : 0;
       }
+      
+      postedContent = facebookPosts + instagramPosts + twitterPosts;
+      
+      setStats(prev => ({
+        ...prev,
+        postedContent,
+        facebookPosts,
+        instagramPosts,
+        twitterPosts,
+        recentActivity,
+        recentPosts
+      }));
+      setRecentPostsData(recentPosts);
 
       // Get marketing notifications for activity
       try {

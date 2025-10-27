@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { useWorkflows, useAppDispatch } from '../../store/hooks';
+import { fetchWorkflows } from '../../store/actions/workflowActions';
 import { FiClock, FiCheckCircle, FiXCircle, FiEye, FiTarget, FiUser, FiCalendar, FiSmartphone, FiBarChart, FiEdit3, FiFileText, FiTrash2 } from 'react-icons/fi';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
@@ -667,91 +668,22 @@ const ApprovalCard = ({ workflow }) => {
 };
 
 export default function OngoingApproval() {
-  const [rejectedWorkflows, setRejectedWorkflows] = useState([]);
-  const [pendingWorkflows, setPendingWorkflows] = useState([]);
-  const [approvedWorkflows, setApprovedWorkflows] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const { items: allWorkflows, loading: workflowsLoading } = useWorkflows();
+  
+  const rejectedWorkflows = allWorkflows?.filter(w => 
+    w.graphicDesigner && w.status === 'design_rejected'
+  ) || [];
+  
+  const pendingWorkflows = allWorkflows?.filter(w => 
+    w.graphicDesigner && w.status === 'design_approval'
+  ) || [];
 
   useEffect(() => {
-    fetchApprovalWorkflows();
-    
-    const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
-    
-    socket.on('workflowUpdated', (data) => {
-      if (!data.graphicDesigner) {
-        setRejectedWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setPendingWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setApprovedWorkflows(prev => prev.filter(w => w.id !== data.id));
-        return;
-      }
-      
-      if (data.status === 'design_rejected') {
-        setRejectedWorkflows(prev => {
-          const filtered = prev.filter(w => w.id !== data.id);
-          return [data, ...filtered];
-        });
-        setPendingWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setApprovedWorkflows(prev => prev.filter(w => w.id !== data.id));
-      } else if (data.status === 'design_approval') {
-        setPendingWorkflows(prev => {
-          const filtered = prev.filter(w => w.id !== data.id);
-          return [data, ...filtered];
-        });
-        setRejectedWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setApprovedWorkflows(prev => prev.filter(w => w.id !== data.id));
-      } else if (data.status === 'posted' || data.status === 'design_approved') {
-        // Remove from ongoing approval when approved or posted
-        setRejectedWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setPendingWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setApprovedWorkflows(prev => prev.filter(w => w.id !== data.id));
-      } else {
-        setRejectedWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setPendingWorkflows(prev => prev.filter(w => w.id !== data.id));
-        setApprovedWorkflows(prev => prev.filter(w => w.id !== data.id));
-      }
-    });
-    
-    return () => socket.disconnect();
-  }, []);
+    dispatch(fetchWorkflows());
+  }, [dispatch]);
 
-  const fetchApprovalWorkflows = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/graphic-designer/approval-status`);
-      const data = await response.json();
-      
-      console.log('Graphics Designer OngoingApproval API response:', data);
-      
-      let allWorkflows = [];
-      if (data.status === 'success') {
-        allWorkflows = data.data || [];
-      }
-      
-      const uniqueWorkflows = allWorkflows.reduce((acc, workflow) => {
-        if (!acc.find(w => w.id === workflow.id)) {
-          acc.push(workflow);
-        }
-        return acc;
-      }, []);
-      
-      const rejectedWorkflows = uniqueWorkflows.filter(w => {
-        return w.graphicDesigner && w.status === 'design_rejected';
-      });
-      
-      const pendingWorkflows = uniqueWorkflows.filter(w => {
-        return w.graphicDesigner && w.status === 'design_approval';
-      });
-      
-      setRejectedWorkflows(rejectedWorkflows);
-      setPendingWorkflows(pendingWorkflows);
-      setApprovedWorkflows([]);
-    } catch (error) {
-      console.error('Error fetching approval workflows:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (workflowsLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
         <div>Loading approval status...</div>

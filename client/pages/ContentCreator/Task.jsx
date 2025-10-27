@@ -557,7 +557,16 @@ export default function Task() {
   const { items: allWorkflows, loading: workflowsLoading } = useWorkflows();
   const navigate = useNavigate();
   
-  const workflows = allWorkflows?.filter(w => w.currentStage === 'contentcreator') || [];
+  console.log('🔍 Task Debug - allWorkflows:', allWorkflows);
+  console.log('🔍 Task Debug - allWorkflows length:', allWorkflows?.length);
+  
+  const workflows = allWorkflows?.filter(w => {
+    console.log('🔍 Checking workflow:', { id: w.id, currentStage: w.currentStage, stage: w.stage, status: w.status });
+    return w.currentStage === 'contentcreator' || w.stage === 'contentcreator';
+  }) || [];
+  
+  console.log('🔍 Task Debug - filtered workflows:', workflows);
+  console.log('🔍 Task Debug - filtered workflows length:', workflows.length);
 
   useEffect(() => {
     dispatch(fetchWorkflows());

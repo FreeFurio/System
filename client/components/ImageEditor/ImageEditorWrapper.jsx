@@ -7,6 +7,7 @@ const ImageEditorWrapper = ({ onSave, onExport, initialCanvasData, onBackToTasks
   const [isSaving, setIsSaving] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState(0);
   const [saveData, setSaveData] = React.useState(null);
+  const initialDataRef = React.useRef(initialCanvasData);
   
   const savingSteps = [
     { icon: '🎨', text: 'Preparing design...' },
@@ -57,8 +58,8 @@ const ImageEditorWrapper = ({ onSave, onExport, initialCanvasData, onBackToTasks
     return () => window.removeEventListener('message', handleMessage);
   }, [onSave, onExport]);
 
-  const iframeSrc = initialCanvasData ? 
-    `/components/ImageEditor/editor.html?canvasData=${encodeURIComponent(initialCanvasData)}` :
+  const iframeSrc = initialDataRef.current ? 
+    `/components/ImageEditor/editor.html?canvasData=${encodeURIComponent(initialDataRef.current)}` :
     '/components/ImageEditor/editor.html';
 
   return (

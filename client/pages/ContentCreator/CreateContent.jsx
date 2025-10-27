@@ -632,7 +632,11 @@ export default function CreateContent() {
                 min={1}
                 max={5}
                 value={numContents}
-                onChange={e => setNumContents(Math.max(1, Math.min(5, Number(e.target.value))))}
+                onChange={e => setNumContents(e.target.value)}
+                onBlur={e => {
+                  const val = Number(e.target.value);
+                  setNumContents(Math.max(1, Math.min(5, val || 1)));
+                }}
                 style={{
                   width: '100%',
                   padding: '12px 16px',

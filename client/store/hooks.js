@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 export const useAppDispatch = () => useDispatch();
 
 export const useWorkflows = () => {
-  const workflows = useSelector((state) => state.workflows.items);
+  const items = useSelector((state) => state.workflows.items);
   const loading = useSelector((state) => state.workflows.loading);
   const error = useSelector((state) => state.workflows.error);
-  return { workflows, loading, error };
+  return { items, loading, error };
 };
 
 export const useNotifications = () => {

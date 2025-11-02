@@ -1081,7 +1081,13 @@ router.get('/facebook-posts', async (req, res) => {
           });
         });
       } catch (error) {
-        console.error(`❌ Error fetching posts for page ${page.id}:`, error.response?.data || error.message);
+        console.error(`❌ Error fetching posts for page ${page.id}:`, {
+          status: error.response?.status,
+          errorCode: error.response?.data?.error?.code,
+          errorMessage: error.response?.data?.error?.message,
+          pageId: page.id,
+          pageName: page.name
+        });
       }
     }
     
@@ -2057,7 +2063,13 @@ router.get('/instagram-posts', async (req, res) => {
           allPosts.push(sanitizedPost);
         });
       } catch (error) {
-        console.error(`❌ Error fetching Instagram posts for page ${page.id}:`, error.response?.data || error.message);
+        console.error(`❌ Error fetching Instagram posts for page ${page.id}:`, {
+          status: error.response?.status,
+          errorCode: error.response?.data?.error?.code,
+          errorMessage: error.response?.data?.error?.message,
+          pageId: page.id,
+          pageName: page.name
+        });
       }
     }
     

@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import axios from 'axios';
 import insightsService from '../services/insightsService.js';
 import redisService from '../services/redis.service.mjs';
@@ -1022,7 +1022,7 @@ router.get('/facebook-posts', async (req, res) => {
     if (!refresh) {
       const cached = await redisService.get('facebook:posts');
       if (cached) {
-        console.log('✅ Returning cached Facebook posts from Redis');
+        console.log('✅ Returning cached Facebook posts: + cached.length + posts');
         return res.json({ success: true, posts: cached, cached: true });
       }
     }
@@ -1038,11 +1038,11 @@ router.get('/facebook-posts', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.json({ success: true, posts: [] });
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     const allPosts = [];
     
     for (const page of pages) {
@@ -1092,7 +1092,7 @@ router.get('/facebook-posts', async (req, res) => {
     }
     
     // Sort by creation time (newest first)
-    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    console.log("📦 Total posts collected:", allPosts.length); allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
     // Cache in Redis (60s TTL)
     await redisService.set('facebook:posts', allPosts, 60);
@@ -1187,7 +1187,7 @@ router.get('/test-post-insights/:postId', async (req, res) => {
     const pageRef = ref(db, `connectedPages/admin/${pageId}`);
     const snapshot = await get(pageRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.status(404).json({ success: false, error: 'Page not found' });
     }
     
@@ -1269,7 +1269,7 @@ router.get('/test-all-posts-insights/:pageId', async (req, res) => {
     const pageRef = ref(db, `connectedPages/admin/${pageId}`);
     const snapshot = await get(pageRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.status(404).json({ success: false, error: 'Page not found' });
     }
     
@@ -1351,7 +1351,7 @@ router.get('/test-page-insights/:pageId', async (req, res) => {
     const pageRef = ref(db, `connectedPages/admin/${pageId}`);
     const snapshot = await get(pageRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.status(404).json({ success: false, error: 'Page not found' });
     }
     
@@ -1430,11 +1430,11 @@ router.get('/debug-facebook-posts', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.send('<h1>No pages connected</h1>');
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     let html = `
       <html>
         <head><title>Facebook Posts Debug</title></head>
@@ -1522,11 +1522,11 @@ router.get('/facebook-reactions-from-posts', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.json({ success: true, reactions: {} });
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     const pageResults = [];
     
     for (const page of pages) {
@@ -1639,11 +1639,11 @@ router.get('/facebook-reactions-breakdown', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.json({ success: true, pages: [] });
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     const pageResults = [];
     
     for (const page of pages) {
@@ -1756,11 +1756,11 @@ router.get('/check-page-likes', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.json({ success: true, pages: [] });
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     const pageStats = [];
     
     for (const page of pages) {
@@ -1812,7 +1812,7 @@ router.get('/test-instagram-insights/:pageId', async (req, res) => {
     const pageRef = ref(db, `connectedPages/admin/${pageId}`);
     const snapshot = await get(pageRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.status(404).json({ success: false, error: 'Page not found' });
     }
     
@@ -1900,7 +1900,7 @@ router.get('/instagram-posts/:pageId', async (req, res) => {
     const pageRef = ref(db, `connectedPages/admin/${pageId}`);
     const snapshot = await get(pageRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.status(404).json({ success: false, error: 'Page not found' });
     }
     
@@ -1998,11 +1998,11 @@ router.get('/instagram-posts', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.json({ success: true, posts: [] });
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     const allPosts = [];
     
     for (const page of pages) {
@@ -2074,7 +2074,7 @@ router.get('/instagram-posts', async (req, res) => {
     }
     
     // Sort by creation time (newest first)
-    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    console.log("📦 Total posts collected:", allPosts.length); allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
     // Cache in Redis (60s TTL)
     await redisService.set('instagram:posts', allPosts, 60);
@@ -2498,7 +2498,7 @@ router.post('/save-twitter-token', async (req, res) => {
     const accountsRef = ref(db, 'connectedAccounts/admin/twitter');
     const snapshot = await get(accountsRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.status(400).json({ success: false, error: 'No Twitter accounts found in Firebase' });
     }
     
@@ -2585,7 +2585,7 @@ router.get('/debug-twitter-tokens', async (req, res) => {
     const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
     const snapshot = await get(twitterAccountsRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.send('<html><body><h1>No Twitter accounts found</h1></body></html>');
     }
     
@@ -2626,7 +2626,7 @@ router.get('/test-facebook-permissions', async (req, res) => {
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
     
-    if (!snapshot.exists()) {
+    if (!snapshot.exists()) { console.log("⚠️ No connected pages in Firebase");
       return res.send(`
         <html>
           <body style="font-family: Arial; padding: 20px;">
@@ -2638,7 +2638,7 @@ router.get('/test-facebook-permissions', async (req, res) => {
       `);
     }
     
-    const pages = Object.values(snapshot.val());
+    const pages = Object.values(snapshot.val()); console.log("📄 Found", pages.length, "connected pages");
     let html = `
       <html>
         <head><title>Facebook Permissions Test</title></head>
@@ -2972,3 +2972,6 @@ router.get('/platform-availability', async (req, res) => {
 });
 
 export default router;
+
+
+

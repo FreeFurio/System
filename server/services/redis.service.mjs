@@ -8,17 +8,46 @@ class RedisService {
 
   async connect() {
     try {
+      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+      console.log('🔄 Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':****@'));
+      
       this.client = createClient({
-        url: process.env.REDIS_URL || 'redis://localhost:6379'
+        url: redisUrl,
+        socket: {
+          keepAlive: 5000,
+          reconnectStrategy: (retries) => {
+            if (retries > 10) {
+              console.error('❌ Redis reconnection failed after 10 attempts');
+              return false;
+            }
+            return Math.min(retries * 50, 500);
+          },
+          connectTimeout: 10000
+        },
+        pingInterval: 30000
       });
 
-      this.client.on('error', (err) => console.error('❌ Redis Client Error:', err));
-      this.client.on('connect', () => console.log('✅ Redis Connected'));
+      this.client.on('error', (err) => {
+        console.error('❌ Redis Client Error:', err.message);
+        this.isConnected = false;
+      });
+      
+      this.client.on('connect', () => {
+        console.log('✅ Redis Connected successfully');
+        this.isConnected = true;
+      });
+      
+      this.client.on('ready', () => {
+        console.log('✅ Redis Ready for operations');
+        this.isConnected = true;
+      });
 
       await this.client.connect();
+      console.log('✅ Redis connection established');
       this.isConnected = true;
     } catch (error) {
-      console.error('❌ Redis Connection Failed:', error);
+      console.error('❌ Redis Connection Failed:', error.message);
+      console.error('❌ Redis URL format:', process.env.REDIS_URL ? 'SET' : 'NOT SET');
       this.isConnected = false;
     }
   }

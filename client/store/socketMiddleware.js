@@ -6,7 +6,7 @@ import { addNotification } from './slices/notificationSlice';
 let socket = null;
 
 export const initializeSocket = (store) => {
-  socket = io('http://localhost:3000', {
+  socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
     withCredentials: true
   });
 

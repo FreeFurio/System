@@ -234,4 +234,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ using AI-powered technology**
+**Built with ❤️ using AI-powered technology**                                

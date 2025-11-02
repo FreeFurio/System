@@ -31,7 +31,10 @@ import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url); 
 const __dirname = dirname(__filename);           
-const app = express();                           
+const app = express();
+
+// Trust proxy for production (Railway, Heroku, etc.)
+app.set('trust proxy', 1);                           
 
 // ========================
 // 2) GLOBAL MIDDLEWARES

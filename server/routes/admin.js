@@ -293,8 +293,11 @@ router.get('/connected-pages', async (req, res) => {
       })
     );
     
-    // Cache in Redis (60s TTL)
-    await redisService.set('facebook:pages', pagesWithInstagram, 60);
+    // Only cache if we got data successfully
+    if (pagesWithInstagram.length > 0) {
+      await redisService.set('facebook:pages', pagesWithInstagram, 60);
+      console.log('✅ Cached', pagesWithInstagram.length, 'Facebook pages');
+    }
     
     res.json({
       success: true,
@@ -1022,13 +1025,11 @@ router.get('/facebook-posts', async (req, res) => {
   try {
     const { refresh } = req.query;
     
-    // Check Redis cache first
-    if (!refresh) {
-      const cached = await redisService.get('facebook:posts');
-      if (cached) {
-        console.log('✅ Returning cached Facebook posts: + cached.length + posts');
-        return res.json({ success: true, posts: cached, cached: true });
-      }
+    // Check Redis cache first and store for fallback
+    const oldCache = await redisService.get('facebook:posts');
+    if (!refresh && oldCache) {
+      console.log('✅ Returning cached Facebook posts:', oldCache.length, 'posts');
+      return res.json({ success: true, posts: oldCache, cached: true });
     }
     
     const { ref, get } = await import('firebase/database');
@@ -1104,12 +1105,23 @@ router.get('/facebook-posts', async (req, res) => {
     }
     
     // Sort by creation time (newest first)
-    console.log("📦 Total posts collected:", allPosts.length); allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
-    // Cache in Redis (60s TTL)
-    await redisService.set('facebook:posts', allPosts, 60);
+    console.log("📦 Total posts collected:", allPosts.length);
     
-    res.json({ success: true, posts: allPosts });
+    // Only cache if we got data successfully
+    if (allPosts.length > 0) {
+      await redisService.set('facebook:posts', allPosts, 300); // 5 min cache
+      console.log('✅ Cached', allPosts.length, 'Facebook posts');
+      res.json({ success: true, posts: allPosts });
+    } else if (oldCache && oldCache.length > 0) {
+      // Return old cache if new fetch failed
+      console.log('⚠️ Fetch failed - returning stale cache:', oldCache.length, 'posts');
+      res.json({ success: true, posts: oldCache, cached: true, stale: true });
+    } else {
+      // No data at all
+      res.json({ success: true, posts: [] });
+    }
   } catch (error) {
     console.error('Error fetching Facebook posts:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -1990,13 +2002,11 @@ router.get('/instagram-posts', async (req, res) => {
   try {
     const { refresh } = req.query;
     
-    // Check Redis cache first
-    if (!refresh) {
-      const cached = await redisService.get('instagram:posts');
-      if (cached) {
-        console.log('✅ Returning cached Instagram posts from Redis');
-        return res.json({ success: true, posts: cached, cached: true });
-      }
+    // Check Redis cache first and store for fallback
+    const oldCache = await redisService.get('instagram:posts');
+    if (!refresh && oldCache) {
+      console.log('✅ Returning cached Instagram posts:', oldCache.length, 'posts');
+      return res.json({ success: true, posts: oldCache, cached: true });
     }
     
     const { ref, get } = await import('firebase/database');
@@ -2096,12 +2106,23 @@ router.get('/instagram-posts', async (req, res) => {
     }
     
     // Sort by creation time (newest first)
-    console.log("📦 Total posts collected:", allPosts.length); allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    allPosts.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
     
-    // Cache in Redis (60s TTL)
-    await redisService.set('instagram:posts', allPosts, 60);
+    console.log("📦 Total Instagram posts collected:", allPosts.length);
     
-    res.json({ success: true, posts: allPosts });
+    // Only cache if we got data successfully
+    if (allPosts.length > 0) {
+      await redisService.set('instagram:posts', allPosts, 300); // 5 min cache
+      console.log('✅ Cached', allPosts.length, 'Instagram posts');
+      res.json({ success: true, posts: allPosts });
+    } else if (oldCache && oldCache.length > 0) {
+      // Return old cache if new fetch failed
+      console.log('⚠️ Fetch failed - returning stale cache:', oldCache.length, 'posts');
+      res.json({ success: true, posts: oldCache, cached: true, stale: true });
+    } else {
+      // No data at all
+      res.json({ success: true, posts: [] });
+    }
     
   } catch (error) {
     console.error('Error fetching Instagram posts:', error);

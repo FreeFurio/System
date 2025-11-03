@@ -247,7 +247,8 @@ router.get('/connected-pages', async (req, res) => {
             params: {
               fields: 'instagram_business_account,picture{url}',
               access_token: page.accessToken
-            }
+            },
+            timeout: 10000
           });
           
           facebookProfilePicture = response.data.picture?.data?.url || null;
@@ -1052,7 +1053,8 @@ router.get('/facebook-posts', async (req, res) => {
           params: {
             fields: 'picture{url}',
             access_token: page.accessToken
-          }
+          },
+          timeout: 10000
         });
         
         const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
@@ -1060,7 +1062,8 @@ router.get('/facebook-posts', async (req, res) => {
             fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares,full_picture,attachments{media,url}',
             limit: 10,
             access_token: page.accessToken
-          }
+          },
+          timeout: 10000
         });
         
         const posts = response.data.data || [];
@@ -1081,13 +1084,14 @@ router.get('/facebook-posts', async (req, res) => {
           });
         });
       } catch (error) {
-        console.error(`❌ Error fetching posts for page ${page.id}:`, {
-          status: error.response?.status,
-          errorCode: error.response?.data?.error?.code,
-          errorMessage: error.response?.data?.error?.message,
+        const errorDetails = {
           pageId: page.id,
-          pageName: page.name
-        });
+          pageName: page.name,
+          status: error.response?.status || 'TIMEOUT',
+          errorCode: error.response?.data?.error?.code || error.code,
+          errorMessage: error.response?.data?.error?.message || error.message
+        };
+        console.error(`❌ Error fetching posts for page ${page.id}:`, errorDetails);
       }
     }
     
@@ -2012,7 +2016,8 @@ router.get('/instagram-posts', async (req, res) => {
           params: {
             fields: 'instagram_business_account',
             access_token: page.accessToken
-          }
+          },
+          timeout: 10000
         });
         
         const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
@@ -2026,7 +2031,8 @@ router.get('/instagram-posts', async (req, res) => {
           params: {
             fields: 'name,username,profile_picture_url',
             access_token: page.accessToken
-          }
+          },
+          timeout: 10000
         });
         
         const igName = igInfoResponse.data.name || igInfoResponse.data.username || 'Instagram Account';
@@ -2038,7 +2044,8 @@ router.get('/instagram-posts', async (req, res) => {
             fields: 'id,caption,timestamp,media_type,media_url,thumbnail_url,permalink,like_count,comments_count',
             limit: 10,
             access_token: page.accessToken
-          }
+          },
+          timeout: 10000
         });
         
         const posts = response.data.data || [];
@@ -2063,13 +2070,14 @@ router.get('/instagram-posts', async (req, res) => {
           allPosts.push(sanitizedPost);
         });
       } catch (error) {
-        console.error(`❌ Error fetching Instagram posts for page ${page.id}:`, {
-          status: error.response?.status,
-          errorCode: error.response?.data?.error?.code,
-          errorMessage: error.response?.data?.error?.message,
+        const errorDetails = {
           pageId: page.id,
-          pageName: page.name
-        });
+          pageName: page.name,
+          status: error.response?.status || 'TIMEOUT',
+          errorCode: error.response?.data?.error?.code || error.code,
+          errorMessage: error.response?.data?.error?.message || error.message
+        };
+        console.error(`❌ Error fetching Instagram posts for page ${page.id}:`, errorDetails);
       }
     }
     

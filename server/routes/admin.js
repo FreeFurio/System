@@ -2,6 +2,7 @@
 import axios from 'axios';
 import insightsService from '../services/insightsService.js';
 import redisService from '../services/redis.service.mjs';
+import { axiosRetry } from '../utils/axiosRetry.mjs';
 
 const router = express.Router();
 
@@ -243,13 +244,15 @@ router.get('/connected-pages', async (req, res) => {
         let facebookProfilePicture = null;
         
         try {
-          const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
-            params: {
-              fields: 'instagram_business_account,picture{url}',
-              access_token: page.accessToken
-            },
-            timeout: 10000
-          });
+          const response = await axiosRetry(() =>
+            axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+              params: {
+                fields: 'instagram_business_account,picture{url}',
+                access_token: page.accessToken
+              },
+              timeout: 10000
+            })
+          );
           
           facebookProfilePicture = response.data.picture?.data?.url || null;
           
@@ -1048,23 +1051,28 @@ router.get('/facebook-posts', async (req, res) => {
     
     for (const page of pages) {
       try {
-        // Get page profile picture
-        const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
-          params: {
-            fields: 'picture{url}',
-            access_token: page.accessToken
-          },
-          timeout: 10000
-        });
+        // Get page profile picture with retry
+        const pageInfoResponse = await axiosRetry(() => 
+          axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+            params: {
+              fields: 'picture{url}',
+              access_token: page.accessToken
+            },
+            timeout: 10000
+          })
+        );
         
-        const response = await axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
-          params: {
-            fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares,full_picture,attachments{media,url}',
-            limit: 10,
-            access_token: page.accessToken
-          },
-          timeout: 10000
-        });
+        // Get posts with retry
+        const response = await axiosRetry(() =>
+          axios.get(`https://graph.facebook.com/v23.0/${page.id}/posts`, {
+            params: {
+              fields: 'id,message,created_time,reactions.summary(true),comments.summary(true),shares,full_picture,attachments{media,url}',
+              limit: 10,
+              access_token: page.accessToken
+            },
+            timeout: 10000
+          })
+        );
         
         const posts = response.data.data || [];
         const profilePictureUrl = pageInfoResponse.data.picture?.data?.url || null;
@@ -2011,14 +2019,16 @@ router.get('/instagram-posts', async (req, res) => {
     
     for (const page of pages) {
       try {
-        // Get Instagram account ID
-        const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
-          params: {
-            fields: 'instagram_business_account',
-            access_token: page.accessToken
-          },
-          timeout: 10000
-        });
+        // Get Instagram account ID with retry
+        const pageInfoResponse = await axiosRetry(() =>
+          axios.get(`https://graph.facebook.com/v23.0/${page.id}`, {
+            params: {
+              fields: 'instagram_business_account',
+              access_token: page.accessToken
+            },
+            timeout: 10000
+          })
+        );
         
         const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
         
@@ -2026,27 +2036,31 @@ router.get('/instagram-posts', async (req, res) => {
           continue;
         }
         
-        // Get Instagram account info
-        const igInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}`, {
-          params: {
-            fields: 'name,username,profile_picture_url',
-            access_token: page.accessToken
-          },
-          timeout: 10000
-        });
+        // Get Instagram account info with retry
+        const igInfoResponse = await axiosRetry(() =>
+          axios.get(`https://graph.facebook.com/v23.0/${igAccountId}`, {
+            params: {
+              fields: 'name,username,profile_picture_url',
+              access_token: page.accessToken
+            },
+            timeout: 10000
+          })
+        );
         
         const igName = igInfoResponse.data.name || igInfoResponse.data.username || 'Instagram Account';
         const profilePictureUrl = igInfoResponse.data.profile_picture_url || null;
         
-        // Get Instagram posts
-        const response = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
-          params: {
-            fields: 'id,caption,timestamp,media_type,media_url,thumbnail_url,permalink,like_count,comments_count',
-            limit: 10,
-            access_token: page.accessToken
-          },
-          timeout: 10000
-        });
+        // Get Instagram posts with retry
+        const response = await axiosRetry(() =>
+          axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
+            params: {
+              fields: 'id,caption,timestamp,media_type,media_url,thumbnail_url,permalink,like_count,comments_count',
+              limit: 10,
+              access_token: page.accessToken
+            },
+            timeout: 10000
+          })
+        );
         
         const posts = response.data.data || [];
         posts.forEach(post => {

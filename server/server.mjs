@@ -12,7 +12,12 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';           
 import hpp from 'hpp';
-import axios from 'axios';                 
+import axios from 'axios';
+
+// Configure axios defaults for production stability
+axios.defaults.timeout = 15000; // 15 second timeout
+axios.defaults.headers.common['User-Agent'] = 'AI-Marketing-System/1.0';
+
 import authRouter from './routes/auth.routes.mjs';
 import notificationRouter from './routes/notification.routes.mjs';
 import taskRouter from './routes/task.routes.mjs';

@@ -16,15 +16,15 @@ class RedisService {
         socket: {
           keepAlive: 5000,
           reconnectStrategy: (retries) => {
-            if (retries > 10) {
-              console.error('❌ Redis reconnection failed after 10 attempts');
-              return false;
+            if (retries > 20) {
+              console.error('❌ Redis reconnection failed after 20 attempts');
+              return new Error('Max retries reached');
             }
-            return Math.min(retries * 50, 500);
+            return Math.min(retries * 100, 3000);
           },
-          connectTimeout: 10000
+          connectTimeout: 30000
         },
-        pingInterval: 30000
+        pingInterval: 60000
       });
 
       this.client.on('error', (err) => {

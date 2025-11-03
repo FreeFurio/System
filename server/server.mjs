@@ -13,10 +13,24 @@ import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';           
 import hpp from 'hpp';
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 
 // Configure axios defaults for production stability
-axios.defaults.timeout = 15000; // 15 second timeout
+axios.defaults.timeout = 30000; // 30 second timeout
 axios.defaults.headers.common['User-Agent'] = 'AI-Marketing-System/1.0';
+
+// Force IPv4 and configure connection settings
+axios.defaults.httpAgent = new http.Agent({ 
+  family: 4,
+  keepAlive: true,
+  keepAliveMsecs: 30000
+});
+axios.defaults.httpsAgent = new https.Agent({ 
+  family: 4,
+  keepAlive: true,
+  keepAliveMsecs: 30000
+});
 
 import authRouter from './routes/auth.routes.mjs';
 import notificationRouter from './routes/notification.routes.mjs';

@@ -1025,20 +1025,41 @@ router.get('/facebook-posts', async (req, res) => {
   try {
     const { refresh } = req.query;
     
-    // Check Redis cache first and store for fallback
-    const oldCache = await redisService.get('facebook:posts');
-    if (!refresh && oldCache) {
-      console.log('✅ Returning cached Facebook posts:', oldCache.length, 'posts');
-      return res.json({ success: true, posts: oldCache, cached: true });
-    }
-    
-    const { ref, get } = await import('firebase/database');
+    const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Step 1: Check Redis cache
+    if (!refresh) {
+      const redisCache = await redisService.get('facebook:posts');
+      if (redisCache) {
+        console.log('✅ [Redis] Returning cached Facebook posts:', redisCache.length, 'posts');
+        return res.json({ success: true, posts: redisCache, source: 'redis' });
+      }
+    }
+    
+    // Step 2: Check Firebase cache
+    if (!refresh) {
+      const fbCacheRef = ref(db, 'cachedPosts/admin/facebook');
+      const fbCacheSnapshot = await get(fbCacheRef);
+      
+      if (fbCacheSnapshot.exists()) {
+        const fbCache = fbCacheSnapshot.val();
+        if (fbCache.posts && fbCache.posts.length > 0) {
+          console.log('✅ [Firebase] Returning cached posts:', fbCache.posts.length, 'posts');
+          console.log('📅 Last updated:', fbCache.lastUpdated);
+          
+          // Cache to Redis for fast access
+          await redisService.set('facebook:posts', fbCache.posts, 300);
+          
+          return res.json({ success: true, posts: fbCache.posts, source: 'firebase', lastUpdated: fbCache.lastUpdated });
+        }
+      }
+    }
     
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
@@ -1109,18 +1130,32 @@ router.get('/facebook-posts', async (req, res) => {
     
     console.log("📦 Total posts collected:", allPosts.length);
     
-    // Only cache if we got data successfully
+    // Step 3: Save to Firebase and Redis if we got data
     if (allPosts.length > 0) {
-      await redisService.set('facebook:posts', allPosts, 300); // 5 min cache
-      console.log('✅ Cached', allPosts.length, 'Facebook posts');
-      res.json({ success: true, posts: allPosts });
-    } else if (oldCache && oldCache.length > 0) {
-      // Return old cache if new fetch failed
-      console.log('⚠️ Fetch failed - returning stale cache:', oldCache.length, 'posts');
-      res.json({ success: true, posts: oldCache, cached: true, stale: true });
+      const fbCacheRef = ref(db, 'cachedPosts/admin/facebook');
+      await set(fbCacheRef, {
+        posts: allPosts,
+        lastUpdated: new Date().toISOString()
+      });
+      console.log('💾 [Firebase] Saved', allPosts.length, 'posts');
+      
+      await redisService.set('facebook:posts', allPosts, 300);
+      console.log('⚡ [Redis] Cached', allPosts.length, 'posts');
+      
+      res.json({ success: true, posts: allPosts, source: 'api' });
     } else {
-      // No data at all
-      res.json({ success: true, posts: [] });
+      // Try to return Firebase cache as fallback
+      const fbCacheRef = ref(db, 'cachedPosts/admin/facebook');
+      const fbCacheSnapshot = await get(fbCacheRef);
+      
+      if (fbCacheSnapshot.exists() && fbCacheSnapshot.val().posts) {
+        const fbPosts = fbCacheSnapshot.val().posts;
+        console.log('⚠️ API failed - returning Firebase backup:', fbPosts.length, 'posts');
+        await redisService.set('facebook:posts', fbPosts, 300);
+        res.json({ success: true, posts: fbPosts, source: 'firebase-fallback' });
+      } else {
+        res.json({ success: true, posts: [] });
+      }
     }
   } catch (error) {
     console.error('Error fetching Facebook posts:', error);
@@ -2002,20 +2037,41 @@ router.get('/instagram-posts', async (req, res) => {
   try {
     const { refresh } = req.query;
     
-    // Check Redis cache first and store for fallback
-    const oldCache = await redisService.get('instagram:posts');
-    if (!refresh && oldCache) {
-      console.log('✅ Returning cached Instagram posts:', oldCache.length, 'posts');
-      return res.json({ success: true, posts: oldCache, cached: true });
-    }
-    
-    const { ref, get } = await import('firebase/database');
+    const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Step 1: Check Redis cache
+    if (!refresh) {
+      const redisCache = await redisService.get('instagram:posts');
+      if (redisCache) {
+        console.log('✅ [Redis] Returning cached Instagram posts:', redisCache.length, 'posts');
+        return res.json({ success: true, posts: redisCache, source: 'redis' });
+      }
+    }
+    
+    // Step 2: Check Firebase cache
+    if (!refresh) {
+      const fbCacheRef = ref(db, 'cachedPosts/admin/instagram');
+      const fbCacheSnapshot = await get(fbCacheRef);
+      
+      if (fbCacheSnapshot.exists()) {
+        const fbCache = fbCacheSnapshot.val();
+        if (fbCache.posts && fbCache.posts.length > 0) {
+          console.log('✅ [Firebase] Returning cached Instagram posts:', fbCache.posts.length, 'posts');
+          console.log('📅 Last updated:', fbCache.lastUpdated);
+          
+          // Cache to Redis for fast access
+          await redisService.set('instagram:posts', fbCache.posts, 300);
+          
+          return res.json({ success: true, posts: fbCache.posts, source: 'firebase', lastUpdated: fbCache.lastUpdated });
+        }
+      }
+    }
     
     const connectedPagesRef = ref(db, 'connectedPages/admin');
     const snapshot = await get(connectedPagesRef);
@@ -2110,18 +2166,32 @@ router.get('/instagram-posts', async (req, res) => {
     
     console.log("📦 Total Instagram posts collected:", allPosts.length);
     
-    // Only cache if we got data successfully
+    // Step 3: Save to Firebase and Redis if we got data
     if (allPosts.length > 0) {
-      await redisService.set('instagram:posts', allPosts, 300); // 5 min cache
-      console.log('✅ Cached', allPosts.length, 'Instagram posts');
-      res.json({ success: true, posts: allPosts });
-    } else if (oldCache && oldCache.length > 0) {
-      // Return old cache if new fetch failed
-      console.log('⚠️ Fetch failed - returning stale cache:', oldCache.length, 'posts');
-      res.json({ success: true, posts: oldCache, cached: true, stale: true });
+      const fbCacheRef = ref(db, 'cachedPosts/admin/instagram');
+      await set(fbCacheRef, {
+        posts: allPosts,
+        lastUpdated: new Date().toISOString()
+      });
+      console.log('💾 [Firebase] Saved', allPosts.length, 'Instagram posts');
+      
+      await redisService.set('instagram:posts', allPosts, 300);
+      console.log('⚡ [Redis] Cached', allPosts.length, 'Instagram posts');
+      
+      res.json({ success: true, posts: allPosts, source: 'api' });
     } else {
-      // No data at all
-      res.json({ success: true, posts: [] });
+      // Try to return Firebase cache as fallback
+      const fbCacheRef = ref(db, 'cachedPosts/admin/instagram');
+      const fbCacheSnapshot = await get(fbCacheRef);
+      
+      if (fbCacheSnapshot.exists() && fbCacheSnapshot.val().posts) {
+        const fbPosts = fbCacheSnapshot.val().posts;
+        console.log('⚠️ API failed - returning Firebase backup:', fbPosts.length, 'posts');
+        await redisService.set('instagram:posts', fbPosts, 300);
+        res.json({ success: true, posts: fbPosts, source: 'firebase-fallback' });
+      } else {
+        res.json({ success: true, posts: [] });
+      }
     }
     
   } catch (error) {
@@ -2417,22 +2487,47 @@ router.get('/twitter-data', async (req, res) => {
   try {
     const { refresh } = req.query;
     
-    // Check Redis cache first
-    if (!refresh) {
-      const cached = await redisService.get('twitter:data');
-      if (cached) {
-        console.log('✅ Returning cached Twitter data from Redis');
-        return res.json({ success: true, ...cached, cached: true });
-      }
-    }
-    
-    const { ref, get } = await import('firebase/database');
+    const { ref, get, set } = await import('firebase/database');
     const { getDatabase } = await import('firebase/database');
     const { initializeApp } = await import('firebase/app');
     const { config } = await import('../config/config.mjs');
     
     const app = initializeApp(config.firebase);
     const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Step 1: Check Redis cache
+    if (!refresh) {
+      const redisCache = await redisService.get('twitter:data');
+      if (redisCache) {
+        console.log('✅ [Redis] Returning cached Twitter data');
+        return res.json({ success: true, ...redisCache, source: 'redis' });
+      }
+    }
+    
+    // Step 2: Check Firebase cache
+    if (!refresh) {
+      const fbCacheRef = ref(db, 'cachedPosts/admin/twitter');
+      const fbCacheSnapshot = await get(fbCacheRef);
+      
+      if (fbCacheSnapshot.exists()) {
+        const fbCache = fbCacheSnapshot.val();
+        if (fbCache.posts) {
+          console.log('✅ [Firebase] Returning cached Twitter data');
+          console.log('📅 Last updated:', fbCache.lastUpdated);
+          
+          const twitterData = {
+            posts: fbCache.posts,
+            insights: fbCache.insights || {},
+            postsCount: fbCache.posts.length
+          };
+          
+          // Cache to Redis for fast access
+          await redisService.set('twitter:data', twitterData, 300);
+          
+          return res.json({ success: true, ...twitterData, source: 'firebase', lastUpdated: fbCache.lastUpdated });
+        }
+      }
+    }
     
     // Fetch fresh data from Twitter API
     const twitterAccountsRef = ref(db, 'connectedAccounts/admin/twitter');
@@ -2512,10 +2607,39 @@ router.get('/twitter-data', async (req, res) => {
     
     const responseData = { posts: allPosts, insights, postsCount: allPosts.length };
     
-    // Cache in Redis (60s TTL)
-    await redisService.set('twitter:data', responseData, 60);
-    
-    res.json({ success: true, ...responseData });
+    // Step 3: Save to Firebase and Redis if we got data
+    if (allPosts.length > 0) {
+      const fbCacheRef = ref(db, 'cachedPosts/admin/twitter');
+      await set(fbCacheRef, {
+        posts: allPosts,
+        insights: insights,
+        lastUpdated: new Date().toISOString()
+      });
+      console.log('💾 [Firebase] Saved', allPosts.length, 'tweets');
+      
+      await redisService.set('twitter:data', responseData, 300);
+      console.log('⚡ [Redis] Cached Twitter data');
+      
+      res.json({ success: true, ...responseData, source: 'api' });
+    } else {
+      // Try to return Firebase cache as fallback
+      const fbCacheRef = ref(db, 'cachedPosts/admin/twitter');
+      const fbCacheSnapshot = await get(fbCacheRef);
+      
+      if (fbCacheSnapshot.exists() && fbCacheSnapshot.val().posts) {
+        const fbData = fbCacheSnapshot.val();
+        const fallbackData = {
+          posts: fbData.posts,
+          insights: fbData.insights || {},
+          postsCount: fbData.posts.length
+        };
+        console.log('⚠️ API failed - returning Firebase backup:', fallbackData.postsCount, 'tweets');
+        await redisService.set('twitter:data', fallbackData, 300);
+        res.json({ success: true, ...fallbackData, source: 'firebase-fallback' });
+      } else {
+        res.json({ success: true, posts: [], insights: {}, postsCount: 0 });
+      }
+    }
 
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

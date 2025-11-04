@@ -75,6 +75,8 @@ app.use(
         connectSrc: [          
           "'self'",
           "data:",
+          "http://localhost:3000",
+          "ws://localhost:3000",
           "wss://*.firebasedatabase.app",
           "https://*.firebasedatabase.app",
           "https://api.cloudinary.com",

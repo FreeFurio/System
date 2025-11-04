@@ -1,6 +1,6 @@
-const API_BASE_URL = import.meta.env.PROD 
-  ? '/api/v1/ai'  // Production: relative URL
-  : 'http://localhost:3000/api/v1/ai';  // Development: localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/v1/ai`
+  : (import.meta.env.PROD ? '/api/v1/ai' : 'http://localhost:3000/api/v1/ai')
 
 class AIService {
   // Generate specific content type

@@ -100,7 +100,7 @@ export async function createContent(data) {
   try {
     // Call AI endpoint to get multi-platform content
     console.log('🤖 Calling AI service for multi-platform content...');
-    const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3000';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
     const response = await fetch(`${API_BASE_URL}/api/v1/tasks/generate-ai-content`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

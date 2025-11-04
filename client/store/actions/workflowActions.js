@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { setLoading, setError, setWorkflows } from '../slices/workflowSlice';
 
-const API_URL = 'http://localhost:3000/api/v1/tasks';
+const API_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/v1/tasks`
+  : (import.meta.env.PROD ? '/api/v1/tasks' : 'http://localhost:3000/api/v1/tasks');
 
 export const fetchWorkflows = () => async (dispatch) => {
   dispatch(setLoading(true));

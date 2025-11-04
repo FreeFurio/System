@@ -68,21 +68,35 @@ class SchedulerService {
   // Check for workflows that need to be posted
   async checkAndPostWorkflows() {
     try {
-      console.log('🔍 Checking for workflows ready to post...');
+      const now = new Date();
+      console.log(`🔍 [${now.toISOString()}] Checking for workflows ready to post...`);
       
       const workflows = await FirebaseService.getAllWorkflows();
-      const now = new Date();
+      console.log(`📊 Found ${workflows.length} total workflows`);
       
       let postsTriggered = 0;
       let expiredWorkflows = 0;
+      let approvedCount = 0;
       
       for (const workflow of workflows) {
+        if (workflow.status === 'design_approved') {
+          approvedCount++;
+          const deadline = new Date(workflow.deadline);
+          const timeUntilDeadline = deadline - now;
+          const minutesUntil = Math.floor(timeUntilDeadline / 60000);
+          
+          console.log(`✅ Workflow ${workflow.id}: status=${workflow.status}, deadline=${workflow.deadline}, minutes until deadline=${minutesUntil}`);
+        }
+        
         if (workflow.deadline) {
           const deadline = new Date(workflow.deadline);
           
           if (now >= deadline) {
             if (workflow.status === 'design_approved') {
-              console.log(`⏰ Workflow ${workflow.id} deadline reached, posting...`);
+              console.log(`⏰ Workflow ${workflow.id} deadline reached! Posting now...`);
+              console.log(`   - Deadline: ${workflow.deadline}`);
+              console.log(`   - Current time: ${now.toISOString()}`);
+              console.log(`   - Status: ${workflow.status}`);
               
               // Call actual social media posting
               await FirebaseService.autoPostToSocialMedia(workflow.id, workflow);
@@ -94,6 +108,7 @@ class SchedulerService {
               );
               
               postsTriggered++;
+              console.log(`✅ Workflow ${workflow.id} posted successfully!`);
             } else if (workflow.status !== 'posted' && workflow.status !== 'expired') {
               console.log(`⚠️ Workflow ${workflow.id} expired without completion. Status: ${workflow.status}`);
               
@@ -114,8 +129,10 @@ class SchedulerService {
         }
       }
       
+      console.log(`📊 Summary: ${approvedCount} approved workflows, ${postsTriggered} posted, ${expiredWorkflows} expired`);
+      
       if (postsTriggered > 0) {
-        console.log(`📤 Triggered ${postsTriggered} workflow posts`);
+        console.log(`📤 ✅ Triggered ${postsTriggered} workflow posts`);
       }
       
       if (expiredWorkflows > 0) {

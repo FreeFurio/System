@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.PROD 
-  ? '/api/v1/admin' 
-  : 'http://localhost:3000/api/v1/admin';
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/v1/admin`
+  : (import.meta.env.PROD ? '/api/v1/admin' : 'http://localhost:3000/api/v1/admin');
 
 class AdminService {
   async getPageInsights() {

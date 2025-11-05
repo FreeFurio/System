@@ -22,12 +22,16 @@ class SessionService {
       lastActivity: new Date().toISOString()
     };
 
-    await redisService.set(`session:${sessionId}`, sessionData, expiresIn);
+    const saved = await redisService.set(`session:${sessionId}`, sessionData, expiresIn);
     
-    // Also store user's active sessions (for multi-device support)
-    await this.addUserSession(userId, sessionId, expiresIn);
+    if (saved) {
+      // Also store user's active sessions (for multi-device support)
+      await this.addUserSession(userId, sessionId, expiresIn);
+      console.log(`✅ Session created: ${sessionId} for user: ${userId}`);
+    } else {
+      console.log(`⚠️ Session not saved (Redis unavailable) for user: ${userId}`);
+    }
     
-    console.log(`✅ Session created: ${sessionId} for user: ${userId}`);
     return sessionId;
   }
 

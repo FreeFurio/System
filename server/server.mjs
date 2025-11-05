@@ -281,14 +281,8 @@ const port = config.server.port || 3000;
 server.listen(port, async () => {
   console.log(`App running on port ${port}...`);
   
-  // Initialize Redis (optional - continue if fails)
-  try {
-    console.log('🔄 Connecting to Redis...');
-    await redisService.connect();
-    console.log('✅ Redis connected successfully');
-  } catch (error) {
-    console.warn('⚠️ Redis connection failed - continuing without cache:', error.message);
-  }
+  // Redis disabled - using Firebase only
+  console.log('ℹ️ Redis disabled - using Firebase for all data storage');
   
   // DEBUG: Check if dist folder exists
   const distPath = path.join(__dirname, '../client/dist');

@@ -281,9 +281,14 @@ const port = config.server.port || 3000;
 server.listen(port, async () => {
   console.log(`App running on port ${port}...`);
   
-  // Initialize Redis
-  console.log('🔄 Connecting to Redis...');
-  await redisService.connect();
+  // Initialize Redis (optional - continue if fails)
+  try {
+    console.log('🔄 Connecting to Redis...');
+    await redisService.connect();
+    console.log('✅ Redis connected successfully');
+  } catch (error) {
+    console.warn('⚠️ Redis connection failed - continuing without cache:', error.message);
+  }
   
   // DEBUG: Check if dist folder exists
   const distPath = path.join(__dirname, '../client/dist');

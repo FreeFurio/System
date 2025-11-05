@@ -7,49 +7,43 @@ class RedisService {
   }
 
   async connect() {
-    try {
-      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-      console.log('🔄 Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':****@'));
-      
-      this.client = createClient({
-        url: redisUrl,
-        socket: {
-          keepAlive: 5000,
-          reconnectStrategy: (retries) => {
-            if (retries > 20) {
-              console.error('❌ Redis reconnection failed after 20 attempts');
-              return new Error('Max retries reached');
-            }
-            return Math.min(retries * 100, 3000);
-          },
-          connectTimeout: 30000
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    console.log('🔄 Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':****@'));
+    
+    this.client = createClient({
+      url: redisUrl,
+      socket: {
+        keepAlive: 5000,
+        reconnectStrategy: (retries) => {
+          if (retries > 20) {
+            console.error('❌ Redis reconnection failed after 20 attempts');
+            return new Error('Max retries reached');
+          }
+          return Math.min(retries * 100, 3000);
         },
-        pingInterval: 60000
-      });
+        connectTimeout: 30000
+      },
+      pingInterval: 60000
+    });
 
-      this.client.on('error', (err) => {
-        console.error('❌ Redis Client Error:', err.message);
-        this.isConnected = false;
-      });
-      
-      this.client.on('connect', () => {
-        console.log('✅ Redis Connected successfully');
-        this.isConnected = true;
-      });
-      
-      this.client.on('ready', () => {
-        console.log('✅ Redis Ready for operations');
-        this.isConnected = true;
-      });
-
-      await this.client.connect();
-      console.log('✅ Redis connection established');
-      this.isConnected = true;
-    } catch (error) {
-      console.error('❌ Redis Connection Failed:', error.message);
-      console.error('❌ Redis URL format:', process.env.REDIS_URL ? 'SET' : 'NOT SET');
+    this.client.on('error', (err) => {
+      console.error('❌ Redis Client Error:', err.message);
       this.isConnected = false;
-    }
+    });
+    
+    this.client.on('connect', () => {
+      console.log('✅ Redis Connected successfully');
+      this.isConnected = true;
+    });
+    
+    this.client.on('ready', () => {
+      console.log('✅ Redis Ready for operations');
+      this.isConnected = true;
+    });
+
+    await this.client.connect();
+    console.log('✅ Redis connection established');
+    this.isConnected = true;
   }
 
   async get(key) {

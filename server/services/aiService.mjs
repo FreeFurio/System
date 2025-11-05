@@ -34,8 +34,8 @@ class AIService {
         captionMax: parseInt(process.env.INSTAGRAM_CAPTION_MAX_LENGTH) || 180
       },
       twitter: {
-        headlineMax: parseInt(process.env.TWITTER_HEADLINE_MAX_LENGTH) || 100,
-        captionMax: parseInt(process.env.TWITTER_CAPTION_MAX_LENGTH) || 280
+        headlineMax: parseInt(process.env.TWITTER_HEADLINE_MAX_LENGTH) || 30,
+        captionMax: parseInt(process.env.TWITTER_CAPTION_MAX_LENGTH) || 60
       }
     };
   }
@@ -91,9 +91,9 @@ class AIService {
         hashtag: `Generate 8 popular Instagram hashtags for: ${topic}. Format: #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5 #hashtag6 #hashtag7 #hashtag8`
       },
       twitter: {
-        headline: `Create a Twitter headline about: ${topic}. Make it punchy and shareable. No hashtags.`,
-        caption: `Write a Twitter post about: ${topic}. Be conversational and engaging. No hashtags.`,
-        hashtag: `Generate 3 popular Twitter hashtags for: ${topic}. Format: #hashtag1 #hashtag2 #hashtag3`
+        headline: `Create a Twitter headline about: ${topic}. Keep it under 30 characters. Make it punchy. No hashtags.`,
+        caption: `Write a Twitter post about: ${topic}. Keep it under 60 characters. Be brief and engaging. No hashtags.`,
+        hashtag: `Generate 2 short Twitter hashtags for: ${topic}. Keep total under 30 characters. Format: #hashtag1 #hashtag2`
       }
     };
 

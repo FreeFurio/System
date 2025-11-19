@@ -739,7 +739,7 @@ export default function ApprovalOfContents() {
           margin: '8px 0 0 0',
           fontWeight: '400'
         }}>
-          Review and approve submissions from content creators and graphics designers ({workflows.length} items)
+          Review and approve submissions from content writers and graphics designers ({workflows.length} items)
         </p>
       </div>
 
@@ -760,7 +760,7 @@ export default function ApprovalOfContents() {
             paddingBottom: '12px',
             borderBottom: '2px solid #e5e7eb'
           }}>
-            Content Creator Approvals
+            Content Writer Approvals
           </h2>
 
           {workflows.filter(w => w.status === 'content_approval').length === 0 ? (

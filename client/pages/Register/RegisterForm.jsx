@@ -324,6 +324,32 @@ const emailValid =
   const isStep3Valid = fields.role;
 
   const handleNextStep = () => {
+    // Validate current step before proceeding
+    if (currentStep === 1) {
+      if (!isStep1Valid) {
+        const errors = [];
+        if (!firstNameValid) errors.push('First name is required (min 2 letters)');
+        if (!lastNameValid) errors.push('Last name is required (min 2 letters)');
+        setToastMessage(errors.join(', '));
+        setToastType('error');
+        setShowToast(true);
+        return;
+      }
+    } else if (currentStep === 2) {
+      if (!isStep2Valid) {
+        const errors = [];
+        if (!fields.username) errors.push('Username is required');
+        else if (usernameUsed || errors.username) errors.push('Username is not available');
+        if (!emailValid) errors.push('Valid Gmail address is required');
+        if (!allPasswordRequirementsMet) errors.push('Password must meet all requirements');
+        if (!passwordsMatch) errors.push('Passwords must match');
+        setToastMessage(errors.join(', '));
+        setToastType('error');
+        setShowToast(true);
+        return;
+      }
+    }
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -336,27 +362,28 @@ const emailValid =
   };
 
   return (
-    <div className="form-container" key={currentStep}>
-      <div className="form-header">
-        <h1 className="title">Create Account</h1>
-        <p className="subtitle">Join our salon management platform</p>
-        
-        <div className="step-indicator">
-          <div className="step-progress">
-            {[1, 2, 3].map((step) => (
-              <div
-                key={step}
-                className={`step-dot ${
-                  step === currentStep ? 'active' : step < currentStep ? 'completed' : 'inactive'
-                }`}
-              >
-                {step < currentStep ? '✓' : step}
-              </div>
-            ))}
+    <>
+      <div className="form-container" key={currentStep}>
+        <div className="form-header">
+          <h1 className="title">Create Account</h1>
+          <p className="subtitle">Join our salon management platform</p>
+          
+          <div className="step-indicator">
+            <div className="step-progress">
+              {[1, 2, 3].map((step) => (
+                <div
+                  key={step}
+                  className={`step-dot ${
+                    step === currentStep ? 'active' : step < currentStep ? 'completed' : 'inactive'
+                  }`}
+                >
+                  {step < currentStep ? '✓' : step}
+                </div>
+              ))}
+            </div>
+            <p className="step-text">Step {currentStep} of {totalSteps}</p>
           </div>
-          <p className="step-text">Step {currentStep} of {totalSteps}</p>
         </div>
-      </div>
       
 
       
@@ -504,7 +531,7 @@ const emailValid =
                 >
                   <option value="">Select your role</option>
                   <option value="MarketingLead">Marketing Lead</option>
-                  <option value="ContentCreator">Content Creator</option>
+                  <option value="ContentCreator">Content Writer</option>
                   <option value="GraphicDesigner">Graphic Designer</option>
                 </select>
                 <label htmlFor="role" className="label">
@@ -531,10 +558,6 @@ const emailValid =
                 type="button"
                 className="signup-button"
                 onClick={handleNextStep}
-                disabled={
-                  (currentStep === 1 && !isStep1Valid) ||
-                  (currentStep === 2 && !isStep2Valid)
-                }
               >
                 Continue
               </button>
@@ -572,14 +595,15 @@ const emailValid =
         loading={otpLoading}
         error={otpError}
       />
+      </div>
       
       {showToast && (
         <Toast
-          messages={toastMessage}
+          message={toastMessage}
           type={toastType}
           onClose={() => setShowToast(false)}
         />
       )}
-    </div>
+    </>
   );
 }

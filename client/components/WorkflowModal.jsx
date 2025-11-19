@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiX, FiTarget, FiUser, FiCalendar } from 'react-icons/fi';
+import { FiX, FiTarget, FiCalendar } from 'react-icons/fi';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 
 const SEORadial = ({ score, label }) => {
@@ -29,6 +29,9 @@ const SEORadial = ({ score, label }) => {
 
 const WorkflowModal = ({ workflow, onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = React.useState(null);
+  const [showRejectModal, setShowRejectModal] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
   
   React.useEffect(() => {
     if (workflow?.contentCreator?.content?.selectedContent) {
@@ -38,6 +41,79 @@ const WorkflowModal = ({ workflow, onClose, onRefresh }) => {
   }, [workflow]);
   
   if (!workflow) return null;
+  
+  const handleApprove = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      let endpoint = '';
+      
+      if (workflow.status === 'content_approval') {
+        endpoint = `${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflow.id}/approve-content`;
+      } else if (workflow.status === 'design_approval') {
+        endpoint = `${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflow.id}/approve-design`;
+      }
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ approvedBy: 'Marketing Lead' })
+      });
+      
+      if (response.ok) {
+        onRefresh();
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error approving:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleReject = async () => {
+    if (!rejectReason.trim()) return;
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      let endpoint = '';
+      
+      if (workflow.status === 'content_approval') {
+        endpoint = `${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflow.id}/reject-content`;
+      } else if (workflow.status === 'design_approval') {
+        endpoint = `${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflow.id}/reject-design`;
+      }
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          rejectedBy: 'Marketing Lead', 
+          feedback: rejectReason,
+          reason: rejectReason
+        })
+      });
+      
+      if (response.ok) {
+        onRefresh();
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error rejecting:', error);
+    } finally {
+      setLoading(false);
+      setShowRejectModal(false);
+      setRejectReason('');
+    }
+  };
+  
+  const showApprovalButtons = workflow.status === 'content_approval' || workflow.status === 'design_approval';
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
@@ -76,14 +152,6 @@ const WorkflowModal = ({ workflow, onClose, onRefresh }) => {
                   Deadline
                 </div>
                 <div style={{ fontSize: '14px', color: '#1f2937', fontWeight: '600' }}>{workflow.deadline ? new Date(workflow.deadline).toLocaleDateString() : 'No deadline'}</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', fontWeight: '600' }}>
-                  <FiUser size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-                  Assigned To
-                </div>
-                <div style={{ fontSize: '14px', color: '#1f2937', fontWeight: '600' }}>{workflow.assignedTo || workflow.graphicDesigner?.assignedTo || 'Unassigned'}</div>
               </div>
             </div>
 
@@ -209,7 +277,47 @@ const WorkflowModal = ({ workflow, onClose, onRefresh }) => {
           <button onClick={onClose} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#374151' }}>
             Close
           </button>
+          {showApprovalButtons && (
+            <>
+              <button 
+                onClick={() => setShowRejectModal(true)} 
+                disabled={loading}
+                style={{ padding: '10px 20px', background: '#ef4444', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#fff', opacity: loading ? 0.5 : 1 }}
+              >
+                Reject
+              </button>
+              <button 
+                onClick={handleApprove} 
+                disabled={loading}
+                style={{ padding: '10px 20px', background: '#10b981', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#fff', opacity: loading ? 0.5 : 1 }}
+              >
+                {loading ? 'Processing...' : 'Approve'}
+              </button>
+            </>
+          )}
         </div>
+        
+        {showRejectModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>
+            <div style={{ background: '#fff', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+              <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>Reject {workflow.status === 'content_approval' ? 'Content' : 'Design'}</h3>
+              </div>
+              <div style={{ padding: '20px' }}>
+                <textarea 
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Enter reason for rejection..."
+                  style={{ width: '100%', minHeight: '100px', padding: '12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
+                />
+              </div>
+              <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button onClick={() => { setShowRejectModal(false); setRejectReason(''); }} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#374151' }}>Cancel</button>
+                <button onClick={handleReject} disabled={!rejectReason.trim() || loading} style={{ padding: '10px 20px', background: '#ef4444', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#fff', opacity: (!rejectReason.trim() || loading) ? 0.5 : 1 }}>Submit</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

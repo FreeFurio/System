@@ -663,8 +663,8 @@ class FirebaseService {
       const workflow = snapshot.val();
       const updatedWorkflow = {
         ...workflow,
-        status: 'ready_for_design_assignment',
-        currentStage: 'marketinglead',
+        status: 'design_creation',
+        currentStage: 'graphicdesigner',
         marketingApproval: {
           approvedAt: new Date().toISOString(),
           approvedBy: approvedBy
@@ -684,12 +684,12 @@ class FirebaseService {
       
       // Create notification for Marketing Lead
       await this.createMarketingNotification({
-        type: 'content_approved_ready_for_design',
-        message: `Content approved and ready for design assignment: ${workflow.objectives}`,
+        type: 'content_approved_assigned_to_designer',
+        message: `Content approved and assigned to Graphic Designer: ${workflow.objectives}`,
         user: approvedBy
       });
       
-      console.log('✅ approveContent success - Content approved, ready for design assignment');
+      console.log('✅ approveContent success - Content approved and assigned to graphic designer');
       return updatedWorkflow;
     } catch (error) {
       console.error('❌ Error approving content:', error);
@@ -916,7 +916,20 @@ class FirebaseService {
       };
       
       await set(createNotifRef, notifData);
-      console.log('🔔 createMarketingNotification success - Notification saved');
+      console.log('🔔 createMarketingNotification success - Notification saved to notification/marketing');
+      
+      // Emit Socket.IO event for real-time notification
+      try {
+        const { io } = await import('../server.mjs');
+        io.emit('marketingNotification', {
+          id: createNotifRef.key,
+          ...notifData
+        });
+        console.log('📡 Socket.IO event emitted: marketingNotification');
+      } catch (socketError) {
+        console.error('⚠️ Socket.IO emit failed:', socketError.message);
+      }
+      
       return createNotifRef.key;
     } catch (error) {
       console.error('❌ Error saving Marketing notification:', error);

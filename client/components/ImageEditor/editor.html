@@ -43,25 +43,13 @@
         try {
             const buttons = [
                 'select', 'shapes', 'draw', 'line', 'path', 'textbox', 
-                'upload', 'background', 'undo', 'redo', 'save', 'clear', 'back', 'task-info'
+                'upload', 'background', 'undo', 'redo', 'save', 'download', 'clear', 'back', 'task-info'
             ];
 
             var imgEditor = new ImageEditor('#image-editor-container', buttons, []);
             
-            // Load initial canvas data if provided
-            const urlParams = new URLSearchParams(window.location.search);
-            const canvasData = urlParams.get('canvasData');
-            if (canvasData) {
-                try {
-                    imgEditor.setCanvasJSON(canvasData);
-                } catch (error) {
-                    console.error('Failed to load canvas data:', error);
-                }
-            }
-            
-            // Override save and download to communicate with parent
+            // Override save to communicate with parent
             const originalSave = document.querySelector('#save');
-            const originalDownload = document.querySelector('#download');
             
             if (originalSave) {
                 originalSave.addEventListener('click', () => {
@@ -70,19 +58,17 @@
                 });
             }
             
-            if (originalDownload) {
-                originalDownload.addEventListener('click', () => {
-                    const canvas = imgEditor.canvas;
-                    const dataURL = canvas.toDataURL('image/png');
-                    window.parent.postMessage('EXPORT:' + dataURL, '*');
-                });
-            }
-            
-            // Handle canvas JSON requests
+            // Handle canvas JSON requests and loading
             window.addEventListener('message', (event) => {
                 if (event.data === 'GET_CANVAS_JSON') {
                     const canvasData = imgEditor.getCanvasJSON();
                     window.parent.postMessage('CANVAS_JSON:' + JSON.stringify(canvasData), '*');
+                } else if (event.data && event.data.type === 'LOAD_CANVAS') {
+                    try {
+                        imgEditor.setCanvasJSON(event.data.data);
+                    } catch (error) {
+                        console.error('Failed to load canvas data:', error);
+                    }
                 }
             });
             

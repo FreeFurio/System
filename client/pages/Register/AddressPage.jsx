@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddressForm from './AddressForm';
+import Toast from '../../components/common/Toast';
 
 const validation = {
   contactNumber: { required: true, pattern: /^[0-9]{7,15}$/ },
@@ -33,6 +34,8 @@ export default function AddressPage({ username }) {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const handleChange = (name, value) => {
     setFields((prev) => ({ ...prev, [name]: value }));
@@ -50,7 +53,15 @@ export default function AddressPage({ username }) {
     });
     setErrors(newErrors);
 
-    if (Object.values(newErrors).some((err) => err)) return;
+    if (Object.values(newErrors).some((err) => err)) {
+      const errorFields = Object.entries(newErrors)
+        .filter(([key, value]) => value)
+        .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
+        .join(', ');
+      setToastMessage(`Please complete: ${errorFields}`);
+      setShowToast(true);
+      return;
+    }
 
     setLoading(true);
     setSubmitError("");
@@ -89,26 +100,36 @@ export default function AddressPage({ username }) {
   }
 
   return (
-    <div className="form-container">
-      <div className="form-header">
-        <h2 className="title">Additional Information</h2>
-        <p className="subtitle">Complete your profile setup</p>
+    <>
+      <div className="form-container">
+        <div className="form-header">
+          <h2 className="title">Additional Information</h2>
+          <p className="subtitle">Complete your profile setup</p>
+        </div>
+        
+        <form className="form" onSubmit={handleSubmit} noValidate>
+          <AddressForm values={fields} errors={errors} onChange={handleChange} />
+          {submitError && <div className="error-message">{submitError}</div>}
+          <button type="submit" className="signup-button" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="loading"></span>
+                Submitting...
+              </>
+            ) : (
+              "Complete Registration"
+            )}
+          </button>
+        </form>
       </div>
       
-      <form className="form" onSubmit={handleSubmit} noValidate>
-        <AddressForm values={fields} errors={errors} onChange={handleChange} />
-        {submitError && <div className="error-message">{submitError}</div>}
-        <button type="submit" className="signup-button" disabled={loading}>
-          {loading ? (
-            <>
-              <span className="loading"></span>
-              Submitting...
-            </>
-          ) : (
-            "Complete Registration"
-          )}
-        </button>
-      </form>
-    </div>
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type="error"
+          onClose={() => setShowToast(false)}
+        />
+      )}
+    </>
   );
 }

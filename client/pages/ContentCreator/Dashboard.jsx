@@ -205,7 +205,7 @@ export default function Dashboard() {
           fontSize: '32px',
           fontWeight: '800',
           letterSpacing: '-0.025em'
-        }}>Content Creator Dashboard</h1>
+        }}>Content Writer Dashboard</h1>
         <p style={{
           margin: '8px 0 0 0',
           color: '#6b7280',

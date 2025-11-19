@@ -9,7 +9,7 @@ import '../../styles/Admin.css'; // Use exact admin styles
 
 const sidebarItems = [
   { label: 'Dashboard', path: '/marketing/dashboard', icon: FiHome },
-  { label: 'Workflow Board', path: '/marketing/workflow-board', icon: FiGrid },
+  { label: 'Task Board', path: '/marketing/workflow-board', icon: FiGrid },
   { label: 'Posted Contents', path: '/marketing/posted-contents', icon: FiSend },
   { label: 'Content Calendar', path: '/marketing/content-calendar', icon: FiCalendar },
   { label: 'Create Task', path: '/marketing/set-task', icon: FiPlus },

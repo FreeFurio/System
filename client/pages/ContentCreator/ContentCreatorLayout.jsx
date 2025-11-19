@@ -123,8 +123,8 @@ export default function ContentCreatorLayout() {
             {showProfile && (
               <div style={{ position: 'absolute', right: 0, top: 40, background: '#fff', borderRadius: 8, minWidth: 200, zIndex: 10, padding: '12px 0' }}>
                 <div style={{ padding: '0 16px 10px 16px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName || 'Content'} {user?.lastName || 'Creator'}</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Content Creator'}</div>
+                  <div style={{ fontWeight: 700, color: '#222', fontSize: 16 }}>{user?.firstName || 'Content'} {user?.lastName || 'Writer'}</div>
+                  <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500, marginTop: 2 }}>{user?.role || 'Content Writer'}</div>
                 </div>
                 <button 
                   onClick={() => {
@@ -204,13 +204,13 @@ export default function ContentCreatorLayout() {
                     whiteSpace: 'normal', 
                     maxHeight: '2.4em', 
                     overflow: 'hidden' 
-                  }}>{user?.firstName || 'Content'} {user?.lastName || 'Creator'}</div>
+                  }}>{user?.firstName || 'Content'} {user?.lastName || 'Writer'}</div>
                   <div className="user-role" style={{ 
                     fontSize: 13, 
                     color: '#6b7280', 
                     fontWeight: 500, 
                     marginTop: 2 
-                  }}>{user?.role || 'Content Creator'}</div>
+                  }}>Content Writer</div>
                 </div>
               </div>
             </div>

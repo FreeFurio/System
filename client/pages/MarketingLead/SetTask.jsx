@@ -136,13 +136,13 @@ export default function SetTask() {
           fontSize: '32px',
           fontWeight: '800',
           letterSpacing: '-0.025em'
-        }}>Set Task - Content Creator</h1>
+        }}>Set Task - Content Writer</h1>
         <p style={{
           margin: '8px 0 0 0',
           color: '#6b7280',
           fontSize: '16px',
           fontWeight: '400'
-        }}>Create and assign tasks to content creators with detailed specifications</p>
+        }}>Create and assign tasks to content writers with detailed specifications</p>
       </div>
 
       {/* Form Container */}

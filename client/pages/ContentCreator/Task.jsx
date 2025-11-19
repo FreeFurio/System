@@ -595,7 +595,7 @@ export default function Task() {
           margin: 0,
           letterSpacing: '-0.025em'
         }}>
-          Content Creation Tasks
+          Content Writing Tasks
         </h1>
         <p style={{
           color: '#6b7280',

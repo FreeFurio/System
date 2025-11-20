@@ -221,7 +221,11 @@ class FirebaseService {
         type: 'new_task',
         message: `New task assigned: ${workflow.objectives}`,
         workflowId: workflowRef.key,
-        user: 'Content Creator'
+        user: 'Content Creator',
+        workflowData: {
+          objective: workflow.objectives,
+          deadline: workflow.deadline
+        }
       });
       
       console.log('🔄 createWorkflow success - Workflow created with key:', workflowRef.key);
@@ -347,7 +351,11 @@ class FirebaseService {
       await this.createMarketingNotification({
         type: 'design_submitted',
         message: `Design submitted for approval: ${workflow.objectives}`,
-        user: 'Graphic Designer'
+        user: 'Graphic Designer',
+        workflowData: {
+          objective: workflow.objectives,
+          deadline: workflow.deadline
+        }
       });
       
       // Import io for real-time notifications
@@ -432,11 +440,15 @@ class FirebaseService {
       
       // Create notification for Marketing Lead
       await this.createMarketingNotification({
-        type: status === 'posted' ? 'design_approved_and_posted' : 'design_approved_ready_for_posting',
+        type: 'design_approved',
         message: status === 'posted' 
           ? `Design approved and automatically posted: ${workflow.objectives}`
           : `Design approved and ready for posting: ${workflow.objectives}`,
-        user: approvedBy
+        user: approvedBy,
+        workflowData: {
+          objective: workflow.objectives,
+          deadline: workflow.deadline
+        }
       });
       
       // Auto-post if deadline has passed
@@ -492,9 +504,13 @@ class FirebaseService {
       
       // Create notification for Marketing Lead
       await this.createMarketingNotification({
-        type: 'design_rejected_returned',
+        type: 'design_rejected',
         message: `Design rejected and returned to Graphic Designer: ${workflow.objectives}`,
-        user: rejectedBy
+        user: rejectedBy,
+        workflowData: {
+          objective: workflow.objectives,
+          feedback: feedback
+        }
       });
       
       // Verify the update was successful
@@ -679,7 +695,10 @@ class FirebaseService {
         type: 'content_approved',
         message: `Your content has been approved: ${workflow.objectives}`,
         workflowId: workflowId,
-        user: 'Content Creator'
+        user: 'Content Creator',
+        workflowData: {
+          objective: workflow.objectives
+        }
       });
       
       // Create notification for Marketing Lead
@@ -727,7 +746,11 @@ class FirebaseService {
         type: 'content_rejected',
         message: `Your content has been rejected: ${workflow.objectives}. Please review feedback and resubmit.`,
         workflowId: workflowId,
-        user: 'Content Creator'
+        user: 'Content Creator',
+        workflowData: {
+          objective: workflow.objectives,
+          feedback: feedback
+        }
       });
       
       // Create notification for Marketing Lead
@@ -896,6 +919,55 @@ class FirebaseService {
       
       await set(createNotifAdminRef, notifData);
       console.log('🔔 createAdminNotification success - Notification saved with key:', createNotifAdminRef.key);
+      
+      // Send email notification to admin ONLY for account approvals
+      if (notificationData.type === 'approval_needed') {
+        console.log('📧 Attempting to send admin email notification...');
+        try {
+          // Try both 'Admin' and 'admin' paths to handle different database structures
+          let adminSnapshot = await get(ref(db, 'Admin'));
+          if (!adminSnapshot.exists()) {
+            console.log('📧 Trying lowercase admin path...');
+            adminSnapshot = await get(ref(db, 'admin'));
+          }
+          
+          console.log('📧 Admin snapshot exists:', adminSnapshot.exists());
+          
+          if (adminSnapshot.exists()) {
+            const adminData = adminSnapshot.val();
+            // Handle both single admin object and multiple admins
+            const admins = typeof adminData === 'object' && adminData.email 
+              ? [adminData] 
+              : Object.values(adminData);
+            
+            console.log('📧 Found', admins.length, 'admin(s)');
+            
+            const EmailService = (await import('./email.service.mjs')).default;
+            console.log('📧 EmailService imported successfully');
+            
+            for (const admin of admins) {
+              console.log('📧 Processing admin:', admin.username, 'Email:', admin.email);
+              if (admin.email) {
+                console.log('📧 Sending email to:', admin.email);
+                await EmailService.sendWorkflowNotification(admin.email, 'account_approved', {
+                  objective: `${notificationData.user?.firstName || ''} ${notificationData.user?.lastName || ''}`.trim() || 'New User',
+                  username: notificationData.user?.username,
+                  role: notificationData.user?.role
+                });
+                console.log('✅ Email sent successfully to:', admin.email);
+              } else {
+                console.log('⚠️ Admin has no email:', admin.username);
+              }
+            }
+          } else {
+            console.log('⚠️ No admins found in database');
+          }
+        } catch (emailError) {
+          console.error('❌ Failed to send admin email notification:', emailError);
+          console.error('❌ Error stack:', emailError.stack);
+        }
+      }
+      
       return createNotifAdminRef.key;
     } catch (error) {
       console.error('❌ Error saving Admin notification:', error);
@@ -1453,9 +1525,13 @@ class FirebaseService {
       const successfulPosts = results.filter(r => r.success);
       if (successfulPosts.length > 0) {
         await this.createMarketingNotification({
-          type: 'content_posted_successfully',
+          type: 'content_posted',
           message: `Content posted successfully to ${successfulPosts.length} platform(s): ${workflow.objectives}`,
-          user: 'System'
+          user: 'System',
+          workflowData: {
+            objective: workflow.objectives,
+            platforms: successfulPosts.map(p => p.platform).join(', ')
+          }
         });
       }
       

@@ -56,9 +56,15 @@ export default function AddressPage({ username }) {
     if (Object.values(newErrors).some((err) => err)) {
       const errorFields = Object.entries(newErrors)
         .filter(([key, value]) => value)
-        .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim())
-        .join(', ');
-      setToastMessage(`Please complete: ${errorFields}`);
+        .map(([key]) => {
+          const fieldName = key === 'contactNumber' ? 'Contact Number' :
+                           key === 'city' ? 'City' :
+                           key === 'state' ? 'State' :
+                           key === 'country' ? 'Country' :
+                           key === 'zipCode' ? 'Zip Code' : key;
+          return fieldName;
+        });
+      setToastMessage(['Missing Fields:', ...errorFields]);
       setShowToast(true);
       return;
     }

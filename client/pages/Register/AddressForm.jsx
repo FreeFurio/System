@@ -17,9 +17,7 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
             className={`input${errors.contactNumber ? " error" : ""}`}
             value={values.contactNumber || ""}
             onChange={handleChange}
-            required
             inputMode="numeric"
-            pattern="[0-9]*"
             placeholder=" "
           />
           <label htmlFor="contactNumber" className="label">Contact Number</label>
@@ -34,7 +32,6 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
             className={`input${errors.city ? " error" : ""}`}
             value={values.city || ""}
             onChange={handleChange}
-            required
             placeholder=" "
           />
           <label htmlFor="city" className="label">City</label>
@@ -49,7 +46,6 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
             className={`input${errors.state ? " error" : ""}`}
             value={values.state || ""}
             onChange={handleChange}
-            required
             placeholder=" "
           />
           <label htmlFor="state" className="label">State</label>
@@ -64,7 +60,6 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
             className={`input${errors.country ? " error" : ""}`}
             value={values.country || ""}
             onChange={handleChange}
-            required
             placeholder=" "
           />
           <label htmlFor="country" className="label">Country</label>
@@ -79,7 +74,6 @@ function AddressForm({ onChange, values = {}, errors = {} }) {
             className={`input${errors.zipCode ? " error" : ""}`}
             value={values.zipCode || ""}
             onChange={handleChange}
-            required
             placeholder=" "
           />
           <label htmlFor="zipCode" className="label">Zip Code</label>

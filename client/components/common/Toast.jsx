@@ -16,7 +16,18 @@ const Toast = ({ message, type = 'error', onClose, duration = 3000 }) => {
         <span className="toast-icon">
           {type === 'error' ? '!' : type === 'success' ? '✓' : 'i'}
         </span>
-        <span className="toast-message">{message}</span>
+        <div className="toast-message">
+          {Array.isArray(message) ? (
+            <>
+              <div style={{ marginBottom: '4px' }}>{message[0]}</div>
+              {message.slice(1).map((field, index) => (
+                <div key={index} style={{ paddingLeft: '8px' }}>• {field}</div>
+              ))}
+            </>
+          ) : (
+            message
+          )}
+        </div>
       </div>
     </div>
   );

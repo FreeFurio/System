@@ -9,6 +9,7 @@ const ResetPasswordWithToken = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -18,12 +19,19 @@ const ResetPasswordWithToken = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFields(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!fields.token || !fields.newPassword || !fields.confirmPassword) {
+    const errors = {};
+    if (!fields.token) errors.token = true;
+    if (!fields.newPassword) errors.newPassword = true;
+    if (!fields.confirmPassword) errors.confirmPassword = true;
+    
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
       setToastMessage('Please fill in all fields.');
       setToastType('error');
       setShowToast(true);
@@ -31,6 +39,7 @@ const ResetPasswordWithToken = () => {
     }
     
     if (fields.newPassword !== fields.confirmPassword) {
+      setErrors({ confirmPassword: true });
       setToastMessage('Passwords do not match.');
       setToastType('error');
       setShowToast(true);
@@ -38,11 +47,14 @@ const ResetPasswordWithToken = () => {
     }
     
     if (fields.newPassword.length < 8) {
+      setErrors({ newPassword: true });
       setToastMessage('Password must be at least 8 characters long.');
       setToastType('error');
       setShowToast(true);
       return;
     }
+    
+    setErrors({});
     
     setLoading(true);
     
@@ -93,7 +105,7 @@ const ResetPasswordWithToken = () => {
               id="reset-token"
               type="text"
               name="token"
-              className="input"
+              className={`input${errors.token ? " error" : ""}`}
               placeholder=" "
               value={fields.token}
               onChange={handleChange}
@@ -110,6 +122,7 @@ const ResetPasswordWithToken = () => {
             name="newPassword"
             placeholder=" "
             label="New Password"
+            error={errors.newPassword}
             required
           />
         </div>
@@ -121,6 +134,7 @@ const ResetPasswordWithToken = () => {
             name="confirmPassword"
             placeholder=" "
             label="Confirm New Password"
+            error={errors.confirmPassword}
             required
           />
         </div>

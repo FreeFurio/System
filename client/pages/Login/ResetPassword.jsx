@@ -7,13 +7,27 @@ export default function ResetPassword() {
   const [retype, setRetype] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setErrors({});
+    
+    const validationErrors = {};
+    if (!password) validationErrors.password = true;
+    if (!retype) validationErrors.retype = true;
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setError('Please fill in all fields.');
+      return;
+    }
+    
     if (password !== retype) {
+      setErrors({ retype: true });
       setError('Passwords do not match.');
       return;
     }
@@ -43,10 +57,10 @@ export default function ResetPassword() {
             <input
               id="reset-password"
               type="password"
-              className="input"
+              className={`input${errors.password ? " error" : ""}`}
               placeholder=" "
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={e => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
               required
             />
             <label className="label" htmlFor="reset-password">New Password</label>
@@ -55,10 +69,10 @@ export default function ResetPassword() {
             <input
               id="reset-retype"
               type="password"
-              className="input"
+              className={`input${errors.retype ? " error" : ""}`}
               placeholder=" "
               value={retype}
-              onChange={e => setRetype(e.target.value)}
+              onChange={e => { setRetype(e.target.value); setErrors(prev => ({ ...prev, retype: undefined })); }}
               required
             />
             <label className="label" htmlFor="reset-retype">Retype Password</label>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiShield, FiLock, FiUnlock, FiKey, FiFileText, FiClock, FiActivity } from 'react-icons/fi';
+import { FiX, FiShield, FiFileText, FiClock, FiActivity } from 'react-icons/fi';
 
 const ModifyUserModal = ({ user, isOpen, onClose, onSave }) => {
   const [activeTab, setActiveTab] = useState('role');
@@ -7,9 +7,7 @@ const ModifyUserModal = ({ user, isOpen, onClose, onSave }) => {
     role: user?.role || '',
     status: user?.status || 'active',
     locked: user?.locked || false,
-    forcePasswordReset: false,
     adminNotes: user?.adminNotes || '',
-    lastLogin: user?.lastLogin || 'Never',
     accountHistory: user?.accountHistory || []
   });
   const [loading, setLoading] = useState(false);
@@ -21,9 +19,7 @@ const ModifyUserModal = ({ user, isOpen, onClose, onSave }) => {
         role: user.role || '',
         status: user.status || 'active',
         locked: user.locked || false,
-        forcePasswordReset: false,
         adminNotes: user.adminNotes || '',
-        lastLogin: user.lastLogin || 'Never',
         accountHistory: user.accountHistory || []
       });
     }
@@ -74,7 +70,6 @@ const ModifyUserModal = ({ user, isOpen, onClose, onSave }) => {
   const tabs = [
     { id: 'role', label: 'Role Change', icon: FiShield },
     { id: 'status', label: 'Account Status', icon: FiActivity },
-    { id: 'security', label: 'Security', icon: FiLock },
     { id: 'notes', label: 'Profile Notes', icon: FiFileText },
     { id: 'history', label: 'Account History', icon: FiClock }
   ];
@@ -211,44 +206,6 @@ const ModifyUserModal = ({ user, isOpen, onClose, onSave }) => {
                   <label style={{ fontSize: '0.875rem', color: '#374151' }}>
                     Lock Account (prevents login)
                   </label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: 600, color: '#374151' }}>
-                Security Controls
-              </h3>
-              <div style={{ display: 'grid', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.forcePasswordReset}
-                    onChange={(e) => setFormData(prev => ({ ...prev, forcePasswordReset: e.target.checked }))}
-                    style={{ width: '16px', height: '16px' }}
-                  />
-                  <label style={{ fontSize: '0.875rem', color: '#374151' }}>
-                    Force Password Reset on Next Login
-                  </label>
-                </div>
-                <div style={{ background: '#fef2f2', padding: '12px', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <FiKey size={16} color="#dc2626" />
-                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#dc2626' }}>Last Login</span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151' }}>
-                    {formData.lastLogin === 'Never' ? 'Never logged in' : 
-                     new Date(formData.lastLogin).toLocaleString('en-US', {
-                       year: 'numeric',
-                       month: 'long', 
-                       day: 'numeric',
-                       hour: '2-digit',
-                       minute: '2-digit',
-                       hour12: true
-                     })}
-                  </p>
                 </div>
               </div>
             </div>

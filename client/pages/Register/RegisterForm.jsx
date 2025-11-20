@@ -222,8 +222,17 @@ export default function RegisterForm() {
 
     if (Object.values(newErrors).some((err) => err)) {
       console.log('❌ Form has validation errors:', Object.entries(newErrors).filter(([key, value]) => value));
-      const errorList = Object.entries(newErrors).filter(([key, value]) => value).map(([key, value]) => `${key}: ${value}`).join(', ');
-      setToastMessage('Please fix the following errors: ' + errorList);
+      const errorList = Object.entries(newErrors).filter(([key, value]) => value).map(([key, value]) => {
+        const fieldName = key === 'firstName' ? 'First Name' : 
+                         key === 'lastName' ? 'Last Name' : 
+                         key === 'email' ? 'Email' : 
+                         key === 'username' ? 'Username' : 
+                         key === 'password' ? 'Password' : 
+                         key === 'retypePassword' ? 'Retype Password' : 
+                         key === 'role' ? 'Role' : key;
+        return fieldName;
+      });
+      setToastMessage(['Missing or Invalid Fields:', ...errorList]);
       setToastType('error');
       setShowToast(true);
       return;
@@ -327,29 +336,55 @@ const emailValid =
     // Validate current step before proceeding
     if (currentStep === 1) {
       if (!isStep1Valid) {
-        const errors = [];
-        if (!firstNameValid) errors.push('First name is required (min 2 letters)');
-        if (!lastNameValid) errors.push('Last name is required (min 2 letters)');
-        setToastMessage(errors.join(', '));
+        const errorFields = [];
+        const errorState = {};
+        if (!firstNameValid) {
+          errorFields.push('First Name (min 2 letters)');
+          errorState.firstName = 'Required';
+        }
+        if (!lastNameValid) {
+          errorFields.push('Last Name (min 2 letters)');
+          errorState.lastName = 'Required';
+        }
+        setErrors(errorState);
+        setToastMessage(['Missing Fields:', ...errorFields]);
         setToastType('error');
         setShowToast(true);
         return;
       }
     } else if (currentStep === 2) {
       if (!isStep2Valid) {
-        const errors = [];
-        if (!fields.username) errors.push('Username is required');
-        else if (usernameUsed || errors.username) errors.push('Username is not available');
-        if (!emailValid) errors.push('Valid Gmail address is required');
-        if (!allPasswordRequirementsMet) errors.push('Password must meet all requirements');
-        if (!passwordsMatch) errors.push('Passwords must match');
-        setToastMessage(errors.join(', '));
+        const errorFields = [];
+        const errorState = {};
+        if (!fields.username) {
+          errorFields.push('Username (min 8 characters, letters/numbers/underscore only)');
+          errorState.username = 'Required';
+        } else if (usernameUsed || errors.username) {
+          errorFields.push('Username (not available or invalid format)');
+          errorState.username = 'Not available';
+        }
+        if (!emailValid) {
+          errorFields.push('Valid Gmail address');
+          errorState.email = 'Invalid';
+        }
+        if (!allPasswordRequirementsMet) {
+          errorFields.push('Password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)');
+          errorState.password = 'Invalid';
+        }
+        if (!passwordsMatch) {
+          errorFields.push('Passwords (must match)');
+          errorState.retypePassword = 'Must match';
+        }
+        setErrors(errorState);
+        setToastMessage(['Missing or Invalid Fields:', ...errorFields]);
         setToastType('error');
         setShowToast(true);
         return;
       }
     }
     
+    // Clear errors when moving to next step
+    setErrors({});
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -400,7 +435,6 @@ const emailValid =
                     className={`input${errors.firstName ? " error" : ""}${firstNameValid ? " success" : ""}`}
                     value={fields.firstName}
                     onChange={handleInputChange}
-                    required
                     placeholder=" "
                   />
                   <label htmlFor="firstName" className="label">
@@ -419,7 +453,6 @@ const emailValid =
                     className={`input${errors.lastName ? " error" : ""}${lastNameValid ? " success" : ""}`}
                     value={fields.lastName}
                     onChange={handleInputChange}
-                    required
                     placeholder=" "
                   />
                   <label htmlFor="lastName" className="label">
@@ -443,15 +476,11 @@ const emailValid =
                     className={`input${errors.username ? " error" : ""}${fields.username && !usernameUsed && !errors.username ? " success" : ""}`}
                     placeholder=" "
                     autoComplete="username"
-                    required
                   />
                   <label htmlFor="username" className="label">Username</label>
                 </div>
                 {usernameChecking && (
                   <div className="checking-message">Checking username availability...</div>
-                )}
-                {errors.username && (
-                  <div className="error-message">{errors.username}</div>
                 )}
                 {fields.username && !usernameUsed && !errors.username && fields.username.length >= 8 && (
                   <div className="success-message">Username is available!</div>
@@ -468,7 +497,6 @@ const emailValid =
                     className={`input${errors.email ? " error" : ""}${emailValid ? " success" : ""}`}
                     placeholder=" "
                     autoComplete="email"
-                    required
                   />
                   <label htmlFor="email" className="label">Email</label>
                 </div>
@@ -479,7 +507,7 @@ const emailValid =
                 <PasswordInput
                   value={fields.password}
                   onChange={handleInputChange}
-                  error={errors.password}
+                  error={errors.password ? true : false}
                   name="password"
                   placeholder=" "
                   success={allPasswordRequirementsMet}
@@ -504,7 +532,7 @@ const emailValid =
                 <PasswordInput
                   value={fields.retypePassword}
                   onChange={handleInputChange}
-                  error={errors.retypePassword}
+                  error={errors.retypePassword ? true : false}
                   name="retypePassword"
                   placeholder=" "
                   label="Retype Password"
@@ -527,7 +555,6 @@ const emailValid =
                   className={`input${errors.role ? " error" : ""}`}
                   value={fields.role}
                   onChange={handleInputChange}
-                  required
                 >
                   <option value="">Select your role</option>
                   <option value="MarketingLead">Marketing Lead</option>

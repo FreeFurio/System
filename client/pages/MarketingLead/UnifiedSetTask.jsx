@@ -92,8 +92,8 @@ export default function UnifiedSetTask() {
           >
             <span style={{fontSize: '32px'}}>👨💻</span>
             <div>
-              <div style={{fontSize: 18, fontWeight: 700, marginBottom: 4}}>Content Creator</div>
-              <div style={{fontSize: 14, color: '#6b7280', fontWeight: 500}}>Create tasks for content creation and writing</div>
+              <div style={{fontSize: 18, fontWeight: 700, marginBottom: 4}}>Content Writer</div>
+              <div style={{fontSize: 14, color: '#6b7280', fontWeight: 500}}>Create tasks for content writing and creation</div>
             </div>
           </button>
 

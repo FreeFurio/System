@@ -14,35 +14,32 @@ export default function PasswordInput({
   const [visible, setVisible] = useState(false);
 
   return (
-    <>
-      <div className="password-input-wrapper">
-        <input
-          type={visible ? "text" : "password"}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className={`input password-input${error ? " error" : ""}${success ? " success" : ""}`}
-          autoComplete="new-password"
-          required={required}
-        />
-        {label && (
-          <label htmlFor={name} className="label">
-            {label}
-          </label>
-        )}
-        <span
-          onClick={() => setVisible((v) => !v)}
-          className="toggle-password"
-          aria-label={visible ? "Hide password" : "Show password"}
-          tabIndex={0}
-          role="button"
-        >
-          {visible ? <FiEye size={20} /> : <FiEyeOff size={20} />}
-        </span>
-      </div>
-      {error && <div className="error-message">{error}</div>}
-    </>
+    <div className="password-input-wrapper">
+      <input
+        type={visible ? "text" : "password"}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`input password-input${error ? " error" : ""}${success ? " success" : ""}`}
+        autoComplete="new-password"
+        required={required}
+      />
+      {label && (
+        <label htmlFor={name} className="label">
+          {label}
+        </label>
+      )}
+      <span
+        onClick={() => setVisible((v) => !v)}
+        className="toggle-password"
+        aria-label={visible ? "Hide password" : "Show password"}
+        tabIndex={0}
+        role="button"
+      >
+        {visible ? <FiEye size={20} /> : <FiEyeOff size={20} />}
+      </span>
+    </div>
   );
 }
 

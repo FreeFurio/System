@@ -40,10 +40,13 @@ export default function LoginForm() {
       const missingFields = Object.keys(errs).map(field => 
         field === 'username' ? 'Username' : 'Password'
       );
-      setToastMessage(`Please complete: ${missingFields.join(', ')}`);
+      setToastMessage(['Missing Fields:', ...missingFields]);
       setShowToast(true);
       return;
     }
+    
+    // Clear any previous errors on successful validation
+    setErrors({});
 
     setLoading(true);
     setMessage({ text: "", type: "" });
@@ -139,6 +142,7 @@ export default function LoginForm() {
             name="password"
             placeholder=" "
             label="Password"
+            error={errors.password}
             required
           />
         </div>

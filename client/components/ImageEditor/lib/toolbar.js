@@ -138,7 +138,6 @@
           } else if (id === 'download') {
             $('body').append(`<div class="custom-modal-container">
               <div class="custom-modal-content">
-                <div class="button-download" id="svg">Download as SVG</div>
                 <div class="button-download" id="png">Download as PNG</div>
                 <div class="button-download" id="jpg">Download as JPG</div>
               </div>
@@ -150,8 +149,7 @@
 
             $(".custom-modal-container .button-download").click(function (e) {
               let type = $(this).attr('id');
-              if (type === 'svg') downloadSVG(_self.canvas.toSVG());
-              else if (type === 'png') downloadImage(_self.canvas.toDataURL())
+              if (type === 'png') downloadImage(_self.canvas.toDataURL())
               else if (type === 'jpg') downloadImage(_self.canvas.toDataURL({
                 format: 'jpeg'
               }), 'jpg', 'image/jpeg');

@@ -100,18 +100,22 @@ if (process.env.NODE_ENV === 'development' || logLevel === 'dev') {
 }
 
 const limiter = rateLimit({
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10000, 
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 50000, 
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
   message: 'Too many requests from this IP, please try again later!',
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for health checks and static assets
+    return req.path.startsWith('/assets') || req.path === '/api/v1/health';
+  }
 });
 // General API rate limiter
 app.use('/api', limiter);
 
 // Stricter rate limiter for AI endpoints
 const aiLimiter = rateLimit({
-  max: parseInt(process.env.AI_RATE_LIMIT_PER_MINUTE) || 100,
+  max: parseInt(process.env.AI_RATE_LIMIT_PER_MINUTE) || 500,
   windowMs: 60000, // 1 minute
   message: 'Too many AI requests, please wait before trying again.',
   standardHeaders: true,
@@ -184,6 +188,21 @@ app.get('/api/v1/health', (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// Test notification endpoint
+app.get('/api/v1/test-notification', async (req, res) => {
+  try {
+    const { default: FirebaseService } = await import('./services/firebase.service.mjs');
+    await FirebaseService.createMarketingNotification({
+      type: 'test',
+      message: 'Test notification from server',
+      user: 'System'
+    });
+    res.json({ success: true, message: 'Notification sent' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Redirect debug to React frontend

@@ -8,6 +8,7 @@ const ImageEditorWrapper = ({ onSave, onExport, initialCanvasData, onBackToTasks
   const [currentStep, setCurrentStep] = React.useState(0);
   const [saveData, setSaveData] = React.useState(null);
   const initialDataRef = React.useRef(initialCanvasData);
+  const iframeRef = React.useRef(null);
   
   const savingSteps = [
     { icon: '🎨', text: 'Preparing design...' },
@@ -58,14 +59,28 @@ const ImageEditorWrapper = ({ onSave, onExport, initialCanvasData, onBackToTasks
     return () => window.removeEventListener('message', handleMessage);
   }, [onSave, onExport]);
 
-  const iframeSrc = initialDataRef.current ? 
-    `/components/ImageEditor/editor.html?canvasData=${encodeURIComponent(initialDataRef.current)}` :
-    '/components/ImageEditor/editor.html';
+  React.useEffect(() => {
+    const handleLoad = () => {
+      if (initialDataRef.current && iframeRef.current) {
+        iframeRef.current.contentWindow.postMessage(
+          { type: 'LOAD_CANVAS', data: initialDataRef.current },
+          '*'
+        );
+      }
+    };
+
+    const iframe = iframeRef.current;
+    if (iframe) {
+      iframe.addEventListener('load', handleLoad);
+      return () => iframe.removeEventListener('load', handleLoad);
+    }
+  }, []);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <iframe
-        src={iframeSrc}
+        ref={iframeRef}
+        src="/components/ImageEditor/editor.html"
         style={{
           width: '100%',
           height: '100%',

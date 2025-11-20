@@ -7,7 +7,7 @@ import Toast from '../../components/common/Toast';
 import '../../styles/Kanban.css';
 
 const COLUMNS = [
-  { id: 'content_creation', title: 'Content Creator Task', statuses: ['content_creation', 'content_rejected'] },
+  { id: 'content_creation', title: 'Content Writer Task', statuses: ['content_creation', 'content_rejected'] },
   { id: 'content_approval', title: 'Content Review', statuses: ['content_approval'] },
   { id: 'design_creation', title: 'Graphics Designer Task', statuses: ['ready_for_design_assignment', 'design_creation', 'design_rejected'] },
   { id: 'design_approval', title: 'Design Review', statuses: ['design_approval'] },
@@ -303,8 +303,8 @@ const WorkflowBoard = () => {
   return (
     <div style={{ padding: '24px', height: '82vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ marginBottom: '32px', padding: '24px', background: '#fff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#111827', margin: '0', letterSpacing: '-0.025em' }}>Workflow Board</h1>
-        <p style={{ color: '#6b7280', fontSize: '16px', margin: '8px 0 0 0', fontWeight: '400' }}>Manage and track all workflow stages</p>
+        <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#111827', margin: '0', letterSpacing: '-0.025em' }}>Task Board</h1>
+        <p style={{ color: '#6b7280', fontSize: '16px', margin: '8px 0 0 0', fontWeight: '400' }}>Manage and track all task stages</p>
       </div>
 
       {loading ? (

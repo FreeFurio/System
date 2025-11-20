@@ -151,6 +151,140 @@ class EmailService {
     console.log('✅ sendPasswordResetEmail - Password reset email sent successfully');
     return result;
   }
+
+  // ========================
+  // 5) WORKFLOW NOTIFICATION EMAILS
+  // ========================
+
+  static generateWorkflowEmail = (type, data) => {
+    const templates = {
+      new_task: {
+        subject: '📋 New Task Assigned - Content Creation',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #ef4444; margin: 0 0 16px 0;">New Task Assigned</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">You have been assigned a new content creation task:</p>
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
+              <p style="margin: 0; color: #1f2937;"><strong>Objective:</strong> ${data.objective}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Deadline:</strong> ${data.deadline}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Please log in to the system to start working on this task.</p>
+          </div>
+        `
+      },
+      content_approved: {
+        subject: '✅ Content Approved',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #10b981; margin: 0 0 16px 0;">Content Approved</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your content has been approved by the Marketing Lead:</p>
+            <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #10b981;">
+              <p style="margin: 0; color: #1f2937;"><strong>Task:</strong> ${data.objective}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">The task has been assigned to the Graphic Designer.</p>
+          </div>
+        `
+      },
+      content_rejected: {
+        subject: '❌ Content Needs Revision',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #ef4444; margin: 0 0 16px 0;">Content Needs Revision</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your content requires changes:</p>
+            <div style="background: #fef2f2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #ef4444;">
+              <p style="margin: 0; color: #1f2937;"><strong>Task:</strong> ${data.objective}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Feedback:</strong> ${data.feedback}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Please review the feedback and resubmit your content.</p>
+          </div>
+        `
+      },
+      design_submitted: {
+        subject: '🎨 Design Ready for Review',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #3b82f6; margin: 0 0 16px 0;">Design Ready for Review</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">A new design has been submitted for approval:</p>
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
+              <p style="margin: 0; color: #1f2937;"><strong>Task:</strong> ${data.objective}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Please log in to review and approve or reject the design.</p>
+          </div>
+        `
+      },
+      design_approved: {
+        subject: '✅ Design Approved - Ready to Post',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #10b981; margin: 0 0 16px 0;">Design Approved</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">The design has been approved and is ready for posting:</p>
+            <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #10b981;">
+              <p style="margin: 0; color: #1f2937;"><strong>Task:</strong> ${data.objective}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Scheduled:</strong> ${data.deadline}</p>
+            </div>
+          </div>
+        `
+      },
+      design_rejected: {
+        subject: '❌ Design Needs Revision',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #ef4444; margin: 0 0 16px 0;">Design Needs Revision</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">The design requires changes:</p>
+            <div style="background: #fef2f2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #ef4444;">
+              <p style="margin: 0; color: #1f2937;"><strong>Task:</strong> ${data.objective}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Feedback:</strong> ${data.feedback}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Please review the feedback and resubmit your design.</p>
+          </div>
+        `
+      },
+      account_approved: {
+        subject: '🔔 New Account Registration - Approval Required',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #f59e0b; margin: 0 0 16px 0;">New Account Registration</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">A new user has registered and is awaiting approval:</p>
+            <div style="background: #fffbeb; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #f59e0b;">
+              <p style="margin: 0; color: #1f2937;"><strong>Name:</strong> ${data.objective}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Username:</strong> ${data.username}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Role:</strong> ${data.role}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Please log in to the admin panel to approve or reject this account.</p>
+          </div>
+        `
+      },
+      content_posted: {
+        subject: '📢 Content Posted Successfully',
+        html: `
+          <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 style="color: #10b981; margin: 0 0 16px 0;">Content Posted</h2>
+            <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your content has been successfully posted to social media:</p>
+            <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #10b981;">
+              <p style="margin: 0; color: #1f2937;"><strong>Task:</strong> ${data.objective}</p>
+              <p style="margin: 8px 0 0 0; color: #1f2937;"><strong>Platforms:</strong> ${data.platforms}</p>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    return templates[type] || templates.new_task;
+  };
+
+  static async sendWorkflowNotification(email, type, data) {
+    console.log('📨 sendWorkflowNotification called:', { email, type, data });
+    try {
+      const emailTemplate = this.generateWorkflowEmail(type, data);
+      console.log('📨 Email template generated:', emailTemplate.subject);
+      const result = await this.sendEmail(email, emailTemplate.subject, emailTemplate.html);
+      console.log('✅ sendWorkflowNotification sent successfully to:', email);
+      return result;
+    } catch (error) {
+      console.error('❌ sendWorkflowNotification failed:', error);
+      throw error;
+    }
+  }
 }
 
 // ========================

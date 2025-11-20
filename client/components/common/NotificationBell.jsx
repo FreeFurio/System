@@ -4,6 +4,7 @@ import { ref, onValue, update } from "firebase/database";
 import { TbBellRinging } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
+import { getSocket } from '../../store/socketMiddleware';
 
 const NotificationBell = ({ role }) => {
   const { user } = useUser();
@@ -13,12 +14,17 @@ const NotificationBell = ({ role }) => {
 
   useEffect(() => {
     const userRole = role || user?.role || 'Admin';
-    const roleKey = userRole.toLowerCase().replace(/\s+/g, '');
-    const notificationsRef = ref(db, `notification/${roleKey}`);
+    // Map MarketingLead to 'marketing' for database path
+    const roleKey = userRole === 'MarketingLead' ? 'marketing' : userRole.toLowerCase().replace(/\s+/g, '');
+    console.log('🔔 NotificationBell - Role:', userRole, 'RoleKey:', roleKey);
     
+    const notificationsRef = ref(db, `notification/${roleKey}`);
+    console.log('🔔 NotificationBell - Firebase path:', `notification/${roleKey}`);
+    
+    // Firebase real-time listener
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      // Convert object to array and add the id
+      console.log('🔔 NotificationBell - Firebase data received:', Object.keys(data).length, 'notifications');
       const notifList = Object.entries(data).map(([id, value]) => ({
         id,
         ...value,
@@ -26,7 +32,38 @@ const NotificationBell = ({ role }) => {
       setNotifications(notifList.reverse()); // newest first
     });
 
-    return () => unsubscribe();
+    // Use existing Socket.IO connection from socketMiddleware
+    const socket = getSocket();
+    
+    if (socket) {
+      console.log('🔔 NotificationBell - Using existing socket:', socket.id);
+      
+      // Listen for role-specific notifications (use full role name for event)
+      const notificationEvent = userRole === 'MarketingLead' ? 'marketingNotification' : `${roleKey}Notification`;
+      console.log('🔔 NotificationBell - Listening for event:', notificationEvent);
+      
+      const handleNotification = (data) => {
+        console.log(`🔔 Received ${notificationEvent}:`, data);
+        alert(`New notification received: ${data.message}`);
+      };
+      
+      socket.on(notificationEvent, handleNotification);
+      
+      // Listen to ALL events for debugging
+      const handleAnyEvent = (eventName, ...args) => {
+        console.log('🔔 Socket received ANY event:', eventName, args);
+      };
+      socket.onAny(handleAnyEvent);
+      
+      return () => {
+        unsubscribe();
+        socket.off(notificationEvent, handleNotification);
+        socket.offAny(handleAnyEvent);
+      };
+    } else {
+      console.error('🔔 NotificationBell - No socket available!');
+      return () => unsubscribe();
+    }
   }, [role, user?.role]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

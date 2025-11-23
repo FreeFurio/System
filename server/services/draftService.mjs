@@ -1,9 +1,8 @@
-import { ref, set, get, remove } from 'firebase/database';
-import { getDatabase } from 'firebase/database';
-import { initializeApp } from 'firebase/app';
+import { ref, set, get, remove, getDatabase } from 'firebase/database';
+import { getApps, initializeApp } from 'firebase/app';
 import { config } from '../config/config.mjs';
 
-const app = initializeApp(config.firebase);
+const app = getApps().length ? getApps()[0] : initializeApp(config.firebase);
 const db = getDatabase(app, config.firebase.databaseURL);
 
 class DraftService {
@@ -194,6 +193,45 @@ class DraftService {
     } catch (error) {
       console.error('❌ Error marking draft as submitted:', error);
       throw new Error('Failed to mark draft as submitted');
+    }
+  }
+
+  static async deleteWorkflowDrafts(workflowId) {
+    console.log('🗑️ deleteWorkflowDrafts called with workflowId:', workflowId);
+    try {
+      const draftsRef = ref(db, 'drafts');
+      const snapshot = await get(draftsRef);
+      
+      if (!snapshot.exists()) {
+        console.log('🗑️ No drafts found in database');
+        return true;
+      }
+      
+      const allDrafts = snapshot.val();
+      console.log('🗑️ All users with drafts:', Object.keys(allDrafts));
+      let deletedCount = 0;
+      
+      for (const userId in allDrafts) {
+        console.log(`🔍 Checking user ${userId} for workflow ${workflowId}`);
+        if (allDrafts[userId].workflow) {
+          console.log(`🔍 User ${userId} has workflows:`, Object.keys(allDrafts[userId].workflow));
+          if (allDrafts[userId].workflow[workflowId]) {
+            const workflowDraftsPath = `drafts/${userId}/workflow/${workflowId}`;
+            console.log(`🗑️ Deleting path: ${workflowDraftsPath}`);
+            const workflowDraftsRef = ref(db, workflowDraftsPath);
+            await remove(workflowDraftsRef);
+            deletedCount++;
+            console.log(`✅ Deleted drafts for user ${userId}, workflow ${workflowId}`);
+          }
+        }
+      }
+      
+      console.log(`🗑️ deleteWorkflowDrafts complete - Deleted ${deletedCount} draft(s)`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error deleting workflow drafts:', error);
+      console.error('❌ Error stack:', error.stack);
+      return false;
     }
   }
 }

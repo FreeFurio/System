@@ -693,6 +693,17 @@ class FirebaseService {
   static async approveContent(workflowId, approvedBy) {
     console.log('✅ approveContent called with workflowId:', workflowId);
     try {
+      // Delete workflow drafts when content is approved
+      console.log('🗑️ Starting draft deletion for workflowId:', workflowId);
+      try {
+        const DraftService = (await import('./draftService.mjs')).default;
+        const result = await DraftService.deleteWorkflowDrafts(workflowId);
+        console.log('✅ Workflow drafts deletion result:', result);
+      } catch (draftError) {
+        console.error('⚠️ Failed to delete workflow drafts:', draftError.message);
+        console.error('⚠️ Error stack:', draftError.stack);
+      }
+
       const workflowRef = ref(db, `workflows/${workflowId}`);
       const snapshot = await get(workflowRef);
       

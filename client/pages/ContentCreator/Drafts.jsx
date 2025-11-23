@@ -383,24 +383,40 @@ export default function Drafts() {
       setLoading(true);
       const userDrafts = await DraftService.getUserDrafts();
       
-      // Enrich workflow drafts with task objectives if missing
-      const enrichedDrafts = { ...userDrafts };
+      const enrichedDrafts = { workflow: {}, standalone: {} };
+      
+      // Filter and enrich workflow drafts
       for (const [workflowId, workflowDrafts] of Object.entries(userDrafts.workflow)) {
         for (const [draftId, draft] of Object.entries(workflowDrafts)) {
-          if (!draft.content?.taskInfo?.objective) {
-            try {
-              const taskResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflowId}`);
-              const taskData = await taskResponse.json();
-              if (taskData.status === 'success') {
-                enrichedDrafts.workflow[workflowId][draftId].content.taskInfo = {
-                  id: workflowId,
-                  objective: taskData.data.objectives
-                };
+          // Only include drafts with actual content
+          if (draft.content?.allGeneratedContent && draft.content.allGeneratedContent.length > 0) {
+            if (!enrichedDrafts.workflow[workflowId]) {
+              enrichedDrafts.workflow[workflowId] = {};
+            }
+            enrichedDrafts.workflow[workflowId][draftId] = draft;
+            
+            if (!draft.content?.taskInfo?.objective) {
+              try {
+                const taskResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${workflowId}`);
+                const taskData = await taskResponse.json();
+                if (taskData.status === 'success') {
+                  enrichedDrafts.workflow[workflowId][draftId].content.taskInfo = {
+                    id: workflowId,
+                    objective: taskData.data.objectives
+                  };
+                }
+              } catch (err) {
+                console.warn('Could not fetch task info for:', workflowId);
               }
-            } catch (err) {
-              console.warn('Could not fetch task info for:', workflowId);
             }
           }
+        }
+      }
+      
+      // Filter standalone drafts
+      for (const [draftId, draft] of Object.entries(userDrafts.standalone)) {
+        if (draft.content?.allGeneratedContent && draft.content.allGeneratedContent.length > 0) {
+          enrichedDrafts.standalone[draftId] = draft;
         }
       }
       

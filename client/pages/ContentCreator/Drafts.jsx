@@ -40,48 +40,29 @@ const DraftCard = ({ draft, draftId, category, workflowId, onDelete, onView, onD
         e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <FiFileText size={16} color="#3b82f6" />
-            <span style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937' }}>
-              {category === 'workflow' ? 'Task Draft' : 'Standalone Draft'}
-            </span>
-          </div>
-          
-          {category === 'workflow' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-              <FiTarget size={12} color="#10b981" />
-              <span style={{ fontSize: '12px', color: '#10b981', fontWeight: '600' }}>
-                Task: {draft.content?.taskInfo?.objective || workflowId}
-              </span>
-            </div>
-          )}
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <FiClock size={12} color="#6b7280" />
-            <span style={{ fontSize: '12px', color: '#6b7280' }}>
-              {formatDate(draft.updatedAt)}
-            </span>
-          </div>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <FiFileText size={16} color="#3b82f6" />
+          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937' }}>
+            {category === 'workflow' ? 'Task Draft' : 'Standalone Draft'}
+          </span>
         </div>
         
-        <button
-          onClick={handleDelete}
-          style={{
-            padding: '6px',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            borderRadius: '6px',
-            color: '#ef4444',
-            transition: 'background 0.2s ease'
-          }}
-          onMouseEnter={e => e.target.style.background = '#fef2f2'}
-          onMouseLeave={e => e.target.style.background = 'transparent'}
-        >
-          <FiTrash2 size={16} />
-        </button>
+        {category === 'workflow' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <FiTarget size={12} color="#10b981" />
+            <span style={{ fontSize: '12px', color: '#10b981', fontWeight: '600' }}>
+              Task: {draft.content?.taskInfo?.objective || workflowId}
+            </span>
+          </div>
+        )}
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <FiClock size={12} color="#6b7280" />
+          <span style={{ fontSize: '12px', color: '#6b7280' }}>
+            {formatDate(draft.updatedAt)}
+          </span>
+        </div>
       </div>
 
       {draft.content?.allGeneratedContent && (
@@ -237,6 +218,46 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, draftInfo }) => {
   );
 };
 
+const SEOCircle = ({ score }) => {
+  const getColor = (score) => {
+    if (score >= 85) return '#10b981';
+    if (score >= 75) return '#f59e0b';
+    return '#ef4444';
+  };
+  
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <svg width="48" height="48" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="24" cy="24" r={radius} stroke="#e5e7eb" strokeWidth="4" fill="transparent" />
+        <circle
+          cx="24" cy="24" r={radius}
+          stroke={getColor(score)}
+          strokeWidth="4"
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        fontSize: '12px',
+        fontWeight: '700',
+        color: getColor(score)
+      }}>
+        {score}
+      </div>
+    </div>
+  );
+};
+
 const DraftModal = ({ draft, isOpen, onClose, onEdit }) => {
   if (!isOpen || !draft) return null;
 
@@ -285,30 +306,59 @@ const DraftModal = ({ draft, isOpen, onClose, onEdit }) => {
           {draft.content?.allGeneratedContent ? (
             <div>
               <div style={{ fontSize: '16px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-                🎯 All Generated Content Variations ({draft.content.totalVariations})
+                🎯 All Generated Content Variations ({draft.content.totalVariations}) with SEO Scores
               </div>
               <div style={{ maxHeight: '400px', overflowY: 'auto', display: 'grid', gap: '16px' }}>
-                {draft.content.allGeneratedContent.map((content, index) => (
-                  <div key={content.id || index} style={{
-                    background: '#f8fafc',
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-                      Option {index + 1} - SEO Score: {content.seoScore}/100
+                {draft.content.allGeneratedContent.map((content, index) => {
+                  const platforms = content.platforms ? Object.keys(content.platforms) : [];
+                  
+                  return (
+                    <div key={content.id || index} style={{
+                      background: '#f8fafc',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+                        Option {index + 1}
+                      </div>
+                      {platforms.map(platform => {
+                        const platformData = content.platforms[platform];
+                        const seo = platformData.seoAnalysis || {};
+                        return (
+                          <div key={platform} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: platforms.length > 1 ? '1px solid #e5e7eb' : 'none' }}>
+                            <div style={{ fontSize: '12px', fontWeight: '600', color: '#6366f1', marginBottom: '8px', textTransform: 'capitalize' }}>
+                              {platform}
+                            </div>
+                            <div style={{ fontSize: '13px', marginBottom: '6px' }}>
+                              <strong>📰 Headline:</strong> {platformData.headline || 'N/A'}
+                            </div>
+                            <div style={{ fontSize: '13px', marginBottom: '6px' }}>
+                              <strong>📝 Caption:</strong> {platformData.caption?.substring(0, 100) || 'N/A'}...
+                            </div>
+                            <div style={{ fontSize: '13px', marginBottom: '8px', color: '#6366f1' }}>
+                              <strong>#️⃣ Hashtags:</strong> {platformData.hashtag || 'N/A'}
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <SEOCircle score={seo.headlineScore || 75} />
+                                <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>Headline</div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <SEOCircle score={seo.captionScore || 75} />
+                                <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>Caption</div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <SEOCircle score={seo.overallScore || 75} />
+                                <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>Overall</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div style={{ fontSize: '13px', marginBottom: '8px' }}>
-                      <strong>📰 Headline:</strong> {content.headline || 'N/A'}
-                    </div>
-                    <div style={{ fontSize: '13px', marginBottom: '8px' }}>
-                      <strong>📝 Caption:</strong> {content.caption?.substring(0, 100) || 'N/A'}...
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#6366f1' }}>
-                      <strong>#️⃣ Hashtags:</strong> {content.hashtag || 'N/A'}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -329,7 +379,7 @@ const DraftModal = ({ draft, isOpen, onClose, onEdit }) => {
           )}
         </div>
 
-        <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
           <button
             onClick={onClose}
             style={{
@@ -343,20 +393,6 @@ const DraftModal = ({ draft, isOpen, onClose, onEdit }) => {
             }}
           >
             Close
-          </button>
-          <button
-            onClick={() => onEdit(draft)}
-            style={{
-              background: '#3b82f6',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '12px 24px',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Edit Content
           </button>
         </div>
       </div>
@@ -463,11 +499,10 @@ export default function Drafts() {
 
   const handleEditDraft = (draft) => {
     setShowModal(false);
-    // Navigate to output content with draft data
     navigate('/content/output', { 
       state: { 
         contents: draft.content?.allGeneratedContent || [],
-        taskId: draft.workflowId,
+        taskId: draft.workflowId || draft.content?.taskInfo?.id,
         fromDraftEdit: true
       } 
     });

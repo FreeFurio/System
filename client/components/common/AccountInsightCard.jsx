@@ -37,6 +37,10 @@ const AccountInsightCard = ({ account, engagement }) => {
   
   // Twitter-specific rendering
   if (account.platform === 'twitter') {
+    console.log('Twitter Data:', twitterData);
+    console.log('Top Post:', twitterData?.topPost);
+    console.log('Recent Post:', twitterData?.recentPost);
+    
     const twitterChartData = twitterData?.historicalData && twitterData.historicalData.length > 0
       ? [
           { date: '', total: null, time: '', invisible: true },
@@ -184,16 +188,84 @@ const AccountInsightCard = ({ account, engagement }) => {
               </div>
             </div>
             
-            <div style={{
-              background: '#f8f9fa',
-              padding: '12px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              color: '#666',
-              textAlign: 'center'
-            }}>
-              {twitterData.limitation}
-            </div>
+            {/* Top Post Section */}
+            {twitterData.topPost && (
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ margin: '0 0 10px 0', color: '#fbbf24', fontSize: '14px' }}>🏆 Top Tweet</h4>
+                <div style={{ 
+                  background: '#fffbeb',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  fontSize: '12px',
+                  color: '#666',
+                  border: '1px solid #fbbf24'
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#f59e0b' }}>
+                    {new Date(twitterData.topPost.createdTime).toLocaleDateString()}
+                  </div>
+                  <div>{twitterData.topPost.text.substring(0, 100)}{twitterData.topPost.text.length > 100 ? '...' : ''}</div>
+                </div>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '15px',
+                  textAlign: 'center'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{twitterData.topPost.likes || 0}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4caf50' }}>{twitterData.topPost.retweets || 0}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Retweets</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff9800' }}>{twitterData.topPost.replies || 0}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Replies</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Recent Post Section */}
+            {twitterData.recentPost && (
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ margin: '0 0 10px 0', color: '#1da1f2', fontSize: '14px' }}>Recent Tweet</h4>
+                <div style={{ 
+                  background: '#f8f9fa',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  fontSize: '12px',
+                  color: '#666'
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                    {new Date(twitterData.recentPost.createdTime).toLocaleDateString()}
+                  </div>
+                  <div>{twitterData.recentPost.text.substring(0, 100)}{twitterData.recentPost.text.length > 100 ? '...' : ''}</div>
+                </div>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '15px',
+                  textAlign: 'center'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{twitterData.recentPost.likes || 0}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4caf50' }}>{twitterData.recentPost.retweets || 0}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Retweets</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff9800' }}>{twitterData.recentPost.replies || 0}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>Replies</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : null}
         
@@ -349,7 +421,7 @@ const AccountInsightCard = ({ account, engagement }) => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
         {/* Page Performance Section */}
         <div style={{ borderRadius: '8px', padding: '15px' }}>
           <h4 style={{ margin: '0 0 15px 0', color: '#1877f2', fontSize: '14px' }}>Page Performance</h4>
@@ -399,6 +471,85 @@ const AccountInsightCard = ({ account, engagement }) => {
               <div style={{ fontSize: '12px', color: '#666' }}>Recent Engagement</div>
             </div>
           </div>
+        </div>
+
+        {/* Top Post Section */}
+        <div style={{ borderRadius: '8px', padding: '15px' }}>
+          <h4 style={{ margin: '0 0 15px 0', color: '#fbbf24', fontSize: '14px' }}>🏆 Top Post</h4>
+          {fbData.topPost ? (
+            <div>
+              <div style={{ 
+                background: '#fffbeb',
+                padding: '12px',
+                borderRadius: '8px',
+                marginBottom: '10px',
+                fontSize: '12px',
+                color: '#666',
+                border: '1px solid #fbbf24'
+              }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#f59e0b' }}>
+                  {new Date(fbData.topPost.createdTime).toLocaleDateString()}
+                </div>
+                <div>{fbData.topPost.message.substring(0, 100)}{fbData.topPost.message.length > 100 ? '...' : ''}</div>
+              </div>
+              <div style={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '15px',
+                textAlign: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1877f2' }}>{fbData.topPost.reactions || 0}</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Reactions</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#28a745' }}>{fbData.topPost.comments || 0}</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Comments</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#dc3545' }}>{fbData.topPost.shares || 0}</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Shares</div>
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '15px' }}>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: 'bold' }}>Post Reactions:</div>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '8px',
+                  textAlign: 'center'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#1877f2' }}>{fbData.topPost.detailedReactions?.like || 0}</div>
+                    <div style={{ fontSize: '9px', color: '#666' }}>Like</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#e91e63' }}>{fbData.topPost.detailedReactions?.love || 0}</div>
+                    <div style={{ fontSize: '9px', color: '#666' }}>Love</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#ff9800' }}>{fbData.topPost.detailedReactions?.haha || 0}</div>
+                    <div style={{ fontSize: '9px', color: '#666' }}>Haha</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#ffc107' }}>{fbData.topPost.detailedReactions?.wow || 0}</div>
+                    <div style={{ fontSize: '9px', color: '#666' }}>Wow</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#6c757d' }}>{fbData.topPost.detailedReactions?.sad || 0}</div>
+                    <div style={{ fontSize: '9px', color: '#666' }}>Sad</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#dc3545' }}>{fbData.topPost.detailedReactions?.angry || 0}</div>
+                    <div style={{ fontSize: '9px', color: '#666' }}>Angry</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: '#666', fontSize: '14px' }}>No posts found</div>
+          )}
         </div>
 
         {/* Recent Post Section */}

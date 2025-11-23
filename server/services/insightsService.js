@@ -815,6 +815,8 @@ class InsightsService {
       
       // Get most recent post with detailed reaction breakdown
       let recentPost = null;
+      let topPost = null;
+      
       if (fbPosts.length > 0) {
         const mostRecentPost = fbPosts[0]; // Posts are ordered by created_time desc
         try {
@@ -859,6 +861,65 @@ class InsightsService {
           console.log(`✅ Recent post reactions:`, postReactionBreakdown);
         } catch (recentPostError) {
           console.log(`Could not get recent post reactions:`, recentPostError.message);
+        }
+        
+        // Find post with highest engagement
+        let highestEngagement = 0;
+        let highestPost = null;
+        
+        fbPosts.forEach(post => {
+          const engagement = (post.reactions?.summary?.total_count || 0) + 
+                           (post.comments?.summary?.total_count || 0) + 
+                           (post.shares?.count || 0);
+          if (engagement > highestEngagement) {
+            highestEngagement = engagement;
+            highestPost = post;
+          }
+        });
+        
+        if (highestPost) {
+          try {
+            const topPostReactionBreakdown = {
+              like: 0,
+              love: 0,
+              wow: 0,
+              haha: 0,
+              angry: 0,
+              sad: 0
+            };
+            
+            const reactionTypes = ['LIKE', 'LOVE', 'WOW', 'HAHA', 'ANGRY', 'SAD'];
+            for (const type of reactionTypes) {
+              try {
+                const reactionResponse = await axios.get(`https://graph.facebook.com/v23.0/${highestPost.id}/reactions`, {
+                  params: {
+                    type: type,
+                    limit: 0,
+                    summary: true,
+                    access_token: accessToken
+                  }
+                });
+                const count = reactionResponse.data.summary?.total_count || 0;
+                topPostReactionBreakdown[type.toLowerCase()] = count;
+              } catch (err) {
+                // Skip failed reaction types
+              }
+            }
+            
+            topPost = {
+              id: highestPost.id,
+              message: highestPost.message || 'No message',
+              createdTime: highestPost.created_time,
+              reactions: highestPost.reactions?.summary?.total_count || 0,
+              comments: highestPost.comments?.summary?.total_count || 0,
+              shares: highestPost.shares?.count || 0,
+              detailedReactions: topPostReactionBreakdown
+            };
+            
+            console.log(`✅ Top post (${highestEngagement} engagement):`, topPostReactionBreakdown);
+          } catch (topPostError) {
+            console.log(`Could not get top post reactions:`, topPostError.message);
+          }
         }
       }
       
@@ -981,7 +1042,8 @@ class InsightsService {
         followers: pageMetricsResponse.data.followers_count || 0,
         recentEngagement: pageMetricsResponse.data.talking_about_count || 0,
         historicalData: historicalData,
-        recentPost: recentPost
+        recentPost: recentPost,
+        topPost: topPost
       };
       
       // Check for Instagram account

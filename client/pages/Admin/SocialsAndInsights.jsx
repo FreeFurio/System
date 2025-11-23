@@ -11,6 +11,7 @@ const API_BASE_URL = import.meta.env.PROD
 
 const SocialsAndInsights = () => {
   const [activeTab, setActiveTab] = useState('socials');
+  const [insightsTab, setInsightsTab] = useState('facebook');
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -652,6 +653,63 @@ const SocialsAndInsights = () => {
       {/* Insights Section */}
       {activeTab === 'insights' && (
         <div>
+          {/* Platform Sub-tabs */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            alignItems: 'center',
+            marginBottom: '24px'
+          }}>
+            <button
+              onClick={() => setInsightsTab('facebook')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: insightsTab === 'facebook' ? '#1877f2' : '#f3f4f6',
+                color: insightsTab === 'facebook' ? 'white' : '#374151',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '14px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Facebook
+            </button>
+            <button
+              onClick={() => setInsightsTab('instagram')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: insightsTab === 'instagram' ? '#e4405f' : '#f3f4f6',
+                color: insightsTab === 'instagram' ? 'white' : '#374151',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '14px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Instagram
+            </button>
+            <button
+              onClick={() => setInsightsTab('twitter')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: insightsTab === 'twitter' ? '#1da1f2' : '#f3f4f6',
+                color: insightsTab === 'twitter' ? 'white' : '#374151',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '14px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Twitter
+            </button>
+          </div>
+
           <div style={{
             background: '#fff',
             borderRadius: '12px',
@@ -670,7 +728,7 @@ const SocialsAndInsights = () => {
                 paddingBottom: '12px',
                 borderBottom: '2px solid #e5e7eb'
               }}>
-                Analytics & Insights
+                {insightsTab === 'facebook' ? 'Facebook' : insightsTab === 'instagram' ? 'Instagram' : 'Twitter'} Analytics
               </h2>
               <button
                 onClick={async () => {
@@ -752,24 +810,45 @@ const SocialsAndInsights = () => {
               
                 {insights && insights.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {insights.map((accountData) => (
-                      <AccountInsightCard
-                        key={accountData.account.id}
-                        account={accountData.account}
-                        engagement={accountData.engagement}
-                      />
-                    ))}
+                    {insights
+                      .filter(accountData => {
+                        if (insightsTab === 'facebook') {
+                          return accountData.account.platform === 'facebook' && accountData.engagement.facebook;
+                        } else if (insightsTab === 'instagram') {
+                          return accountData.account.platform === 'facebook' && accountData.engagement.instagram;
+                        } else if (insightsTab === 'twitter') {
+                          return accountData.account.platform === 'twitter';
+                        }
+                        return false;
+                      })
+                      .map((accountData) => (
+                        <AccountInsightCard
+                          key={accountData.account.id}
+                          account={accountData.account}
+                          engagement={accountData.engagement}
+                          platformFilter={insightsTab}
+                        />
+                      ))}
                   </div>
                 )}
               
-                {insights && insights.length === 0 && (
+                {insights && insights.filter(accountData => {
+                  if (insightsTab === 'facebook') {
+                    return accountData.account.platform === 'facebook' && accountData.engagement.facebook;
+                  } else if (insightsTab === 'instagram') {
+                    return accountData.account.platform === 'facebook' && accountData.engagement.instagram;
+                  } else if (insightsTab === 'twitter') {
+                    return accountData.account.platform === 'twitter';
+                  }
+                  return false;
+                }).length === 0 && (
                   <div style={{ 
                     textAlign: 'center', 
                     padding: '40px', 
                     color: '#9ca3af',
                     fontSize: '14px'
                   }}>
-                    No connected accounts found. Please connect your social media accounts first.
+                    No {insightsTab === 'facebook' ? 'Facebook' : insightsTab === 'instagram' ? 'Instagram' : 'Twitter'} accounts connected. Please connect your accounts first.
                   </div>
                 )}
               </>

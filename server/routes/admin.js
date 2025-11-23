@@ -2605,6 +2605,21 @@ router.get('/twitter-data', async (req, res) => {
     insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
     insights.avgEngagementPerTweet = allPosts.length > 0 ? Math.round(insights.totalEngagement / allPosts.length) : 0;
     
+    // Find top post (highest engagement)
+    let topPost = null;
+    let highestEngagement = 0;
+    allPosts.forEach(post => {
+      const engagement = (post.likes || 0) + (post.retweets || 0) + (post.replies || 0);
+      if (engagement > highestEngagement) {
+        highestEngagement = engagement;
+        topPost = post;
+      }
+    });
+    insights.topPost = topPost;
+    
+    // Find recent post (most recent)
+    insights.recentPost = allPosts.length > 0 ? allPosts[0] : null;
+    
     // Store historical data for Twitter (same as Facebook/Instagram)
     let historicalData = [];
     const currentTimestamp = new Date();
@@ -3177,6 +3192,19 @@ router.get('/save-mock-twitter-insights', async (req, res) => {
     };
     mockInsights.totalEngagement = mockInsights.totalLikes + mockInsights.totalRetweets + mockInsights.totalReplies;
     mockInsights.avgEngagementPerTweet = Math.round(mockInsights.totalEngagement / mockPosts.length);
+    
+    // Find top post
+    let topPost = mockPosts[0];
+    let highestEngagement = 0;
+    mockPosts.forEach(post => {
+      const engagement = post.likes + post.retweets + post.replies;
+      if (engagement > highestEngagement) {
+        highestEngagement = engagement;
+        topPost = post;
+      }
+    });
+    mockInsights.topPost = topPost;
+    mockInsights.recentPost = mockPosts[0];
     
     // Generate mock historical data (last 7 days)
     const mockHistoricalData = [];

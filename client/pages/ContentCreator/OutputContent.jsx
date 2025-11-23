@@ -171,12 +171,13 @@ export default function OutputContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { contents: stateContents = [], taskId: stateTaskId, fromDraftEdit: stateDraftEdit } = location.state || {};
+  const { contents: stateContents = [], taskId: stateTaskId, fromDraftEdit: stateDraftEdit, workflowId: stateWorkflowId, fromRejection: stateFromRejection } = location.state || {};
   
   const reduxContent = useContent();
   const contents = stateContents.length > 0 ? stateContents : reduxContent.generatedContents;
-  const taskId = stateTaskId || reduxContent.taskId;
+  const taskId = stateTaskId || stateWorkflowId || reduxContent.taskId;
   const isDraftEdit = stateDraftEdit || reduxContent.fromDraftEdit;
+  const [loadingDraft, setLoadingDraft] = useState(false);
   
   const [activeTab, setActiveTab] = useState('facebook');
   const selectedContent = reduxContent.selectedContent;
@@ -247,6 +248,34 @@ export default function OutputContent() {
         workflowId: stateTaskId,
         fromDraftEdit: stateDraftEdit || false
       }));
+    } else if (stateFromRejection && (stateWorkflowId || stateTaskId)) {
+      const loadDraft = async () => {
+        setLoadingDraft(true);
+        try {
+          const wfId = stateWorkflowId || stateTaskId;
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/drafts/workflow/${wfId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          });
+          const data = await response.json();
+          
+          if (data.success && data.drafts && Object.keys(data.drafts).length > 0) {
+            const draftData = Object.values(data.drafts)[0];
+            if (draftData.content?.allGeneratedContent) {
+              dispatch(setGeneratedContents({
+                contents: draftData.content.allGeneratedContent,
+                taskId: wfId,
+                workflowId: wfId,
+                fromDraftEdit: true
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+        } finally {
+          setLoadingDraft(false);
+        }
+      };
+      loadDraft();
     }
   }, []);
   
@@ -520,6 +549,14 @@ export default function OutputContent() {
             }}>Redirecting to ongoing approval...</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (loadingDraft) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h2>Loading draft...</h2>
       </div>
     );
   }

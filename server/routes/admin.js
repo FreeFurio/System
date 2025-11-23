@@ -2605,6 +2605,50 @@ router.get('/twitter-data', async (req, res) => {
     insights.totalEngagement = insights.totalLikes + insights.totalRetweets + insights.totalReplies;
     insights.avgEngagementPerTweet = allPosts.length > 0 ? Math.round(insights.totalEngagement / allPosts.length) : 0;
     
+    // Store historical data for Twitter (same as Facebook/Instagram)
+    let historicalData = [];
+    const currentTimestamp = new Date();
+    const currentDateKey = currentTimestamp.toDateString();
+    
+    try {
+      const historyPath = 'cachedInsights/admin/twitter/historicalData';
+      const historyRef = ref(db, historyPath);
+      const historySnapshot = await get(historyRef);
+      
+      let existingHistory = historySnapshot.exists() ? historySnapshot.val() : {};
+      const historyEntries = Array.isArray(existingHistory) ? existingHistory : Object.values(existingHistory);
+      
+      const todayExists = historyEntries.some(entry => entry?.dateKey === currentDateKey);
+      
+      if (!todayExists) {
+        const todayData = {
+          dateKey: currentDateKey,
+          date: currentTimestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          time: currentTimestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: currentTimestamp.toISOString(),
+          total: insights.totalEngagement
+        };
+        
+        const newEntryRef = ref(db, `${historyPath}/${Date.now()}`);
+        await set(newEntryRef, todayData);
+        console.log(`✅ Added Twitter history entry: ${currentDateKey}`);
+      }
+      
+      const updatedSnapshot = await get(historyRef);
+      const updatedHistory = updatedSnapshot.val() || {};
+      const updatedEntries = Array.isArray(updatedHistory) ? updatedHistory : Object.values(updatedHistory);
+      
+      historicalData = updatedEntries
+        .filter(point => point && typeof point === 'object' && point.timestamp)
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        .slice(-30);
+        
+      console.log(`📊 Twitter historical data: ${historicalData.length} entries`);
+    } catch (historyError) {
+      console.error('❌ Twitter history error:', historyError.message);
+    }
+    
+    insights.historicalData = historicalData;
     const responseData = { posts: allPosts, insights, postsCount: allPosts.length };
     
     // Step 3: Save to Firebase and Redis if we got data
@@ -3070,6 +3114,119 @@ router.get('/proxy-image', async (req, res) => {
     
   } catch (error) {
     res.status(500).json({ error: 'Failed to proxy image' });
+  }
+});
+
+// Save mock Twitter insights data
+router.get('/save-mock-twitter-insights', async (req, res) => {
+  try {
+    const { ref, set } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    // Generate mock Twitter posts
+    const mockPosts = [
+      {
+        id: '1234567890',
+        text: 'Excited to announce our new product launch! 🚀 #innovation #tech',
+        createdTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 45,
+        retweets: 12,
+        replies: 8,
+        username: 'mockuser',
+        name: 'Mock User',
+        profilePicture: 'https://via.placeholder.com/150',
+        mediaUrl: null
+      },
+      {
+        id: '1234567891',
+        text: 'Great meeting with the team today! Looking forward to what\'s next. 💼',
+        createdTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 32,
+        retweets: 5,
+        replies: 3,
+        username: 'mockuser',
+        name: 'Mock User',
+        profilePicture: 'https://via.placeholder.com/150',
+        mediaUrl: null
+      },
+      {
+        id: '1234567892',
+        text: 'Check out our latest blog post on digital marketing trends 📊',
+        createdTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 67,
+        retweets: 23,
+        replies: 15,
+        username: 'mockuser',
+        name: 'Mock User',
+        profilePicture: 'https://via.placeholder.com/150',
+        mediaUrl: null
+      }
+    ];
+    
+    // Calculate mock insights
+    const mockInsights = {
+      totalTweets: mockPosts.length,
+      totalLikes: mockPosts.reduce((sum, post) => sum + post.likes, 0),
+      totalRetweets: mockPosts.reduce((sum, post) => sum + post.retweets, 0),
+      totalReplies: mockPosts.reduce((sum, post) => sum + post.replies, 0)
+    };
+    mockInsights.totalEngagement = mockInsights.totalLikes + mockInsights.totalRetweets + mockInsights.totalReplies;
+    mockInsights.avgEngagementPerTweet = Math.round(mockInsights.totalEngagement / mockPosts.length);
+    
+    // Generate mock historical data (last 7 days)
+    const mockHistoricalData = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      mockHistoricalData.push({
+        dateKey: date.toDateString(),
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: date.toISOString(),
+        total: Math.floor(Math.random() * 100) + 50 // Random engagement between 50-150
+      });
+    }
+    
+    mockInsights.historicalData = mockHistoricalData;
+    
+    // Save posts to cachedPosts
+    const fbCacheRef = ref(db, 'cachedPosts/admin/twitter');
+    await set(fbCacheRef, {
+      posts: mockPosts,
+      insights: mockInsights,
+      lastUpdated: new Date().toISOString(),
+      isMockData: true
+    });
+    
+    // Save historical data to cachedInsights (matching Facebook/Instagram pattern)
+    const historyPath = 'cachedInsights/admin/twitter/historicalData';
+    for (let i = 0; i < mockHistoricalData.length; i++) {
+      const entryRef = ref(db, `${historyPath}/${Date.now() + i}`);
+      await set(entryRef, mockHistoricalData[i]);
+    }
+    
+    // Clear Redis cache to force refresh
+    await redisService.del('twitter:data');
+    
+    console.log('✅ Mock Twitter insights saved successfully');
+    
+    res.json({
+      success: true,
+      message: 'Mock Twitter insights saved successfully',
+      data: {
+        posts: mockPosts.length,
+        insights: mockInsights,
+        historicalData: mockHistoricalData.length
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Save mock Twitter insights error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

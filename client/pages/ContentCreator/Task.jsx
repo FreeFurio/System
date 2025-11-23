@@ -5,6 +5,8 @@ import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 import PlatformDisplay from '../../components/common/PlatformDisplay';
 import { useWorkflows, useAppDispatch } from '../../store/hooks';
 import { fetchWorkflows } from '../../store/actions/workflowActions';
+import { useDispatch } from 'react-redux';
+import { setGeneratedContents } from '../../store/slices/contentSlice';
 
 const SEORadial = ({ score, label, size = 60 }) => {
   const getColor = (score) => {
@@ -572,8 +574,23 @@ export default function Task() {
     dispatch(fetchWorkflows());
   }, [dispatch]);
 
-  const handleCreateContent = (workflow) => {
-    console.log('🔍 Task Debug - Navigating with workflow.id:', workflow.id);
+  const handleCreateContent = async (workflow) => {
+    if (workflow.status === 'content_rejected') {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/drafts/workflow/${workflow.id}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.drafts && Object.keys(data.drafts).length > 0) {
+          navigate('/content/output', { state: { workflowId: workflow.id, fromRejection: true } });
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking draft:', error);
+      }
+    }
+    
     navigate(`/content/create?taskId=${workflow.id}`);
   };
 

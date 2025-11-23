@@ -502,6 +502,18 @@ class FirebaseService {
       
       await set(workflowRef, updatedWorkflow);
       
+      // Create notification for Graphic Designer
+      await this.createGraphicDesignerNotification({
+        type: 'design_feedback',
+        message: `Design rejected - Please review feedback: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: rejectedBy,
+        workflowData: {
+          objective: workflow.objectives,
+          feedback: feedback
+        }
+      });
+      
       // Create notification for Marketing Lead
       await this.createMarketingNotification({
         type: 'design_rejected',
@@ -651,6 +663,18 @@ class FirebaseService {
       
       await set(workflowRef, updatedWorkflow);
       
+      // Create notification for Graphic Designer
+      await this.createGraphicDesignerNotification({
+        type: 'design_task',
+        message: `New design task assigned: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: 'Marketing Lead',
+        workflowData: {
+          objective: workflow.objectives,
+          deadline: workflow.deadline
+        }
+      });
+      
       // Create notification for Marketing Lead
       await this.createMarketingNotification({
         type: 'task_assigned_to_designer',
@@ -698,6 +722,18 @@ class FirebaseService {
         user: 'Content Creator',
         workflowData: {
           objective: workflow.objectives
+        }
+      });
+      
+      // Create notification for Graphic Designer
+      await this.createGraphicDesignerNotification({
+        type: 'design_task',
+        message: `New design task assigned: ${workflow.objectives}`,
+        workflowId: workflowId,
+        user: approvedBy,
+        workflowData: {
+          objective: workflow.objectives,
+          deadline: workflow.deadline
         }
       });
       
@@ -1031,6 +1067,41 @@ class FirebaseService {
     }
   }
 
+  static async createGraphicDesignerNotification(notificationData) {
+    console.log('🔔 createGraphicDesignerNotification called with data:', notificationData);
+    try {
+      const createNotifRef = push(ref(db, 'notification/graphicdesigner'));
+      const notifData = {
+        type: notificationData.type,
+        message: notificationData.message,
+        read: notificationData.read || false,
+        timestamp: notificationData.timestamp || new Date().toISOString(),
+        workflowId: notificationData.workflowId,
+        user: notificationData.user
+      };
+      
+      await set(createNotifRef, notifData);
+      console.log('🔔 createGraphicDesignerNotification success - Notification saved');
+      
+      // Emit Socket.IO event for real-time notification
+      try {
+        const { io } = await import('../server.mjs');
+        io.emit('graphicdesignerNotification', {
+          id: createNotifRef.key,
+          ...notifData
+        });
+        console.log('📡 Socket.IO event emitted: graphicdesignerNotification');
+      } catch (socketError) {
+        console.error('⚠️ Socket.IO emit failed:', socketError.message);
+      }
+      
+      return createNotifRef.key;
+    } catch (error) {
+      console.error('❌ Error saving Graphic Designer notification:', error);
+      throw new Error('Failed to save Graphic Designer notification');
+    }
+  }
+
   // ========================
   // 5.2) GET NOTIFICATIONS
   // ========================
@@ -1070,6 +1141,19 @@ class FirebaseService {
     } catch (error) {
       console.error('❌ Error getting marketing notifications:', error);
       throw new Error('Failed to get marketing notifications');
+    }
+  }
+
+  static async getGraphicDesignerNotifications() {
+    console.log('📬 getGraphicDesignerNotifications called');
+    try {
+      const snapshot = await get(ref(db, 'notification/graphicdesigner'));
+      const result = snapshot.val();
+      console.log('📬 getGraphicDesignerNotifications result:', result ? Object.keys(result).length + ' notifications found' : 'No notifications found');
+      return result;
+    } catch (error) {
+      console.error('❌ Error getting graphic designer notifications:', error);
+      throw new Error('Failed to get graphic designer notifications');
     }
   }
 

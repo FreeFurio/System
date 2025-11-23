@@ -34,11 +34,21 @@ export default function Dashboard() {
           let totalProjects = 0;
           const recentTasks = [];
 
+          console.log('📊 All workflows:', workflows);
+
           workflows.forEach((workflow) => {
             if (!workflow) return;
             
-            // Count assigned tasks (graphic design stage)
-            if (workflow.currentStage === 'graphicdesigner' && workflow.status === 'graphic_design') {
+            console.log('🔍 Checking workflow:', {
+              id: workflow.id,
+              status: workflow.status,
+              currentStage: workflow.currentStage,
+              objectives: workflow.objectives
+            });
+            
+            // Count assigned tasks (design_creation stage)
+            if (workflow.status === 'design_creation' || 
+                (workflow.currentStage === 'graphicdesigner' && workflow.status === 'design_creation')) {
               assignedTasks++;
               recentTasks.push({
                 id: workflow.id || Date.now() + Math.random(),
@@ -47,10 +57,11 @@ export default function Dashboard() {
                 deadline: workflow.deadline,
                 createdAt: workflow.createdAt
               });
+              console.log('✅ Added to assigned tasks');
             }
             
             // Count completed designs (submitted for approval)
-            if (workflow.status === 'graphic_approval' && workflow.graphicDesigner) {
+            if (workflow.status === 'design_approval' && workflow.graphicDesigner) {
               completedDesigns++;
               pendingApproval++;
               recentTasks.push({
@@ -59,13 +70,25 @@ export default function Dashboard() {
                 status: 'pending_approval',
                 submittedAt: workflow.graphicDesigner.submittedAt
               });
+              console.log('✅ Added to pending approval');
+            }
+            
+            // Count approved designs
+            if (workflow.status === 'design_approved' && workflow.graphicDesigner) {
+              completedDesigns++;
+              console.log('✅ Counted as completed');
             }
             
             // Count total projects involving graphic designer
-            if (workflow.graphicDesigner || workflow.currentStage === 'graphicdesigner') {
+            if (workflow.graphicDesigner || workflow.currentStage === 'graphicdesigner' || 
+                workflow.status === 'design_creation' || workflow.status === 'design_approval' || 
+                workflow.status === 'design_approved') {
               totalProjects++;
             }
           });
+
+          console.log('📈 Final stats:', { assignedTasks, completedDesigns, pendingApproval, totalProjects });
+          console.log('📋 Recent tasks:', recentTasks);
 
           // Sort recent tasks by date and take latest 5
           recentTasks.sort((a, b) => {

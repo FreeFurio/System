@@ -32,6 +32,12 @@ export default function GraphicCreation() {
 
 
   useEffect(() => {
+    // Clear old Redux data if URL taskId is different from Redux taskId
+    if (urlTaskId && urlTaskId !== reduxDesign.taskId) {
+      console.log('🧹 Clearing old Redux design data - URL taskId:', urlTaskId, 'Redux taskId:', reduxDesign.taskId);
+      dispatch(clearDesign());
+    }
+    
     if (taskId) {
       fetchWorkflow();
     } else {
@@ -106,10 +112,12 @@ export default function GraphicCreation() {
         
         if (foundWorkflow) {
           setWorkflow(foundWorkflow);
+          // Only use canvas data if it's for THIS specific task
+          const canvasData = (reduxDesign.taskId === taskId) ? reduxDesign.canvasData : null;
           dispatch(setDesignTask({
             taskId,
             workflow: foundWorkflow,
-            canvasData: reduxDesign.canvasData || foundWorkflow.graphicDesigner?.canvasData
+            canvasData: canvasData
           }));
           setIsLoading(false);
         } else {
@@ -122,10 +130,12 @@ export default function GraphicCreation() {
             const allFoundWorkflow = allData.data.find(w => w.id === taskId);
             if (allFoundWorkflow) {
               setWorkflow(allFoundWorkflow);
+              // Only use canvas data if it's for THIS specific task
+              const canvasData = (reduxDesign.taskId === taskId) ? reduxDesign.canvasData : null;
               dispatch(setDesignTask({
                 taskId,
                 workflow: allFoundWorkflow,
-                canvasData: reduxDesign.canvasData || allFoundWorkflow.graphicDesigner?.canvasData
+                canvasData: canvasData
               }));
               setIsLoading(false);
             } else {
@@ -374,7 +384,7 @@ export default function GraphicCreation() {
           <ImageEditorWrapper 
             onSave={handleDesignSave}
             onExport={handleDesignExport}
-            initialCanvasData={reduxDesign.canvasData || workflow?.graphicDesigner?.canvasData}
+            initialCanvasData={(reduxDesign.taskId === taskId) ? reduxDesign.canvasData : null}
             onBackToTasks={() => {
               dispatch(clearDesign());
               navigate('/graphic/task');

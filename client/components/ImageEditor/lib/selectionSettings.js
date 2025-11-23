@@ -544,6 +544,14 @@
         let value = parseFloat($(this).val());
         let currentEffect = getCurrentEffect(_self.activeSelection);
         _self.activeSelection.filters = getUpdatedFilter(currentEffect, effect, value);
+        
+        // Add padding to prevent cropping when filters are applied
+        if (_self.activeSelection.type === 'image') {
+          _self.activeSelection.set({
+            padding: 50
+          });
+        }
+        
         _self.activeSelection.applyFilters();
         _self.canvas.renderAll(), _self.canvas.trigger('object:modified')
       })

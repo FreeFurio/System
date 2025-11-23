@@ -44,7 +44,6 @@ const NotificationBell = ({ role }) => {
       
       const handleNotification = (data) => {
         console.log(`🔔 Received ${notificationEvent}:`, data);
-        alert(`New notification received: ${data.message}`);
       };
       
       socket.on(notificationEvent, handleNotification);

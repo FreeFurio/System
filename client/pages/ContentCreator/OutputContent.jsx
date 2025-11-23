@@ -988,7 +988,7 @@ export default function OutputContent() {
               
               <div style={{ 
                 display: 'grid', 
-                gridTemplateColumns: '1fr 1fr', 
+                gridTemplateColumns: processedContents.length === 1 ? '1fr' : '1fr 1fr', 
                 gap: '24px' 
               }}>
                 {processedContents.map((content, index) => {

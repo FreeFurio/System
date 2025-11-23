@@ -7,6 +7,8 @@ const PostedContents = () => {
   const [tabLoading, setTabLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [activeTab, setActiveTab] = useState('facebook');
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 10;
 
   useEffect(() => {
     fetchPostedContents(activeTab);
@@ -66,7 +68,19 @@ const PostedContents = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setCurrentPage(1);
     fetchPostedContents(tab, true);
+  };
+
+  // Pagination logic
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = postedWorkflows.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(postedWorkflows.length / postsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const formatDate = (dateString) => {
@@ -281,8 +295,19 @@ const PostedContents = () => {
               No posted contents found.
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-              {postedWorkflows.map((post) => {
+            <>
+              {/* Pagination Info */}
+              <div style={{ 
+                marginBottom: '16px', 
+                color: '#6b7280', 
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                Showing {indexOfFirstPost + 1}-{Math.min(indexOfLastPost, postedWorkflows.length)} of {postedWorkflows.length} posts
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                {currentPosts.map((post) => {
                 return (
                   <div 
                     key={post.id} 
@@ -387,7 +412,84 @@ const PostedContents = () => {
                   </div>
                 );
               })}
-            </div>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginTop: '24px',
+                  paddingTop: '24px',
+                  borderTop: '1px solid #e5e7eb'
+                }}>
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb',
+                      background: currentPage === 1 ? '#f3f4f6' : '#fff',
+                      color: currentPage === 1 ? '#9ca3af' : '#374151',
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Previous
+                  </button>
+
+                  {/* Page Numbers */}
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNumber = index + 1;
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          background: currentPage === pageNumber ? '#1877f2' : '#fff',
+                          color: currentPage === pageNumber ? '#fff' : '#374151',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          minWidth: '40px',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+
+                  {/* Next Button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb',
+                      background: currentPage === totalPages ? '#f3f4f6' : '#fff',
+                      color: currentPage === totalPages ? '#9ca3af' : '#374151',
+                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

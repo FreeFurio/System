@@ -60,6 +60,22 @@ const marketingNotification = async (req, res, next) => {
     }
 }
 
+const graphicDesignerNotification = async (req, res, next) => {
+    console.log('📬 graphicDesignerNotification controller called');
+    try {
+        const notification = await FirebaseService.getGraphicDesignerNotifications();
+        console.log('📬 graphicDesignerNotification controller - notifications retrieved:', notification ? Object.keys(notification).length : 0);
+
+        res.status(200).json({
+            status: 'success',
+            data: notification
+        });
+    } catch (error) {
+        console.error('❌ graphicDesignerNotification controller error:', error);
+        next(error);
+    }
+}
+
 // ========================
 // 4) EXPORTS
 // ========================
@@ -67,6 +83,7 @@ const marketingNotification = async (req, res, next) => {
 export {
     adminNotification,
     contentCreatorNotification,
-    marketingNotification
+    marketingNotification,
+    graphicDesignerNotification
 };
 

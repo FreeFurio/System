@@ -1059,37 +1059,76 @@ class InsightsService {
         const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
         
         if (igAccountId) {
-          // Get Instagram Views from Insights API
-          let igViews = 0;
+          // Get all Instagram posts first
+          const igResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
+            params: {
+              fields: 'id,caption,timestamp,like_count,comments_count,media_type,media_url',
+              limit: 100,
+              access_token: accessToken
+            }
+          });
+          
+          const igPosts = igResponse.data.data || [];
+          
+          // Calculate totals from posts
+          const totalLikes = igPosts.reduce((sum, post) => sum + (post.like_count || 0), 0);
+          const totalComments = igPosts.reduce((sum, post) => sum + (post.comments_count || 0), 0);
+          
+          // Get Instagram Insights from API for reach, shares, follows
+          let igReach = 0, igShares = 0, igFollows = 0;
           try {
-            const igInsightsResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/insights`, {
+            const metricsResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/insights`, {
               params: {
-                metric: 'views',
+                metric: 'reach,shares,follows_and_unfollows',
                 period: 'day',
                 metric_type: 'total_value',
                 access_token: accessToken
               }
             });
             
-            igViews = igInsightsResponse.data.data[0]?.total_value?.value || 0;
-            console.log('📊 Instagram Views:', igViews);
-          } catch (viewsError) {
-            console.log('Could not get Instagram views:', viewsError.message);
+            metricsResponse.data.data.forEach(metric => {
+              const value = metric.total_value?.value || 0;
+              if (metric.name === 'reach') igReach = value;
+              if (metric.name === 'shares') igShares = value;
+              if (metric.name === 'follows_and_unfollows') igFollows = value;
+            });
+            
+            console.log('📊 Instagram Metrics:', { igReach, totalLikes, totalComments, igShares, igFollows });
+          } catch (insightsError) {
+            console.log('Could not get Instagram insights:', insightsError.message);
           }
           
-          // Get basic media data for additional stats
-          const igResponse = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/media`, {
-            params: {
-              fields: 'like_count,comments_count,media_type',
-              limit: 10,
-              access_token: accessToken
+          const totalEngagementIG = totalLikes + totalComments + igShares;
+          
+          // Find top post (highest engagement)
+          let topPost = null;
+          let highestEngagement = 0;
+          igPosts.forEach(post => {
+            const engagement = (post.like_count || 0) + (post.comments_count || 0);
+            if (engagement > highestEngagement) {
+              highestEngagement = engagement;
+              topPost = {
+                id: post.id,
+                caption: post.caption || 'No caption',
+                timestamp: post.timestamp,
+                likes: post.like_count || 0,
+                comments: post.comments_count || 0
+              };
             }
           });
           
-          const igPosts = igResponse.data.data || [];
-          const totalLikes = igPosts.reduce((sum, post) => sum + (post.like_count || 0), 0);
-          const totalComments = igPosts.reduce((sum, post) => sum + (post.comments_count || 0), 0);
-          const totalEngagementIG = totalLikes + totalComments;
+          // Find recent post (most recent)
+          let recentPost = null;
+          if (igPosts.length > 0) {
+            const mostRecent = igPosts[0];
+            recentPost = {
+              id: mostRecent.id,
+              caption: mostRecent.caption || 'No caption',
+              timestamp: mostRecent.timestamp,
+              likes: mostRecent.like_count || 0,
+              comments: mostRecent.comments_count || 0
+            };
+          }
           
           // Get Instagram historical data and add today's entry
           let igHistoricalData = [];
@@ -1179,11 +1218,15 @@ class InsightsService {
           }
           
           igEngagement = {
-            totalViews: igViews,
-            totalLikes,
-            totalComments,
+            reach: igReach,
+            likes: totalLikes,
+            comments: totalComments,
+            shares: igShares,
+            follows: igFollows,
             postsCount: igPosts.length,
-            historicalData: igHistoricalData
+            historicalData: igHistoricalData,
+            topPost: topPost,
+            recentPost: recentPost
           };
         }
       } catch (igError) {

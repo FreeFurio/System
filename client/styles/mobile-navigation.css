@@ -1,0 +1,131 @@
+/* ===== MOBILE NAVIGATION HELPERS ===== */
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: #4a5568;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.mobile-menu-toggle:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.mobile-menu-toggle:active {
+  background: #e2e8f0;
+}
+
+/* Mobile Sidebar Overlay */
+.mobile-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+  backdrop-filter: blur(2px);
+}
+
+.mobile-sidebar-overlay.active {
+  display: block;
+}
+
+/* Mobile Sidebar Close Button */
+.mobile-sidebar-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: #4a5568;
+  font-size: 1.25rem;
+  line-height: 1;
+  z-index: 1001;
+}
+
+.mobile-sidebar-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+/* Responsive Navigation States */
+@media (max-width: 991px) {
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .mobile-only {
+    display: none !important;
+  }
+  
+  .mobile-sidebar-overlay {
+    display: none !important;
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .mobile-menu-toggle,
+  .mobile-sidebar-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .nav-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+/* Mobile menu animation */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.sidebar.mobile-opening {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.sidebar.mobile-closing {
+  animation: slideOutLeft 0.3s ease-out;
+}

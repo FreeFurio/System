@@ -547,12 +547,106 @@ router.get('/facebook-oauth-callback', async (req, res) => {
         <head>
           <title>Facebook Authorization Complete</title>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+            }
+            .container {
+              background: rgba(255, 255, 255, 0.95);
+              padding: 40px;
+              border-radius: 20px;
+              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+              text-align: center;
+              max-width: 500px;
+              width: 90%;
+              color: #333;
+            }
+            .success-icon {
+              width: 80px;
+              height: 80px;
+              background: #4CAF50;
+              border-radius: 50%;
+              margin: 0 auto 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 40px;
+              color: white;
+            }
+            h1 {
+              font-size: 28px;
+              margin-bottom: 15px;
+              color: #2c3e50;
+            }
+            .subtitle {
+              font-size: 16px;
+              color: #7f8c8d;
+              margin-bottom: 25px;
+            }
+            .pages-info {
+              background: #f8f9fa;
+              padding: 20px;
+              border-radius: 10px;
+              margin: 20px 0;
+            }
+            .page-count {
+              font-size: 24px;
+              font-weight: bold;
+              color: #1877f2;
+              margin-bottom: 10px;
+            }
+            .page-list {
+              font-size: 14px;
+              color: #65676b;
+            }
+            .loading {
+              display: inline-block;
+              width: 20px;
+              height: 20px;
+              border: 3px solid #f3f3f3;
+              border-top: 3px solid #1877f2;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+              margin-left: 10px;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            .footer {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #95a5a6;
+            }
+          </style>
         </head>
         <body>
-          <h1>✅ Authorization Complete!</h1>
-          <p>Found ${pages.length} pages. Closing automatically...</p>
-          <p>Session ID: ${sessionId}</p>
-          <p>Debug: ${JSON.stringify(pages.map(p => p.name))}</p>
+          <div class="container">
+            <div class="success-icon">
+              <svg viewBox="0 0 24 24" width="40" height="40" fill="white" aria-label="Facebook">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </div>
+            <h1>Facebook Connected!</h1>
+            <p class="subtitle">Your Facebook account has been successfully connected to our system.</p>
+            
+            <div class="pages-info">
+              <div class="page-count">${pages.length} Page${pages.length !== 1 ? 's' : ''} Found</div>
+              <div class="page-list">${pages.map(p => p.name).join(', ')}</div>
+            </div>
+            
+            <p>Closing automatically<span class="loading"></span></p>
+            <p class="footer">You can now manage your Facebook pages from the dashboard</p>
+          </div>
+          
           <script>
             const authData = ${JSON.stringify(authData)};
             console.log('Auth data being sent:', authData);
@@ -569,7 +663,7 @@ router.get('/facebook-oauth-callback', async (req, res) => {
               console.log('Communication error:', e);
             }
             
-            setTimeout(() => window.close(), 2000);
+            setTimeout(() => window.close(), 3000);
           </script>
         </body>
       </html>
@@ -2324,11 +2418,118 @@ router.get('/twitter-callback', async (req, res) => {
     global.twitterUserToken = accessToken;
     
     res.send(`
+      <!DOCTYPE html>
       <html>
+        <head>
+          <title>Twitter Authorization Complete</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+            }
+            .container {
+              background: rgba(255, 255, 255, 0.95);
+              padding: 40px;
+              border-radius: 20px;
+              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+              text-align: center;
+              max-width: 500px;
+              width: 90%;
+              color: #333;
+            }
+            .success-icon {
+              width: 80px;
+              height: 80px;
+              background: #1da1f2;
+              border-radius: 50%;
+              margin: 0 auto 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 40px;
+              color: white;
+            }
+            h1 {
+              font-size: 28px;
+              margin-bottom: 15px;
+              color: #14171a;
+            }
+            .subtitle {
+              font-size: 16px;
+              color: #657786;
+              margin-bottom: 25px;
+            }
+            .account-info {
+              background: #f7f9fa;
+              padding: 20px;
+              border-radius: 10px;
+              margin: 20px 0;
+            }
+            .username {
+              font-size: 20px;
+              font-weight: bold;
+              color: #1da1f2;
+              margin-bottom: 5px;
+            }
+            .name {
+              font-size: 16px;
+              color: #14171a;
+              margin-bottom: 10px;
+            }
+            .followers {
+              font-size: 14px;
+              color: #657786;
+            }
+            .loading {
+              display: inline-block;
+              width: 20px;
+              height: 20px;
+              border: 3px solid #f3f3f3;
+              border-top: 3px solid #1da1f2;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+              margin-left: 10px;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            .footer {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #95a5a6;
+            }
+          </style>
+        </head>
         <body>
-          <h1>✅ Twitter Authorization Complete!</h1>
-          <p>Token saved to Firebase. You can now fetch Twitter posts.</p>
-          <script>setTimeout(() => window.close(), 2000);</script>
+          <div class="container">
+            <div class="success-icon">
+              <svg viewBox="0 0 24 24" width="40" height="40" fill="white" aria-label="Twitter">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+              </svg>
+            </div>
+            <h1>Twitter Connected!</h1>
+            <p class="subtitle">Your Twitter account has been successfully connected to our system.</p>
+            
+            <div class="account-info">
+              <div class="username">@${userInfo.username}</div>
+              <div class="name">${userInfo.name}</div>
+              <div class="followers">${userInfo.public_metrics?.followers_count || 0} followers</div>
+            </div>
+            
+            <p>Closing automatically<span class="loading"></span></p>
+            <p class="footer">You can now manage your Twitter account from the dashboard</p>
+          </div>
+          
+          <script>setTimeout(() => window.close(), 3000);</script>
         </body>
       </html>
     `);

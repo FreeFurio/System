@@ -1,0 +1,232 @@
+/* ===== MOBILE LAYOUT FIXES ===== */
+
+/* Ensure all containers fit screen */
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal overflow */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Mobile container constraints */
+@media (max-width: 767px) {
+  .admin-dashboard,
+  .marketing-dashboard {
+    width: 100vw;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .admin-dashboard .main-content,
+  .marketing-dashboard .main-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Fix card overflow */
+  .admin-dashboard .team-card,
+  .admin-dashboard .month-card,
+  .admin-dashboard .promo-card,
+  .admin-dashboard .metric-card,
+  .admin-dashboard .celebration-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Fix text overflow */
+  .admin-dashboard .team-count,
+  .admin-dashboard .content-count,
+  .admin-dashboard .metric-value {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  
+  .admin-dashboard .promo-description,
+  .admin-dashboard .celebration-description {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+  
+  /* Fix button sizing */
+  .admin-dashboard .team-button {
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  /* Fix progress bars */
+  .admin-dashboard .progress-bar {
+    height: 3px;
+    margin-top: 2px;
+  }
+  
+  /* Fix celebration card */
+  .admin-dashboard .celebration-content {
+    padding: 16px;
+  }
+  
+  .admin-dashboard .celebration-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+  
+  .admin-dashboard .celebration-title {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+  
+  .admin-dashboard .celebration-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+}
+
+/* Extra small mobile fixes */
+@media (max-width: 575px) {
+  .admin-dashboard .team-card,
+  .admin-dashboard .month-card,
+  .admin-dashboard .promo-card,
+  .admin-dashboard .metric-card {
+    min-height: auto;
+    height: auto;
+  }
+  
+  .admin-dashboard .card-content {
+    padding: 6px;
+    text-align: left;
+  }
+  
+  .admin-dashboard .team-count,
+  .admin-dashboard .content-count,
+  .admin-dashboard .metric-value {
+    font-size: 0.9rem;
+  }
+  
+  .admin-dashboard .team-role,
+  .admin-dashboard .month-title,
+  .admin-dashboard .metric-name {
+    font-size: 0.65rem;
+  }
+  
+  .admin-dashboard .promo-title {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+  
+  .admin-dashboard .promo-description {
+    font-size: 0.7rem;
+    margin-bottom: 6px;
+  }
+  
+  .admin-dashboard .promo-hashtags {
+    font-size: 0.6rem;
+  }
+  
+  /* Fix geometric shapes for small screens */
+  .admin-dashboard .shape-1 {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .admin-dashboard .shape-2 {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .admin-dashboard .shape-3 {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .admin-dashboard .logo-description {
+    font-size: 0.65rem;
+    margin-top: 4px;
+  }
+}
+
+/* Landscape mobile specific */
+@media (max-width: 767px) and (orientation: landscape) and (max-height: 500px) {
+  .admin-dashboard .central-logo {
+    height: 80px;
+    margin-bottom: 4px;
+  }
+  
+  .admin-dashboard .logo-title {
+    font-size: 0.9rem;
+  }
+  
+  .admin-dashboard .logo-subtitle {
+    font-size: 0.7rem;
+  }
+  
+  .admin-dashboard .team-section {
+    margin-bottom: 8px;
+  }
+  
+  .admin-dashboard .content-grid {
+    gap: 6px;
+  }
+}
+
+/* Fix footer positioning */
+@media (max-width: 767px) {
+  .admin-dashboard-footer,
+  .marketing-dashboard-footer,
+  .footer {
+    position: relative;
+    width: 100%;
+  }
+}
+
+/* Ensure modals fit properly */
+@media (max-width: 575px) {
+  .otp-modal-backdrop {
+    padding: 4px;
+  }
+  
+  .otp-modal {
+    margin: 2px;
+    max-width: calc(100vw - 8px);
+    min-width: calc(100vw - 8px);
+    padding: 12px;
+  }
+  
+  .modal-title {
+    font-size: 1.1rem;
+  }
+  
+  .modal-subtitle {
+    font-size: 0.8rem;
+  }
+}
+
+/* Fix form containers */
+@media (max-width: 575px) {
+  .login-form-container,
+  .form-container {
+    max-width: calc(100vw - 8px);
+    min-width: calc(100vw - 8px);
+    padding: 8px 4px;
+    margin: 2px;
+  }
+  
+  .login-title,
+  .title {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+  
+  .login-subtitle,
+  .subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
+}

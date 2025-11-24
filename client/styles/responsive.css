@@ -1,0 +1,659 @@
+/* ===== COMPREHENSIVE RESPONSIVE SYSTEM ===== */
+@import url('./mobile-navigation.css');
+@import url('./responsive-utilities.css');
+@import url('./mobile-layout-fixes.css');
+
+/* Mobile First Approach - Base styles for mobile */
+:root {
+  --mobile-padding: 16px;
+  --tablet-padding: 24px;
+  --desktop-padding: 32px;
+  --sidebar-width-mobile: 100%;
+  --sidebar-width-tablet: 240px;
+  --sidebar-width-desktop: 280px;
+}
+
+/* ===== BREAKPOINTS ===== */
+/* xs: 0-575px (Mobile) */
+/* sm: 576-767px (Large Mobile) */
+/* md: 768-991px (Tablet) */
+/* lg: 992-1199px (Desktop) */
+/* xl: 1200px+ (Large Desktop) */
+
+/* ===== GLOBAL RESPONSIVE UTILITIES ===== */
+@media (max-width: 767px) {
+  .hide-mobile { display: none !important; }
+  .mobile-full-width { width: 100% !important; }
+  .mobile-center { text-align: center !important; }
+  .mobile-stack { flex-direction: column !important; }
+}
+
+@media (min-width: 768px) {
+  .hide-desktop { display: none !important; }
+}
+
+/* ===== DASHBOARD RESPONSIVE ===== */
+@media (max-width: 991px) {
+  .admin-dashboard .dashboard-container,
+  .marketing-dashboard .dashboard-container {
+    flex-direction: column;
+  }
+  
+  .admin-dashboard .sidebar,
+  .marketing-dashboard .sidebar {
+    width: 100%;
+    min-width: 100%;
+    padding: 16px;
+    order: 2;
+  }
+  
+  .admin-dashboard .main-content,
+  .marketing-dashboard .main-content {
+    order: 1;
+  }
+  
+  .admin-dashboard .content-area,
+  .marketing-dashboard .content-area {
+    padding: 16px;
+  }
+  
+  .admin-dashboard .content-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .admin-dashboard .team-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .admin-dashboard .team-card,
+  .admin-dashboard .month-card,
+  .admin-dashboard .promo-card,
+  .admin-dashboard .metric-card {
+    padding: 12px;
+    margin: 0 0 8px 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-dashboard .header,
+  .marketing-dashboard .header {
+    padding: 0 12px;
+    min-height: 56px;
+  }
+  
+  .admin-dashboard .sidebar,
+  .marketing-dashboard .sidebar {
+    padding: 8px;
+  }
+  
+  .admin-dashboard .user-profile,
+  .marketing-dashboard .user-profile {
+    margin: 0 0 12px 0;
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .admin-dashboard .nav-item,
+  .marketing-dashboard .nav-item {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+  
+  .admin-dashboard .content-area,
+  .marketing-dashboard .content-area {
+    padding: 8px;
+  }
+  
+  .admin-dashboard .central-logo {
+    height: 120px;
+    margin-bottom: 12px;
+  }
+  
+  .admin-dashboard .shape-1 {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .admin-dashboard .shape-2 {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .admin-dashboard .shape-3 {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .admin-dashboard .logo-title {
+    font-size: 1.2rem;
+  }
+  
+  .admin-dashboard .logo-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .admin-dashboard .team-card,
+  .admin-dashboard .month-card,
+  .admin-dashboard .promo-card,
+  .admin-dashboard .metric-card {
+    padding: 8px;
+    border-radius: 6px;
+  }
+  
+  .admin-dashboard .card-content {
+    padding: 12px;
+  }
+  
+  .admin-dashboard .team-count {
+    font-size: 1.2rem;
+  }
+  
+  .admin-dashboard .team-role {
+    font-size: 0.75rem;
+  }
+}
+
+/* ===== CONTENT GRID RESPONSIVE ===== */
+@media (max-width: 1199px) {
+  .admin-dashboard .content-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-dashboard .team-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .admin-dashboard .team-card.full-width {
+    grid-column: span 1;
+  }
+  
+  .admin-dashboard .central-logo {
+    height: 120px;
+    margin-bottom: 8px;
+  }
+  
+  .admin-dashboard .logo-title {
+    font-size: 1.2rem;
+  }
+  
+  .admin-dashboard .logo-subtitle {
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== FORMS RESPONSIVE ===== */
+@media (max-width: 767px) {
+  .login-form-container,
+  .form-container {
+    max-width: calc(100vw - 16px);
+    padding: 12px 8px;
+    margin: 4px;
+  }
+  
+  .login-title,
+  .title {
+    font-size: 1.3rem;
+  }
+  
+  .login-input,
+  .input,
+  .select {
+    height: 44px;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.4rem 0.2rem 0.4rem;
+  }
+  
+  .login-btn-primary,
+  .signup-button,
+  .back-button {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    height: 40px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 575px) {
+  .login-form-container,
+  .form-container {
+    padding: 8px 6px;
+    border-radius: 12px;
+    margin: 4px;
+    max-width: calc(100vw - 8px);
+  }
+  
+  .step-progress {
+    gap: 0.25rem;
+  }
+  
+  .step-dot {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+  
+  .admin-dashboard .header,
+  .marketing-dashboard .header {
+    padding: 0 8px;
+    min-height: 48px;
+  }
+  
+  .admin-dashboard .content-area,
+  .marketing-dashboard .content-area {
+    padding: 4px;
+  }
+  
+  .admin-dashboard .central-logo {
+    height: 100px;
+    margin-bottom: 8px;
+  }
+  
+  .admin-dashboard .logo-title {
+    font-size: 1rem;
+  }
+  
+  .admin-dashboard .logo-subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .admin-dashboard .team-card,
+  .admin-dashboard .month-card,
+  .admin-dashboard .promo-card,
+  .admin-dashboard .metric-card {
+    padding: 6px;
+    margin: 0 0 4px 0;
+  }
+  
+  .admin-dashboard .card-content {
+    padding: 8px;
+  }
+  
+  .admin-dashboard .team-count {
+    font-size: 1rem;
+  }
+  
+  .admin-dashboard .team-role,
+  .admin-dashboard .month-title,
+  .admin-dashboard .promo-title {
+    font-size: 0.7rem;
+  }
+}
+
+/* ===== ACCOUNT CARDS RESPONSIVE ===== */
+@media (max-width: 767px) {
+  .account-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    margin: 0 0 8px 0 !important;
+  }
+  
+  .account-actions,
+  .modern-account-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  
+  .account-info {
+    width: 100%;
+  }
+  
+  .account-avatar,
+  .modern-account-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .account-card {
+    padding: 8px;
+    gap: 6px;
+  }
+  
+  .account-actions,
+  .modern-account-actions {
+    justify-content: center;
+    gap: 4px;
+  }
+  
+  .modern-icon-btn.delete-icon-btn.labeled-delete-btn,
+  .modern-icon-btn.modify-icon-btn.labeled-modify-btn {
+    width: 50px;
+    height: 20px;
+    font-size: 0.7rem;
+    padding: 0 4px;
+  }
+  
+  .account-avatar,
+  .modern-account-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
+
+/* ===== FOOTER RESPONSIVE ===== */
+@media (max-width: 767px) {
+  .admin-dashboard-footer-container,
+  .marketing-dashboard-footer-container,
+  .footer-container {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 4px 8px;
+    height: 48px;
+    min-height: 48px;
+  }
+  
+  .admin-dashboard-footer,
+  .marketing-dashboard-footer,
+  .footer {
+    height: 48px;
+    min-height: 48px;
+  }
+  
+  .admin-dashboard-footer-links,
+  .footer-links {
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .admin-dashboard-footer-logo,
+  .nail img,
+  #nails {
+    height: 32px;
+  }
+}
+
+@media (max-width: 575px) {
+  .admin-dashboard-footer-container,
+  .marketing-dashboard-footer-container,
+  .footer-container {
+    padding: 2px 4px;
+    height: 40px;
+    min-height: 40px;
+  }
+  
+  .admin-dashboard-footer,
+  .marketing-dashboard-footer,
+  .footer {
+    height: 40px;
+    min-height: 40px;
+  }
+  
+  .admin-dashboard-footer-links,
+  .footer-links {
+    gap: 0.25rem;
+    font-size: 0.7rem;
+  }
+  
+  .admin-dashboard-footer-logo,
+  .nail img,
+  #nails {
+    height: 28px;
+  }
+}
+
+/* ===== HEADER RESPONSIVE ===== */
+@media (max-width: 767px) {
+  .header-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .logo-img {
+    width: 70px;
+    height: auto;
+  }
+  
+  .header-actions {
+    gap: 0.25rem;
+  }
+  
+  .header-profile-btn,
+  .notification-bell {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 575px) {
+  .header-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  .logo-img {
+    width: 60px;
+  }
+  
+  .header-profile-btn,
+  .notification-bell {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ===== MODALS RESPONSIVE ===== */
+.otp-modal-backdrop {
+  padding: 16px;
+}
+
+.otp-modal {
+  margin: 8px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .otp-modal-backdrop {
+    padding: 8px;
+  }
+  
+  .otp-modal {
+    min-width: calc(100vw - 16px);
+    margin: 8px;
+    padding: 1.5rem;
+    max-width: calc(100vw - 16px);
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .otp-input {
+    font-size: 1rem;
+    letter-spacing: 0.25rem;
+  }
+  
+  .otp-button-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (min-width: 768px) {
+  .otp-modal {
+    margin: 32px;
+    max-width: calc(100vw - 64px);
+  }
+}
+
+/* ===== CONTENT CREATOR CARD RESPONSIVE ===== */
+@media (max-width: 991px) {
+  .content-creator-card {
+    padding: 16px 12px;
+    margin: 0 4px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .content-creator-card {
+    padding: 12px 8px;
+    border-radius: 8px;
+    gap: 12px;
+    margin: 0 2px;
+  }
+}
+
+@media (max-width: 575px) {
+  .content-creator-card {
+    padding: 8px 4px;
+    border-radius: 6px;
+    gap: 8px;
+    margin: 0;
+  }
+}
+
+/* ===== TYPOGRAPHY RESPONSIVE ===== */
+@media (max-width: 767px) {
+  .admin-dashboard .user-name,
+  .marketing-dashboard .user-name {
+    font-size: 0.9rem;
+  }
+  
+  .admin-dashboard .user-role,
+  .marketing-dashboard .user-role {
+    font-size: 0.75rem;
+  }
+  
+  .role-section h2 {
+    font-size: 1.1rem;
+  }
+  
+  .account-name {
+    font-size: 0.9rem;
+  }
+  
+  .account-role {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .admin-dashboard .user-name,
+  .marketing-dashboard .user-name {
+    font-size: 0.8rem;
+  }
+  
+  .admin-dashboard .user-role,
+  .marketing-dashboard .user-role {
+    font-size: 0.7rem;
+  }
+  
+  .role-section h2 {
+    font-size: 1rem;
+  }
+  
+  .account-name {
+    font-size: 0.8rem;
+  }
+  
+  .account-role {
+    font-size: 0.7rem;
+  }
+}
+
+/* ===== LANDSCAPE MOBILE ADJUSTMENTS ===== */
+@media (max-width: 991px) and (orientation: landscape) and (max-height: 600px) {
+  .main {
+    padding: 4px;
+  }
+  
+  .login-form-container,
+  .form-container {
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  
+  .admin-dashboard .sidebar,
+  .marketing-dashboard .sidebar {
+    display: none;
+  }
+  
+  .admin-dashboard .header,
+  .marketing-dashboard .header {
+    min-height: 40px;
+    padding: 0 8px;
+  }
+  
+  .admin-dashboard .content-area,
+  .marketing-dashboard .content-area {
+    padding: 4px;
+  }
+}
+
+/* ===== TABLET SPECIFIC ===== */
+@media (min-width: 768px) and (max-width: 991px) {
+  .admin-dashboard .content-area,
+  .marketing-dashboard .content-area {
+    padding: 20px;
+  }
+  
+  .admin-dashboard .content-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .admin-dashboard .team-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+/* ===== LARGE DESKTOP OPTIMIZATIONS ===== */
+@media (min-width: 1400px) {
+  .admin-dashboard .content-area,
+  .marketing-dashboard .content-area {
+    padding: 48px;
+  }
+  
+  .admin-dashboard .sidebar,
+  .marketing-dashboard .sidebar {
+    width: 320px;
+    min-width: 320px;
+  }
+  
+  .content-creator-card {
+    padding: 48px;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .admin-dashboard .sidebar,
+  .marketing-dashboard .sidebar,
+  .admin-dashboard-footer,
+  .marketing-dashboard-footer,
+  .footer,
+  .header-actions,
+  .notification-bell,
+  .header-profile-btn {
+    display: none !important;
+  }
+  
+  .admin-dashboard .main-content,
+  .marketing-dashboard .main-content {
+    width: 100% !important;
+  }
+}

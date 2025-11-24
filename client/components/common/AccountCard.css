@@ -1,3 +1,6 @@
+/* Import Responsive System */
+@import url('../../styles/responsive.css');
+
 .account-card {
   display: flex;
   justify-content: space-between;

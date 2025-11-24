@@ -1094,11 +1094,12 @@ class InsightsService {
             });
             
             console.log('📊 Instagram Metrics:', { igReach, totalLikes, totalComments, igShares, igFollows });
+            console.log('📊 Instagram Total Engagement (for history):', totalLikes + totalComments);
           } catch (insightsError) {
             console.log('Could not get Instagram insights:', insightsError.message);
           }
           
-          const totalEngagementIG = totalLikes + totalComments + igShares;
+          const totalEngagementIG = totalLikes + totalComments; // Use actual post engagement, not API shares
           
           // Find top post (highest engagement)
           let topPost = null;
@@ -1184,7 +1185,20 @@ class InsightsService {
               await set(newIgEntryRef, todayIgData);
               console.log(`✅ Added Instagram history entry: ${currentDateKey}`);
             } else {
-              console.log(`📅 Today's Instagram entry already exists: ${currentDateKey}`);
+              // Update today's entry if it has wrong total (0 when should be > 0)
+              const todayEntry = igHistoryEntries.find(entry => entry?.dateKey === currentDateKey);
+              if (todayEntry && todayEntry.total === 0 && totalEngagementIG > 0) {
+                console.log(`🔄 Updating today's IG entry from ${todayEntry.total} to ${totalEngagementIG}`);
+                const { set } = await import('firebase/database');
+                const todayEntryKey = Object.keys(existingIgHistory).find(key => existingIgHistory[key]?.dateKey === currentDateKey);
+                if (todayEntryKey) {
+                  const updateRef = ref(db, `${actualIgPath}/${todayEntryKey}`);
+                  await set(updateRef, { ...todayEntry, total: totalEngagementIG });
+                  console.log(`✅ Updated Instagram history entry for ${currentDateKey}`);
+                }
+              } else {
+                console.log(`📅 Today's Instagram entry already exists: ${currentDateKey}`);
+              }
             }
             
             // Get updated Instagram history for display
@@ -1228,6 +1242,8 @@ class InsightsService {
             topPost: topPost,
             recentPost: recentPost
           };
+          
+          console.log('✅ FINAL IG ENGAGEMENT OBJECT:', JSON.stringify(igEngagement, null, 2));
         }
       } catch (igError) {
         console.log('No Instagram account or error fetching Instagram data:', igError.message);

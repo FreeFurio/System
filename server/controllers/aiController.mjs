@@ -1,4 +1,5 @@
 import aiService from '../services/aiService.mjs';
+import seoService from '../services/seoService.mjs';
 
 class AIController {
   // Generate content for specific platform
@@ -80,7 +81,7 @@ class AIController {
   // Analyze SEO score
   async analyzeSEO(req, res) {
     try {
-      const { content, contentType = 'headline' } = req.body;
+      const { content, contentType = 'headline', platform = 'facebook' } = req.body;
 
       if (!content) {
         return res.status(400).json({
@@ -88,13 +89,14 @@ class AIController {
         });
       }
 
-      const analysis = await aiService.analyzeSEO(content, contentType);
+      const analysis = await seoService.analyzeSEO(content, contentType, platform);
 
       res.json({
         success: true,
         data: {
           content,
           contentType,
+          platform,
           analysis,
           analyzedAt: new Date().toISOString()
         }

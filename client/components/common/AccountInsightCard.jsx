@@ -1,13 +1,13 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const AccountInsightCard = ({ account, engagement }) => {
+const AccountInsightCard = ({ account, engagement, platformFilter }) => {
   const fbData = engagement?.facebook || {};
   const igData = engagement?.instagram;
   const twitterData = engagement?.twitter;
   
   const fbTotal = (fbData.totalReactions || 0) + (fbData.totalComments || 0) + (fbData.totalShares || 0);
-  const igTotal = igData ? (igData.totalLikes || 0) + (igData.totalComments || 0) : 0;
+  const igTotal = igData ? ((igData.likes || 0) + (igData.comments || 0)) : 0;
   
   const fbChartData = fbData.historicalData && fbData.historicalData.length > 0 
     ? [
@@ -35,8 +35,8 @@ const AccountInsightCard = ({ account, engagement }) => {
         { name: '', total: null, invisible: true }
       ] : null;
   
-  // Twitter-specific rendering
-  if (account.platform === 'twitter') {
+  // Platform-specific rendering
+  if (platformFilter === 'twitter' || account.platform === 'twitter') {
     console.log('Twitter Data:', twitterData);
     console.log('Top Post:', twitterData?.topPost);
     console.log('Recent Post:', twitterData?.recentPost);
@@ -285,6 +285,197 @@ const AccountInsightCard = ({ account, engagement }) => {
     );
   }
 
+  // Instagram-specific rendering
+  if (platformFilter === 'instagram' && igData) {
+    return (
+      <div style={{
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        padding: '20px',
+        background: '#fff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+      }}>
+        <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {account.profilePicture ? (
+            <img 
+              src={account.profilePicture} 
+              alt={account.name}
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }}
+            />
+          ) : null}
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            background: '#e4405f',
+            display: account.profilePicture ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px'
+          }}>
+            {(account.name || 'U').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h3 style={{ 
+              margin: '0 0 5px 0', 
+              color: '#333',
+              fontSize: '18px',
+              fontWeight: '600'
+            }}>
+              {account.name}
+            </h3>
+            <p style={{ 
+              margin: 0, 
+              color: '#666', 
+              fontSize: '14px' 
+            }}>
+              {account.category} • {account.fanCount || 0} followers
+            </p>
+          </div>
+        </div>
+
+        {igData && (
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ margin: '0 0 10px 0', color: '#e4405f', fontSize: '14px' }}>Instagram Engagement History</h4>
+            <div style={{ height: '200px', marginBottom: '10px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={igChartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis domain={[0, 'dataMax + 10']} tickFormatter={(value) => Math.round(value)} />
+                  <Tooltip />
+                  <Line 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="#e4405f" 
+                    strokeWidth={3} 
+                    connectNulls={false}
+                    dot={(props) => {
+                      if (props.payload?.invisible) {
+                        return null;
+                      }
+                      return <circle key={`instagram-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#e4405f" />;
+                    }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {igData && (
+          <>
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: '20px',
+              textAlign: 'center',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e4405f' }}>{igData.reach || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Reach</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e91e63' }}>{igData.likes || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>{igData.comments || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Comments</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#4caf50' }}>{igData.shares || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Shares</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1da1f2' }}>{igData.follows || 0}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>New Follows</div>
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+              <div style={{ borderRadius: '8px', padding: '15px' }}>
+                <h4 style={{ margin: '0 0 15px 0', color: '#fbbf24', fontSize: '14px' }}>🏆 Top Post</h4>
+                {igData.topPost ? (
+                  <div>
+                    <div style={{ background: '#fffbeb', padding: '12px', borderRadius: '8px', marginBottom: '10px', fontSize: '12px', color: '#666', border: '1px solid #fbbf24' }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#f59e0b' }}>
+                        {new Date(igData.topPost.timestamp).toLocaleDateString()}
+                      </div>
+                      <div>{igData.topPost.caption.substring(0, 100)}{igData.topPost.caption.length > 100 ? '...' : ''}</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', textAlign: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{igData.topPost.likes || 0}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#28a745' }}>{igData.topPost.comments || 0}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>Comments</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ color: '#666', fontSize: '14px' }}>No posts found</div>
+                )}
+              </div>
+              
+              <div style={{ borderRadius: '8px', padding: '15px' }}>
+                <h4 style={{ margin: '0 0 15px 0', color: '#e4405f', fontSize: '14px' }}>Recent Post</h4>
+                {igData.recentPost ? (
+                  <div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', marginBottom: '10px', fontSize: '12px', color: '#666' }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                        {new Date(igData.recentPost.timestamp).toLocaleDateString()}
+                      </div>
+                      <div>{igData.recentPost.caption.substring(0, 100)}{igData.recentPost.caption.length > 100 ? '...' : ''}</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', textAlign: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#e91e63' }}>{igData.recentPost.likes || 0}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>Likes</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#28a745' }}>{igData.recentPost.comments || 0}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>Comments</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ color: '#666', fontSize: '14px' }}>No recent posts found</div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          fontSize: '11px',
+          color: '#999',
+          borderTop: '1px solid #f0f0f0',
+          paddingTop: '10px'
+        }}>
+          <span>Platform: Instagram</span>
+          {igData && <span>Posts: {igData.postsCount || 0}</span>}
+          <span>Connected: {new Date(account.connectedAt).toLocaleDateString()}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Facebook-specific rendering
   return (
     <div style={{
       border: '1px solid #e0e0e0',
@@ -341,83 +532,38 @@ const AccountInsightCard = ({ account, engagement }) => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-        <div style={{ borderRadius: '8px', padding: '15px' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#1877f2', fontSize: '14px' }}>Facebook Engagement</h4>
-          <div style={{ height: '150px', marginBottom: '10px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={fbChartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" domain={['dataMin', 'dataMax']} type="category" />
-                <YAxis domain={[0, 'dataMax + 10']} tickFormatter={(value) => Math.round(value)} />
-                <Tooltip 
-                  formatter={(value, name) => [value, 'Total Engagement']}
-                  labelFormatter={(label, payload) => {
-                    if (payload && payload[0] && payload[0].payload.time) {
-                      return `${label} at ${payload[0].payload.time}`;
-                    }
-                    return label;
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke="#1877f2" 
-                  strokeWidth={3} 
-                  connectNulls={false}
-                  dot={(props) => {
-                    if (props.payload?.invisible) {
-                      return null;
-                    }
-                    return <circle key={`facebook-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#1877f2" />;
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div style={{ borderRadius: '8px', padding: '15px' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#e4405f', fontSize: '14px' }}>Instagram Engagement</h4>
-          {igChartData ? (
-            <div style={{ height: '150px', marginBottom: '10px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={igChartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 'dataMax + 10']} tickFormatter={(value) => Math.round(value)} />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="total" 
-                    stroke="#e4405f" 
-                    strokeWidth={3} 
-                    connectNulls={false}
-                    dot={(props) => {
-                      if (props.payload?.invisible) {
-                        return null;
-                      }
-                      return <circle key={`instagram-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#e4405f" />;
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div style={{ 
-              height: '150px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              backgroundColor: '#f8f9fa',
-              border: '1px dashed #dee2e6',
-              borderRadius: '8px',
-              color: '#6c757d',
-              fontSize: '14px'
-            }}>
-              No Instagram account connected
-            </div>
-          )}
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ margin: '0 0 10px 0', color: '#1877f2', fontSize: '14px' }}>Facebook Engagement History</h4>
+        <div style={{ height: '150px', marginBottom: '10px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={fbChartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" domain={['dataMin', 'dataMax']} type="category" />
+              <YAxis domain={[0, 'dataMax + 10']} tickFormatter={(value) => Math.round(value)} />
+              <Tooltip 
+                formatter={(value, name) => [value, 'Total Engagement']}
+                labelFormatter={(label, payload) => {
+                  if (payload && payload[0] && payload[0].payload.time) {
+                    return `${label} at ${payload[0].payload.time}`;
+                  }
+                  return label;
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="total" 
+                stroke="#1877f2" 
+                strokeWidth={3} 
+                connectNulls={false}
+                dot={(props) => {
+                  if (props.payload?.invisible) {
+                    return null;
+                  }
+                  return <circle key={`facebook-${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={6} fill="#1877f2" />;
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -682,8 +828,8 @@ const AccountInsightCard = ({ account, engagement }) => {
         borderTop: '1px solid #f0f0f0',
         paddingTop: '10px'
       }}>
-        <span>FB Posts: {fbData.postsCount || 0}</span>
-        {igData && <span>IG Posts: {igData.postsCount || 0}</span>}
+        <span>Platform: Facebook</span>
+        <span>Posts: {fbData.postsCount || 0}</span>
         <span>Connected: {new Date(account.connectedAt).toLocaleDateString()}</span>
       </div>
     </div>

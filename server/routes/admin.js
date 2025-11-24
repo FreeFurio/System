@@ -3258,6 +3258,98 @@ router.get('/save-mock-twitter-insights', async (req, res) => {
   }
 });
 
+// Test Instagram metrics availability
+router.get('/test-instagram-metrics/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    
+    const { ref, get } = await import('firebase/database');
+    const { getDatabase } = await import('firebase/database');
+    const { initializeApp } = await import('firebase/app');
+    const { config } = await import('../config/config.mjs');
+    
+    const app = initializeApp(config.firebase);
+    const db = getDatabase(app, config.firebase.databaseURL);
+    
+    const pageRef = ref(db, `connectedPages/admin/${pageId}`);
+    const snapshot = await get(pageRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ success: false, error: 'Page not found' });
+    }
+    
+    const pageData = snapshot.val();
+    const accessToken = pageData.accessToken;
+    
+    // Get Instagram account ID
+    const pageInfoResponse = await axios.get(`https://graph.facebook.com/v23.0/${pageId}`, {
+      params: {
+        fields: 'instagram_business_account',
+        access_token: accessToken
+      }
+    });
+    
+    const igAccountId = pageInfoResponse.data.instagram_business_account?.id;
+    
+    if (!igAccountId) {
+      return res.json({ success: false, error: 'No Instagram account connected' });
+    }
+    
+    // Test all metrics
+    const metrics = [
+      'accounts_engaged',
+      'reach',
+      'likes',
+      'comments',
+      'shares',
+      'saves',
+      'total_interactions',
+      'follows_and_unfollows',
+      'profile_links_taps',
+      'impressions',
+      'profile_views'
+    ];
+    
+    const results = {};
+    
+    for (const metric of metrics) {
+      try {
+        const response = await axios.get(`https://graph.facebook.com/v23.0/${igAccountId}/insights`, {
+          params: {
+            metric: metric,
+            period: 'day',
+            metric_type: 'total_value',
+            access_token: accessToken
+          }
+        });
+        
+        results[metric] = {
+          success: true,
+          value: response.data.data[0]?.total_value?.value || response.data.data[0]?.values?.[0]?.value || 0,
+          rawData: response.data.data[0]
+        };
+      } catch (error) {
+        results[metric] = {
+          success: false,
+          error: error.response?.data?.error?.message || error.message,
+          errorCode: error.response?.data?.error?.code,
+          errorType: error.response?.data?.error?.type
+        };
+      }
+    }
+    
+    res.json({
+      success: true,
+      igAccountId: igAccountId,
+      pageName: pageData.name,
+      metrics: results
+    });
+    
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Check platform availability for task creation
 router.get('/platform-availability', async (req, res) => {
   try {

@@ -246,6 +246,21 @@ router.post(
     }
 )
 
+// Auto-save canvas data
+router.post(
+    '/workflow/:workflowId/auto-save-canvas',
+    async (req, res) => {
+        try {
+            const { workflowId } = req.params;
+            const { canvasData } = req.body;
+            const updatedWorkflow = await FirebaseService.autoSaveCanvas(workflowId, canvasData);
+            res.json({ status: 'success', data: updatedWorkflow });
+        } catch (error) {
+            res.status(500).json({ status: 'error', message: error.message });
+        }
+    }
+)
+
 // Design draft saving
 router.post(
     '/workflow/:workflowId/save-design-draft',

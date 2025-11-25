@@ -58,11 +58,24 @@ export default function GraphicCreation() {
 
     window.addEventListener('message', handleMessage);
     
-    // Auto-save canvas data every 3 seconds
-    const autoSaveInterval = setInterval(() => {
+    // Auto-save canvas data every 3 seconds to both Redux and Firebase
+    const autoSaveInterval = setInterval(async () => {
       const iframe = document.querySelector('iframe');
       if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage('GET_CANVAS_JSON', '*');
+        
+        // Also save to Firebase if we have canvas data
+        if (canvasJsonData && taskId) {
+          try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/auto-save-canvas`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ canvasData: canvasJsonData })
+            });
+          } catch (error) {
+            console.error('Auto-save to Firebase failed:', error);
+          }
+        }
       }
     }, 3000);
     

@@ -131,17 +131,7 @@ export default function Dashboard() {
       border: '1px solid #e5e7eb',
       borderRadius: '12px',
       padding: '20px',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.2s ease',
-      cursor: 'pointer'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-2px)';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

@@ -23,9 +23,6 @@ const MarketingDashboard = () => {
     recentPosts: []
   });
   const [loading, setLoading] = useState(true);
-  const [showRecentPostsModal, setShowRecentPostsModal] = useState(false);
-  const [recentPostsData, setRecentPostsData] = useState([]);
-  const [activePostsTab, setActivePostsTab] = useState('facebook');
 
   useEffect(() => {
     dispatch(fetchWorkflows());
@@ -133,7 +130,6 @@ const MarketingDashboard = () => {
         recentActivity,
         recentPosts
       }));
-      setRecentPostsData(recentPosts);
 
       // Get marketing notifications for activity
       try {
@@ -172,17 +168,7 @@ const MarketingDashboard = () => {
       border: '1px solid #e5e7eb',
       borderRadius: '12px',
       padding: '20px',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.2s ease',
-      cursor: 'pointer'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-2px)';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -400,22 +386,7 @@ const MarketingDashboard = () => {
         </div>
 
         {/* Recent Posts */}
-        <div 
-          onClick={() => setShowRecentPostsModal(true)}
-          style={{
-            ...componentStyles.card,
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-          }}
-        >
+        <div style={componentStyles.card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
@@ -578,9 +549,11 @@ const MarketingDashboard = () => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
 
-      {/* Recent Posts Modal */}
-      {showRecentPostsModal && (
+export default MarketingDashboard;
         <div style={{
           position: 'fixed',
           top: 0,

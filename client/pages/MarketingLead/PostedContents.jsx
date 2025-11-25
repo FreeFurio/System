@@ -324,9 +324,9 @@ const PostedContents = () => {
                     {/* Minimal Card Header */}
                     <div style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                        {post.pageId ? (
+                        {(post.pageId || post.profileImageUrl) ? (
                           <img 
-                            src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(`https://graph.facebook.com/v23.0/${post.pageId}/picture?type=small`)}`}
+                            src={post.profileImageUrl ? `/api/v1/admin/proxy-image?url=${encodeURIComponent(post.profileImageUrl)}` : `/api/v1/admin/proxy-image?url=${encodeURIComponent(`https://graph.facebook.com/v23.0/${post.pageId}/picture?type=small`)}`}
                             alt={post.pageName}
                             style={{
                               width: '32px',
@@ -346,7 +346,7 @@ const PostedContents = () => {
                           height: '32px',
                           borderRadius: '50%',
                           background: activeTab === 'facebook' ? '#1877f2' : activeTab === 'instagram' ? '#e4405f' : '#1da1f2',
-                          display: post.profilePicture ? 'none' : 'flex',
+                          display: (post.pageId || post.profileImageUrl) ? 'none' : 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           color: 'white',
@@ -523,9 +523,9 @@ const PostedContents = () => {
               padding: '16px',
               borderBottom: '1px solid #e4e6ea'
             }}>
-              {selectedPost.pageId ? (
+              {(selectedPost.pageId || selectedPost.profileImageUrl) ? (
                 <img 
-                  src={`/api/v1/admin/proxy-image?url=${encodeURIComponent(`https://graph.facebook.com/v23.0/${selectedPost.pageId}/picture?type=normal`)}`}
+                  src={selectedPost.profileImageUrl ? `/api/v1/admin/proxy-image?url=${encodeURIComponent(selectedPost.profileImageUrl)}` : `/api/v1/admin/proxy-image?url=${encodeURIComponent(`https://graph.facebook.com/v23.0/${selectedPost.pageId}/picture?type=normal`)}`}
                   alt={selectedPost.pageName}
                   style={{
                     width: '40px',
@@ -544,8 +544,8 @@ const PostedContents = () => {
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                background: '#1877f2',
-                display: selectedPost.profilePicture ? 'none' : 'flex',
+                background: activeTab === 'facebook' ? '#1877f2' : activeTab === 'instagram' ? '#e4405f' : '#1da1f2',
+                display: (selectedPost.pageId || selectedPost.profileImageUrl) ? 'none' : 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',

@@ -9,7 +9,7 @@
       $('body').append(`<div class="custom-modal-container">
         <div class="custom-modal-content">
           <div class="drag-drop-input">
-            <div>Drag & drop files<br>or click to browse.<br>JPG, PNG or SVG only!</div>
+            <div>Drag & drop files<br>or click to browse.<br>JPG, PNG, SVG or Video!</div>
           </div>
         </div>
       </div>`)
@@ -50,7 +50,7 @@
 
     const processFiles = (files) => {
       if (files.length === 0) return;
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml']
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/ogg']
 
       for (let file of files) {
         // check type
@@ -77,6 +77,39 @@
           continue
         }
 
+        // handle video
+        if (file.type.startsWith('video/')) {
+          reader.onload = (f) => {
+            const videoEl = document.createElement('video')
+            videoEl.src = f.target.result
+            videoEl.controls = true
+            videoEl.width = 300
+            videoEl.height = 300
+            
+            videoEl.addEventListener('loadedmetadata', () => {
+              const videoObj = new fabric.Image(videoEl, {
+                left: 0,
+                top: 0,
+                objectCaching: false
+              })
+              videoObj.scaleToHeight(300)
+              videoObj.scaleToWidth(300)
+              canvas.add(videoObj)
+              
+              videoEl.play()
+              
+              fabric.util.requestAnimFrame(function render() {
+                canvas.renderAll()
+                fabric.util.requestAnimFrame(render)
+              })
+              
+              canvas.trigger('object:modified')
+            })
+          }
+          reader.readAsDataURL(file)
+          continue
+        }
+
         // handle image, read file, add to canvas
         reader.onload = (f) => {
           fabric.Image.fromURL(f.target.result, (img) => {
@@ -97,7 +130,7 @@
       }
     }
 
-    this.containerEl.append(`<input id="btn-image-upload" type="file" accept="image/*" multiple hidden>`);
+    this.containerEl.append(`<input id="btn-image-upload" type="file" accept="image/*,video/*" multiple hidden>`);
     document.querySelector(`${this.containerSelector} #btn-image-upload`).addEventListener('change', function (e) {
       if (e.target.files.length === 0) return;
       processFiles(e.target.files)

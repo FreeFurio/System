@@ -21,8 +21,8 @@ export const config = {
   },
   
   email: {
-    gmailUser: process.env.GMAIL_USER,
-    gmailAppPassword: process.env.GMAIL_APP_PASSWORD
+    gmailUser: process.env.GMAIL_USER || process.env.EMAIL_USER,
+    gmailAppPassword: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS
   },
   
   server: {

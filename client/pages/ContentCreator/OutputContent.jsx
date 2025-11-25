@@ -248,6 +248,31 @@ export default function OutputContent() {
         workflowId: stateTaskId,
         fromDraftEdit: stateDraftEdit || false
       }));
+    } else if (contents.length === 0 && taskId) {
+      // Load from Firebase if Redux is empty
+      const loadFromFirebase = async () => {
+        setLoadingDraft(true);
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
+          const data = await response.json();
+          if (data.status === 'success') {
+            const workflow = data.data.find(w => w.id === taskId);
+            if (workflow?.contentCreator?.generatedContent) {
+              dispatch(setGeneratedContents({
+                contents: workflow.contentCreator.generatedContent,
+                taskId: taskId,
+                workflowId: taskId,
+                fromDraftEdit: false
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading from Firebase:', error);
+        } finally {
+          setLoadingDraft(false);
+        }
+      };
+      loadFromFirebase();
     } else if (stateFromRejection && (stateWorkflowId || stateTaskId)) {
       const loadDraft = async () => {
         setLoadingDraft(true);

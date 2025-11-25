@@ -231,6 +231,21 @@ router.post(
     rejectContent
 )
 
+// Save generated content
+router.post(
+    '/workflow/:workflowId/save-generated-content',
+    async (req, res) => {
+        try {
+            const { workflowId } = req.params;
+            const { generatedContent } = req.body;
+            const updatedWorkflow = await FirebaseService.saveGeneratedContent(workflowId, generatedContent);
+            res.json({ status: 'success', data: updatedWorkflow });
+        } catch (error) {
+            res.status(500).json({ status: 'error', message: error.message });
+        }
+    }
+)
+
 // Design draft saving
 router.post(
     '/workflow/:workflowId/save-design-draft',

@@ -289,7 +289,23 @@ class FirebaseService {
     }
   }
 
-  static async saveDesignDraft(workflowId, draftData) {
+  
+  static async saveGeneratedContent(workflowId, generatedContent) {
+    console.log('?? saveGeneratedContent called');
+    try {
+      const workflowRef = ref(db, `workflows/${workflowId}`);
+      const snapshot = await get(workflowRef);
+      if (!snapshot.exists()) throw new Error('Workflow not found');
+      const workflow = snapshot.val();
+      const updatedWorkflow = { ...workflow, contentCreator: { ...workflow.contentCreator, generatedContent, generatedAt: new Date().toISOString() }, updatedAt: new Date().toISOString() };
+      await set(workflowRef, updatedWorkflow);
+      return updatedWorkflow;
+    } catch (error) {
+      throw new Error('Failed to save generated content');
+    }
+  }
+
+static async saveDesignDraft(workflowId, draftData) {
     console.log('💾 saveDesignDraft called with:', { workflowId, draftData });
     try {
       const workflowRef = ref(db, `workflows/${workflowId}`);
@@ -1643,3 +1659,4 @@ class FirebaseService {
 // ========================
 
 export default FirebaseService;
+

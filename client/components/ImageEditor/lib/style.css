@@ -108,10 +108,8 @@ body {
 .toolpanel .content {
   padding: 20px;
   position: relative;
-  height: -webkit-fill-available;
-  height: -ms-fill-available;
-  height: fill-available;
-  height: -moz-fill-available;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .toolpanel .title {
@@ -174,7 +172,8 @@ body {
 
 #select-panel .text-section .style button,
 #select-panel .alignment-section button,
-#select-panel .object-options button {
+#select-panel .object-options button,
+#select-panel .effect-section .filter-btn {
   padding: 0;
   width: 32px;
   height: 32px;
@@ -182,6 +181,8 @@ body {
   border: 1px solid #ddd;
   text-align: center;
   outline: none;
+  margin: 2px;
+  cursor: pointer;
 }
 
 #select-panel button svg {
@@ -230,6 +231,14 @@ body {
 
 .toolpanel#select-panel.type-image .fill-section {
   display: none;
+}
+
+.toolpanel#select-panel .object-options #crop {
+  display: none;
+}
+
+.toolpanel#select-panel.type-image .object-options #crop {
+  display: inline-block;
 }
 
 .custom-modal-container {

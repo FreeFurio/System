@@ -209,9 +209,21 @@ export default function CreateContent() {
       setProgress(100);
       
       // Small delay to show 100% completion
-      setTimeout(() => {
+      setTimeout(async () => {
         if (res.success) {
           const finalTaskId = res.taskId || finalId;
+          
+          // Save generated content to Firebase
+          try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${finalId}/save-generated-content`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ generatedContent: res.contents })
+            });
+          } catch (err) {
+            console.error('Failed to save generated content:', err);
+          }
+          
           dispatch(setGeneratedContents({
             contents: res.contents,
             taskId: finalTaskId,

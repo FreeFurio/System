@@ -1,14 +1,20 @@
 // ========================
 // 1) IMPORTS & CONFIGURATION
 // ========================
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { config } from '../config/config.mjs';
 
 // ========================
 // 2) EMAIL TRANSPORTER
 // ========================
 class EmailService {
-  static resend = new Resend(config.email.resendApiKey);
+  static transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: config.email.gmailUser,
+      pass: config.email.gmailAppPassword
+    }
+  });
 
   // ========================
   // 3) EMAIL TEMPLATES
@@ -67,26 +73,21 @@ class EmailService {
   static async sendEmail(to, subject, html) {
     console.log('📧 sendEmail called with to:', to, 'subject:', subject);
     try {
-      const { data, error } = await this.resend.emails.send({
-        from: config.email.fromAddress,
+      const info = await this.transporter.sendMail({
+        from: `"Salon Management" <${config.email.gmailUser}>`,
         to,
         subject,
         html
       });
       
-      if (error) {
-        console.error('❌ sendEmail - Resend error:', error);
-        throw new Error('Failed to send email');
-      }
-      
-      console.log('✅ sendEmail - Email sent successfully. ID:', data.id);
+      console.log('✅ sendEmail - Email sent successfully. ID:', info.messageId);
       return { 
         success: true, 
-        messageId: data.id 
+        messageId: info.messageId 
       };
     } catch (error) {
-      console.error('❌ sendEmail - Error sending email:', error);
-      throw new Error('Failed to send email');
+      console.error('❌ sendEmail - Error:', error);
+      throw error;
     }
   }
 

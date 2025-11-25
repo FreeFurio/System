@@ -32,6 +32,8 @@ const SocialsAndInsights = () => {
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   const [insightsStep, setInsightsStep] = useState('');
   const [insightsProgress, setInsightsProgress] = useState(0);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [disconnectType, setDisconnectType] = useState(null);
 
   const handleMessage = useCallback((event) => {
     console.log('Message received:', event.data);
@@ -566,13 +568,9 @@ const SocialsAndInsights = () => {
                     <h4 style={{ color: '#dc3545', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Disconnect All Pages</h4>
                     <p style={{ color: '#666', margin: '10px 0' }}>Remove all Facebook pages from the system</p>
                     <button 
-                      onClick={async () => {
-                        if (confirm('Are you sure you want to disconnect all Facebook pages?')) {
-                          for (const page of connectedPages) {
-                            await adminService.deleteAccount(page.id);
-                          }
-                          fetchConnectedPages();
-                        }
+                      onClick={() => {
+                        setDisconnectType('facebook');
+                        setShowDisconnectModal(true);
                       }}
                       style={{
                         background: '#dc3545',
@@ -645,13 +643,9 @@ const SocialsAndInsights = () => {
                     <h4 style={{ color: '#dc3545', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Disconnect Twitter</h4>
                     <p style={{ color: '#666', margin: '10px 0' }}>Remove Twitter account from the system</p>
                     <button 
-                      onClick={async () => {
-                        if (confirm('Are you sure you want to disconnect your Twitter account?')) {
-                          await fetch(`${API_BASE_URL}/twitter-account/${connectedTwitterAccounts[0].id}`, {
-                            method: 'DELETE'
-                          });
-                          fetchConnectedTwitterAccounts();
-                        }
+                      onClick={() => {
+                        setDisconnectType('twitter');
+                        setShowDisconnectModal(true);
                       }}
                       style={{
                         background: '#dc3545',
@@ -1161,6 +1155,94 @@ const SocialsAndInsights = () => {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Disconnect Modal */}
+      {showDisconnectModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff',
+            padding: '30px',
+            borderRadius: '12px',
+            maxWidth: '450px',
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+              <h3 style={{ margin: '0 0 12px 0', color: '#dc3545', fontSize: '24px', fontWeight: '700' }}>
+                Disconnect {disconnectType === 'facebook' ? 'Facebook Pages' : 'Twitter Account'}?
+              </h3>
+              <p style={{ margin: 0, color: '#6b7280', fontSize: '15px', lineHeight: '1.5' }}>
+                {disconnectType === 'facebook' 
+                  ? `This will remove all ${connectedPages.length} Facebook page${connectedPages.length > 1 ? 's' : ''} from the system. You'll need to reconnect them to post again.`
+                  : 'This will remove your Twitter account from the system. You\'ll need to reconnect to post again.'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  setShowDisconnectModal(false);
+                  setDisconnectType(null);
+                }}
+                style={{
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (disconnectType === 'facebook') {
+                    for (const page of connectedPages) {
+                      await adminService.deleteAccount(page.id);
+                    }
+                    fetchConnectedPages();
+                  } else if (disconnectType === 'twitter') {
+                    await fetch(`${API_BASE_URL}/twitter-account/${connectedTwitterAccounts[0].id}`, {
+                      method: 'DELETE'
+                    });
+                    fetchConnectedTwitterAccounts();
+                  }
+                  setShowDisconnectModal(false);
+                  setDisconnectType(null);
+                }}
+                style={{
+                  background: '#dc3545',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Disconnect
+              </button>
+            </div>
           </div>
         </div>
       )}

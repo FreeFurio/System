@@ -240,6 +240,7 @@ router.post(
 // Design submission and approval
 router.post(
     '/workflow/:workflowId/submit-design',
+    upload.single('design'),
     submitDesign
 )
 

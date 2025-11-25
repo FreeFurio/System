@@ -256,9 +256,19 @@ const SocialsAndInsights = () => {
   const fetchInsights = async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
+    
+    if (!forceRefresh) {
+      setInsightsStep('Fetching Facebook insights...');
+      setInsightsProgress(25);
+    }
+    
     try {
       const facebookInsights = await Promise.all(
-        connectedPages.map(async (account) => {
+        connectedPages.map(async (account, index) => {
+          if (!forceRefresh && index === 0) {
+            setInsightsStep('Fetching Facebook insights...');
+            setInsightsProgress(25);
+          }
           try {
             const url = `${API_BASE_URL}/engagement/account/${account.id}${forceRefresh ? '?refresh=true' : ''}`;
             const response = await fetch(url);
@@ -292,6 +302,10 @@ const SocialsAndInsights = () => {
       
       let twitterInsights = [];
       if (connectedTwitterAccounts.length > 0) {
+        if (!forceRefresh) {
+          setInsightsStep('Fetching Twitter insights...');
+          setInsightsProgress(50);
+        }
         try {
           const url = `${API_BASE_URL}/twitter-data${forceRefresh ? '?refresh=true' : ''}`;
           const response = await fetch(url);
@@ -316,13 +330,28 @@ const SocialsAndInsights = () => {
         }
       }
       
+      if (!forceRefresh) {
+        setInsightsStep('Processing analytics data...');
+        setInsightsProgress(75);
+      }
+      
       const accountInsights = [...facebookInsights, ...twitterInsights];
+      
+      if (!forceRefresh) {
+        setInsightsStep('Complete!');
+        setInsightsProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
       
       setInsights(accountInsights);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+      if (!forceRefresh) {
+        setInsightsStep('');
+        setInsightsProgress(0);
+      }
     }
   };
 
@@ -496,34 +525,70 @@ const SocialsAndInsights = () => {
                   />
                 ))}
                 
-                <div style={{
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  background: '#f8f9fa',
-                  textAlign: 'center'
-                }}>
-                  <h4 style={{ color: '#1877f2', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Connect More Pages</h4>
-                  <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
-                  <button 
-                    onClick={() => {
-                      setModalStep('connect');
-                      setShowFacebookModal(true);
-                    }}
-                    style={{
-                      background: '#1877f2',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '12px 24px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Connect Facebook Pages
-                  </button>
-                </div>
+                {connectedPages.length === 0 && (
+                  <div style={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    background: '#f8f9fa',
+                    textAlign: 'center'
+                  }}>
+                    <h4 style={{ color: '#1877f2', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Connect Facebook Pages</h4>
+                    <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
+                    <button 
+                      onClick={() => {
+                        setModalStep('connect');
+                        setShowFacebookModal(true);
+                      }}
+                      style={{
+                        background: '#1877f2',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Connect to Facebook
+                    </button>
+                  </div>
+                )}
+                {connectedPages.length > 0 && (
+                  <div style={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    background: '#fff3f3',
+                    textAlign: 'center'
+                  }}>
+                    <h4 style={{ color: '#dc3545', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Disconnect All Pages</h4>
+                    <p style={{ color: '#666', margin: '10px 0' }}>Remove all Facebook pages from the system</p>
+                    <button 
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to disconnect all Facebook pages?')) {
+                          for (const page of connectedPages) {
+                            await adminService.deleteAccount(page.id);
+                          }
+                          fetchConnectedPages();
+                        }
+                      }}
+                      style={{
+                        background: '#dc3545',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -542,31 +607,67 @@ const SocialsAndInsights = () => {
                   />
                 ))}
                 
-                <div style={{
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  background: '#f8f9fa',
-                  textAlign: 'center'
-                }}>
-                  <h4 style={{ color: '#1da1f2', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Connect Twitter Account</h4>
-                  <p style={{ color: '#666', margin: '10px 0' }}>Add your Twitter account to the system</p>
-                  <button 
-                    onClick={handleTwitterConnect}
-                    style={{
-                      background: '#1da1f2',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '12px 24px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Connect Twitter Account
-                  </button>
-                </div>
+                {connectedTwitterAccounts.length === 0 && (
+                  <div style={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    background: '#f8f9fa',
+                    textAlign: 'center'
+                  }}>
+                    <h4 style={{ color: '#1da1f2', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Connect Twitter Account</h4>
+                    <p style={{ color: '#666', margin: '10px 0' }}>Add your Twitter account to the system</p>
+                    <button 
+                      onClick={handleTwitterConnect}
+                      style={{
+                        background: '#1da1f2',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Connect to Twitter
+                    </button>
+                  </div>
+                )}
+                {connectedTwitterAccounts.length > 0 && (
+                  <div style={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    background: '#fff3f3',
+                    textAlign: 'center'
+                  }}>
+                    <h4 style={{ color: '#dc3545', marginBottom: '10px', backgroundColor: 'inherit', background: 'none' }}>Disconnect Twitter</h4>
+                    <p style={{ color: '#666', margin: '10px 0' }}>Remove Twitter account from the system</p>
+                    <button 
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to disconnect your Twitter account?')) {
+                          await fetch(`${API_BASE_URL}/twitter-account/${connectedTwitterAccounts[0].id}`, {
+                            method: 'DELETE'
+                          });
+                          fetchConnectedTwitterAccounts();
+                        }
+                      }}
+                      style={{
+                        background: '#dc3545',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -781,19 +882,8 @@ const SocialsAndInsights = () => {
               </button>
             </div>
           
-            {!refreshingInsights && (
+            {!refreshingInsights && !loading && (
               <>
-                {loading && (
-                  <div style={{ 
-                    textAlign: 'center', 
-                    padding: '40px', 
-                    color: '#6b7280',
-                    fontSize: '14px'
-                  }}>
-                    Loading insights...
-                  </div>
-                )}
-              
                 {error && (
                   <div style={{ 
                     background: '#fef2f2', 
@@ -855,7 +945,7 @@ const SocialsAndInsights = () => {
             )}
             
             {/* Loading Overlay for Insights */}
-            {refreshingInsights && (
+            {(refreshingInsights || loading) && (
               <div style={{
                 position: 'absolute',
                 top: 0,
@@ -891,7 +981,7 @@ const SocialsAndInsights = () => {
                     fontWeight: '600',
                     background: 'transparent'
                   }}>
-                    Refreshing Insights
+                    {refreshingInsights ? 'Refreshing Insights' : 'Loading Insights'}
                   </h4>
                   
                   <p style={{

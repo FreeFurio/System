@@ -351,13 +351,15 @@ class SocialMediaService {
       const accounts = Object.values(snapshot.val());
       const account = accounts[0];
       
-      // Sanitize and validate content
-      const sanitizedContent = this.sanitizeTwitterContent(content);
-      console.log('🧹 Content before sanitization:', content);
-      console.log('🧹 Content after sanitization:', sanitizedContent);
-      
-      // Create unique tweet text to prevent duplicate detection
-      let tweetText = this.createUniqueTwitterText(sanitizedContent);
+      // Create tweet text without modifications
+      let tweetText = '';
+      if (content.caption && content.hashtag) {
+        tweetText = `${content.caption} ${content.hashtag}`;
+      } else if (content.caption) {
+        tweetText = content.caption;
+      } else {
+        tweetText = content.headline || 'Content update';
+      }
       
       const tweetData = {
         text: tweetText

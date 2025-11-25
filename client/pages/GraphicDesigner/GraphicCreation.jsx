@@ -112,8 +112,11 @@ export default function GraphicCreation() {
         
         if (foundWorkflow) {
           setWorkflow(foundWorkflow);
-          // Only use canvas data if it's for THIS specific task
-          const canvasData = (reduxDesign.taskId === taskId) ? reduxDesign.canvasData : null;
+          // Load canvas data from workflow if available, otherwise use Redux
+          const canvasData = foundWorkflow.graphicDesigner?.designs?.canvasData || 
+                           foundWorkflow.graphicDesigner?.canvasData || 
+                           (reduxDesign.taskId === taskId ? reduxDesign.canvasData : null);
+          console.log('🎨 Loading canvas data:', canvasData ? 'Found' : 'None');
           dispatch(setDesignTask({
             taskId,
             workflow: foundWorkflow,
@@ -130,8 +133,11 @@ export default function GraphicCreation() {
             const allFoundWorkflow = allData.data.find(w => w.id === taskId);
             if (allFoundWorkflow) {
               setWorkflow(allFoundWorkflow);
-              // Only use canvas data if it's for THIS specific task
-              const canvasData = (reduxDesign.taskId === taskId) ? reduxDesign.canvasData : null;
+              // Load canvas data from workflow if available, otherwise use Redux
+              const canvasData = allFoundWorkflow.graphicDesigner?.designs?.canvasData || 
+                               allFoundWorkflow.graphicDesigner?.canvasData || 
+                               (reduxDesign.taskId === taskId ? reduxDesign.canvasData : null);
+              console.log('🎨 Loading canvas data from all workflows:', canvasData ? 'Found' : 'None');
               dispatch(setDesignTask({
                 taskId,
                 workflow: allFoundWorkflow,

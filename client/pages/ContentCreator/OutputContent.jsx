@@ -515,13 +515,13 @@ export default function OutputContent() {
     let selected = 0;
     
     availablePlatforms.forEach(platform => {
-      const platformContent = selectedContent[platform];
+      const platformContent = selectedContent[platform] || {};
       if (platformContent.headline) selected++;
       if (platformContent.caption) selected++;
       if (platformContent.hashtag) selected++;
     });
     
-    return { selected, total: totalRequired, percentage: Math.round((selected / totalRequired) * 100) };
+    return { selected, total: totalRequired, percentage: selected > 0 ? Math.round((selected / totalRequired) * 100) : 0 };
   };
 
   useEffect(() => {

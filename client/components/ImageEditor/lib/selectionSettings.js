@@ -202,10 +202,14 @@
         _self.canvas.renderAll(), _self.canvas.trigger('object:modified');
       })
 
-      $(`${this.containerSelector} .toolpanel#select-panel .sizes input`).change(function () {
+      $(`${this.containerSelector} .toolpanel#select-panel .sizes input`).on('input change', function () {
         let value = parseFloat($(this).val());
         let type = $(this).attr('id');
-        setActiveFontStyle(_self.activeSelection, type, value);
+        if (type === 'charSpacing') {
+          _self.activeSelection.set('charSpacing', value);
+        } else {
+          setActiveFontStyle(_self.activeSelection, type, value);
+        }
         _self.canvas.renderAll(), _self.canvas.trigger('object:modified');
       })
 
@@ -441,6 +445,8 @@
 
     // object options section
     (() => {
+      let cropRect = null;
+      let targetImg = null;
       $(`${this.containerSelector} .toolpanel#select-panel .content`).append(`
         <div class="object-options">
           <h4>Object Options</h4>
@@ -450,8 +456,13 @@
           <button id="bring-back"><svg enable-background="new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xml:space="preserve"><path d="m990 990h-686v-686h686v686m-980-294v-686h686v680h-98v-582h-490v490h200v98z"></path><rect x="108.44" y="108" width="490" height="490" fill="#fff"></rect></svg></button>
           <button id="duplicate"><svg id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve"><g><g><g><path d="M42.667,256c0-59.52,35.093-110.827,85.547-134.827V75.2C53.653,101.44,0,172.48,0,256s53.653,154.56,128.213,180.8 v-45.973C77.76,366.827,42.667,315.52,42.667,256z"></path><path d="M320,64c-105.92,0-192,86.08-192,192s86.08,192,192,192s192-86.08,192-192S425.92,64,320,64z M320,405.333 c-82.347,0-149.333-66.987-149.333-149.333S237.653,106.667,320,106.667S469.333,173.653,469.333,256 S402.347,405.333,320,405.333z"></path><polygon points="341.333,170.667 298.667,170.667 298.667,234.667 234.667,234.667 234.667,277.333 298.667,277.333 298.667,341.333 341.333,341.333 341.333,277.333 405.333,277.333 405.333,234.667 341.333,234.667  "></polygon></g></g></g></svg></button>
           <button id="delete"><svg id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve"><g><g><path d="M425.298,51.358h-91.455V16.696c0-9.22-7.475-16.696-16.696-16.696H194.855c-9.22,0-16.696,7.475-16.696,16.696v34.662 H86.704c-9.22,0-16.696,7.475-16.696,16.696v51.357c0,9.22,7.475,16.696,16.696,16.696h5.072l15.26,359.906 c0.378,8.937,7.735,15.988,16.68,15.988h264.568c8.946,0,16.302-7.051,16.68-15.989l15.259-359.906h5.073 c9.22,0,16.696-7.475,16.696-16.696V68.054C441.994,58.832,434.519,51.358,425.298,51.358z M211.551,33.391h88.9v17.967h-88.9 V33.391z M372.283,478.609H139.719l-14.522-342.502h261.606L372.283,478.609z M408.602,102.715c-15.17,0-296.114,0-305.202,0 V84.749h305.202V102.715z"></path></g></g><g><g><path d="M188.835,187.304c-9.22,0-16.696,7.475-16.696,16.696v206.714c0,9.22,7.475,16.696,16.696,16.696 c9.22,0,16.696-7.475,16.696-16.696V204C205.53,194.779,198.055,187.304,188.835,187.304z"></path></g></g><g><g><path d="M255.998,187.304c-9.22,0-16.696,7.475-16.696,16.696v206.714c0,9.22,7.474,16.696,16.696,16.696 c9.22,0,16.696-7.475,16.696-16.696V204C272.693,194.779,265.218,187.304,255.998,187.304z"></path></g></g><g><g><path d="M323.161,187.304c-9.22,0-16.696,7.475-16.696,16.696v206.714c0,9.22,7.475,16.696,16.696,16.696 s16.696-7.475,16.696-16.696V204C339.857,194.779,332.382,187.304,323.161,187.304z"></path></g></g></svg></button>
+          <button id="crop"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M17 15h2V7c0-1.1-.9-2-2-2H9v2h8v8zM7 17V1H5v4H1v2h4v10c0 1.1.9 2 2 2h10v4h2v-4h4v-2H7z"/></svg></button>
           <button id="group"><svg width="248" height="249" viewBox="0 0 248 249"><g><rect fill="none" id="canvas_background" height="251" width="250" y="-1" x="-1"></rect><g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid"><rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"></rect></g></g><g><rect id="svg_1" height="213.999997" width="213.999997" y="18.040149" x="16.8611" stroke-width="14" stroke="#000" fill="none"></rect><ellipse ry="39.5" rx="39.5" id="svg_2" cy="87.605177" cx="90.239139" stroke-opacity="null" stroke-width="5" stroke="#000" fill="#000000"></ellipse><rect id="svg_3" height="61.636373" width="61.636373" y="135.606293" x="133.750604" stroke-opacity="null" stroke-width="5" stroke="#000" fill="#000000"></rect><rect id="svg_4" height="26.016205" width="26.016205" y="4.813006" x="3.999997" stroke-opacity="null" stroke-width="8" stroke="#000" fill="#000000"></rect><rect id="svg_5" height="26.016205" width="26.016205" y="3.999999" x="217.820703" stroke-opacity="null" stroke-width="8" stroke="#000" fill="#000000"></rect><rect id="svg_7" height="26.016205" width="26.016205" y="218.633712" x="3.999997" stroke-opacity="null" stroke-width="8" stroke="#000" fill="#000000"></rect><rect id="svg_8" height="26.016205" width="26.016205" y="218.633712" x="217.820694" stroke-opacity="null" stroke-width="8" stroke="#000" fill="#000000"></rect></g></svg></button>
           <button id="ungroup"><svg width="247.99999999999997" height="248.99999999999997" viewBox="0 0 248 249"><g><rect fill="none" id="canvas_background" height="251" width="250" y="-1" x="-1"></rect><g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid"><rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"></rect></g></g><g><rect stroke-dasharray="20" id="svg_1" height="213.999997" width="213.999997" y="18.040149" x="16.8611" stroke-width="16" stroke="#000" fill="none"></rect><ellipse ry="39.5" rx="39.5" id="svg_2" cy="87.605177" cx="90.239139" stroke-opacity="null" stroke-width="5" stroke="#000" fill="#000000"></ellipse><rect id="svg_3" height="61.636373" width="61.636373" y="135.606293" x="133.750604" stroke-opacity="null" stroke-width="5" stroke="#000" fill="#000000"></rect></g></svg></button>
+          <div class="crop-controls" style="display:none; margin-top:10px;">
+            <button id="apply-crop" style="width:48%; margin-right:4%;">Apply</button>
+            <button id="cancel-crop" style="width:48%;">Cancel</button>
+          </div>
           <hr>
         </div>
       `);
@@ -513,6 +524,81 @@
         this.canvas.getActiveObject().toActiveSelection()
         this.canvas.requestRenderAll(), this.canvas.trigger('object:modified');
       })
+      
+      $(`${this.containerSelector} .toolpanel#select-panel .object-options #crop`).click(() => {
+        const activeObj = _self.activeSelection;
+        if (!activeObj || activeObj.type !== 'image') return;
+        targetImg = activeObj;
+        _self.canvas.discardActiveObject();
+        const bounds = targetImg.getBoundingRect();
+        cropRect = new fabric.Rect({
+          left: bounds.left,
+          top: bounds.top,
+          width: bounds.width / 2,
+          height: bounds.height / 2,
+          fill: 'rgba(0,0,0,0.3)',
+          stroke: '#00ff00',
+          strokeWidth: 2,
+          selectable: true,
+          hasRotatingPoint: false
+        });
+        cropRect.on('moving', function() {
+          const rect = this.getBoundingRect();
+          this.left = Math.max(bounds.left, Math.min(this.left, bounds.left + bounds.width - rect.width));
+          this.top = Math.max(bounds.top, Math.min(this.top, bounds.top + bounds.height - rect.height));
+        });
+        cropRect.on('scaling', function() {
+          const rect = this.getBoundingRect();
+          if (rect.left < bounds.left || rect.top < bounds.top || rect.left + rect.width > bounds.left + bounds.width || rect.top + rect.height > bounds.top + bounds.height) {
+            this.scaleX = this._stateProperties.scaleX;
+            this.scaleY = this._stateProperties.scaleY;
+            this.left = this._stateProperties.left;
+            this.top = this._stateProperties.top;
+          } else {
+            this._stateProperties = { scaleX: this.scaleX, scaleY: this.scaleY, left: this.left, top: this.top };
+          }
+        });
+        cropRect._stateProperties = { scaleX: cropRect.scaleX, scaleY: cropRect.scaleY, left: cropRect.left, top: cropRect.top };
+        _self.canvas.add(cropRect);
+        _self.canvas.setActiveObject(cropRect);
+        _self.canvas.renderAll();
+        $(`${_self.containerSelector} .toolpanel#select-panel .object-options .crop-controls`).show();
+      });
+      
+      $(`${this.containerSelector} .toolpanel#select-panel .object-options #apply-crop`).click(() => {
+        if (!targetImg || !cropRect) return;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const imgBounds = targetImg.getBoundingRect();
+        const rectBounds = cropRect.getBoundingRect();
+        const relX = (rectBounds.left - imgBounds.left) / targetImg.scaleX;
+        const relY = (rectBounds.top - imgBounds.top) / targetImg.scaleY;
+        const relWidth = rectBounds.width / targetImg.scaleX;
+        const relHeight = rectBounds.height / targetImg.scaleY;
+        canvas.width = relWidth;
+        canvas.height = relHeight;
+        ctx.drawImage(targetImg.getElement(), relX, relY, relWidth, relHeight, 0, 0, relWidth, relHeight);
+        fabric.Image.fromURL(canvas.toDataURL(), newImg => {
+          newImg.set({ left: rectBounds.left, top: rectBounds.top, scaleX: targetImg.scaleX, scaleY: targetImg.scaleY });
+          _self.canvas.remove(targetImg);
+          _self.canvas.add(newImg);
+          _self.canvas.remove(cropRect);
+          cropRect = null;
+          targetImg = null;
+          $(`${_self.containerSelector} .toolpanel#select-panel .object-options .crop-controls`).hide();
+          _self.canvas.renderAll(), _self.canvas.trigger('object:modified');
+        });
+      });
+      
+      $(`${this.containerSelector} .toolpanel#select-panel .object-options #cancel-crop`).click(() => {
+        if (cropRect) {
+          _self.canvas.remove(cropRect);
+          cropRect = null;
+          targetImg = null;
+        }
+        $(`${_self.containerSelector} .toolpanel#select-panel .object-options .crop-controls`).hide();
+        _self.canvas.renderAll();
+      });
     })();
     // end object options section
 
@@ -529,6 +615,13 @@
           <div class="input-container"><label>Red</label><input class="effect" id="gamma.r" type="range" min="0" max="100" value="50"></div>
           <div class="input-container"><label>Green</label><input class="effect" id="gamma.g" type="range" min="0" max="100" value="50"></div>
           <div class="input-container"><label>Blue</label><input class="effect" id="gamma.b" type="range" min="0" max="100" value="50"></div>
+          <h5>Filters</h5>
+          <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;">
+            <button class="filter-btn" data-filter="grayscale" style="flex:1; min-width:70px; height:32px;">Grayscale</button>
+            <button class="filter-btn" data-filter="sepia" style="flex:1; min-width:70px; height:32px;">Sepia</button>
+            <button class="filter-btn" data-filter="invert" style="flex:1; min-width:70px; height:32px;">Invert</button>
+            <button class="filter-btn" data-filter="remove" style="flex:1; min-width:70px; height:32px;">Remove</button>
+          </div>
           <hr>
         </div>
       `);
@@ -545,19 +638,35 @@
         let currentEffect = getCurrentEffect(_self.activeSelection);
         _self.activeSelection.filters = getUpdatedFilter(currentEffect, effect, value);
         
-        // Add padding to prevent cropping when filters are applied
         if (_self.activeSelection.type === 'image') {
-          _self.activeSelection.set({
-            padding: 50
-          });
+          _self.activeSelection.set({ padding: 50 });
         }
         
         _self.activeSelection.applyFilters();
         _self.canvas.renderAll(), _self.canvas.trigger('object:modified')
       })
+
+      $(`${this.containerSelector} .toolpanel#select-panel .effect-section .filter-btn`).click(function() {
+        const filterType = $(this).data('filter');
+        const activeObj = _self.activeSelection;
+        if (!activeObj || activeObj.type !== 'image') return;
+        if (filterType === 'remove') {
+          activeObj.filters = [];
+        } else if (filterType === 'grayscale') {
+          activeObj.filters.push(new fabric.Image.filters.Grayscale());
+        } else if (filterType === 'sepia') {
+          activeObj.filters.push(new fabric.Image.filters.Sepia());
+        } else if (filterType === 'invert') {
+          activeObj.filters.push(new fabric.Image.filters.Invert());
+        }
+        activeObj.applyFilters();
+        _self.canvas.renderAll(), _self.canvas.trigger('object:modified');
+      });
     })();
     // end effect section
+
+
   }
 
   window.ImageEditor.prototype.initializeSelectionSettings = selectionSettings;
-})()
+})();

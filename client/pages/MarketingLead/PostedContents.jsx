@@ -274,7 +274,7 @@ const PostedContents = () => {
             paddingBottom: '12px',
             borderBottom: '2px solid #e5e7eb'
           }}>
-            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Posts
+            {activeTab ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : 'Social Media'} Posts
           </h2>
           {tabLoading ? (
             <div style={{ 
@@ -553,7 +553,7 @@ const PostedContents = () => {
                 fontSize: '16px',
                 marginRight: '12px'
               }}>
-                {selectedPost.pageName.charAt(0)}
+                {selectedPost.pageName ? selectedPost.pageName.charAt(0) : '?'}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '600', fontSize: '15px', color: '#1c1e21' }}>

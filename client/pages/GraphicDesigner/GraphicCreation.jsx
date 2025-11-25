@@ -259,11 +259,34 @@ export default function GraphicCreation() {
     setError('');
 
     try {
+      // Get canvas JSON data from iframe
+      const iframe = document.querySelector('iframe');
+      let canvasJsonData = null;
+      
+      if (iframe && iframe.contentWindow) {
+        const canvasDataPromise = new Promise((resolve) => {
+          const handleCanvasData = (event) => {
+            if (event.data && typeof event.data === 'string' && event.data.startsWith('CANVAS_JSON:')) {
+              const jsonData = event.data.replace('CANVAS_JSON:', '');
+              window.removeEventListener('message', handleCanvasData);
+              resolve(jsonData);
+            }
+          };
+          window.addEventListener('message', handleCanvasData);
+          iframe.contentWindow.postMessage('GET_CANVAS_JSON', '*');
+        });
+        
+        canvasJsonData = await canvasDataPromise;
+      }
+
       const response = await fetch(imageData);
       const blob = await response.blob();
       const formData = new FormData();
       formData.append('design', blob, 'design.png');
       formData.append('description', `Design created for task ${taskId}`);
+      if (canvasJsonData) {
+        formData.append('canvasData', canvasJsonData);
+      }
 
       const submitResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/submit-design`, {
         method: 'POST',

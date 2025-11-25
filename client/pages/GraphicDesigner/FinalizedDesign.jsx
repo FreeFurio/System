@@ -266,7 +266,7 @@ export default function FinalizedDesign() {
             flexWrap: 'wrap'
           }}>
             <button
-              onClick={() => navigate('/graphic/task')}
+              onClick={() => navigate(`/graphic/creation?taskId=${taskId}&editDraft=true`)}
               style={{
                 background: '#6b7280',
                 color: '#fff',
@@ -278,7 +278,7 @@ export default function FinalizedDesign() {
                 fontSize: '16px'
               }}
             >
-              ← Back to Tasks
+              ← Back to Editing
             </button>
             
             <button

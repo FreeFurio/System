@@ -23,11 +23,22 @@ export default function FinalizedDesign() {
 
   const fetchWorkflow = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/graphicdesigner`);
-      const data = await response.json();
+      // Try graphic designer stage first
+      let response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows/stage/graphicdesigner`);
+      let data = await response.json();
       
       if (data.status === 'success' && Array.isArray(data.data)) {
-        const foundWorkflow = data.data.find(w => w.id === taskId);
+        let foundWorkflow = data.data.find(w => w.id === taskId);
+        
+        // If not found, try all workflows
+        if (!foundWorkflow) {
+          response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflows`);
+          data = await response.json();
+          if (data.status === 'success' && Array.isArray(data.data)) {
+            foundWorkflow = data.data.find(w => w.id === taskId);
+          }
+        }
+        
         if (foundWorkflow) {
           setWorkflow(foundWorkflow);
         }
@@ -51,8 +62,9 @@ export default function FinalizedDesign() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          designUrl: designData?.designUrl || workflow?.graphicDesigner?.designUrl,
-          description: `Design created for task ${taskId}`
+          designUrl: designData?.designUrl || workflow?.graphicDesigner?.designs?.designUrl || workflow?.graphicDesigner?.designUrl,
+          description: `Design created for task ${taskId}`,
+          canvasData: workflow?.graphicDesigner?.designs?.canvasData || workflow?.graphicDesigner?.canvasData
         })
       });
       
@@ -130,7 +142,9 @@ export default function FinalizedDesign() {
     );
   }
 
-  const designUrl = designData?.designUrl || workflow?.graphicDesigner?.designUrl;
+  const designUrl = designData?.designUrl || 
+                    workflow?.graphicDesigner?.designs?.designUrl || 
+                    workflow?.graphicDesigner?.designUrl;
 
   return (
     <div style={{ 

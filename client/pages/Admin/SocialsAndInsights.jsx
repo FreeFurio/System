@@ -539,6 +539,7 @@ const SocialsAndInsights = () => {
                     <p style={{ color: '#666', margin: '10px 0' }}>Add your Facebook Pages to the system</p>
                     <button 
                       onClick={() => {
+                        setAvailablePages([]);
                         setModalStep('connect');
                         setShowFacebookModal(true);
                       }}
@@ -1063,7 +1064,11 @@ const SocialsAndInsights = () => {
                   Authorize Facebook
                 </button>
                 <button
-                  onClick={() => setShowFacebookModal(false)}
+                  onClick={() => {
+                    setShowFacebookModal(false);
+                    setAvailablePages([]);
+                    setModalStep('connect');
+                  }}
                   style={{
                     background: '#6c757d',
                     color: '#fff',
@@ -1087,6 +1092,7 @@ const SocialsAndInsights = () => {
                     setShowFacebookModal(false);
                     setModalStep('connect');
                     setIsAuthenticating(false);
+                    setAvailablePages([]);
                   }}
                   style={{
                     background: '#6c757d',
@@ -1140,7 +1146,11 @@ const SocialsAndInsights = () => {
                   ))}
                 </div>
                 <button
-                  onClick={() => setShowFacebookModal(false)}
+                  onClick={() => {
+                    setShowFacebookModal(false);
+                    setAvailablePages([]);
+                    setModalStep('connect');
+                  }}
                   style={{
                     background: '#6c757d',
                     color: '#fff',

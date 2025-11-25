@@ -154,6 +154,9 @@ const SocialsAndInsights = () => {
     setIsAuthenticating(true);
     setModalStep('loading');
     
+    // Clear any cached auth results from previous sessions
+    localStorage.removeItem('facebookAuthResult');
+    
     const sessionId = Date.now().toString();
     setCurrentSessionId(sessionId);
     console.log('Generated session ID:', sessionId);

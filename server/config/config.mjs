@@ -21,8 +21,8 @@ export const config = {
   },
   
   email: {
-    resendApiKey: process.env.RESEND_API_KEY,
-    fromAddress: process.env.EMAIL_FROM || 'onboarding@resend.dev'
+    gmailUser: process.env.GMAIL_USER,
+    gmailAppPassword: process.env.GMAIL_APP_PASSWORD
   },
   
   server: {

@@ -297,6 +297,7 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
 
   const canCreateContent = (workflow.status === 'content_creation' || workflow.status === 'content_rejected') && workflow.currentStage === 'contentcreator';
   const hasSubmittedContent = workflow.contentCreator && workflow.contentCreator.content;
+  const hasGeneratedContent = workflow.contentCreator && workflow.contentCreator.generatedContent && workflow.contentCreator.generatedContent.length > 0;
 
   return (
     <div style={{
@@ -519,35 +520,69 @@ const WorkflowCard = ({ workflow, onCreateContent }) => {
       
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
         {canCreateContent && (
-          <button
-            onClick={() => onCreateContent(workflow)}
-            style={{
-              background: '#10b981',
-              color: '#fff',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '12px',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              height: '36px',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={e => {
-              e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
-            }}
-            onMouseLeave={e => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
-            }}
-          >
-            <FiEdit3 size={14} /> Create Content
-          </button>
+          <>
+            {hasGeneratedContent ? (
+              <button
+                onClick={() => onCreateContent(workflow, true)}
+                style={{
+                  background: '#f59e0b',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(245, 158, 11, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(245, 158, 11, 0.3)';
+                }}
+                onMouseLeave={e => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(245, 158, 11, 0.2)';
+                }}
+              >
+                <FiEdit3 size={14} /> Continue Editing
+              </button>
+            ) : (
+              <button
+                onClick={() => onCreateContent(workflow)}
+                style={{
+                  background: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  height: '36px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                }}
+                onMouseLeave={e => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                }}
+              >
+                <FiEdit3 size={14} /> Create Content
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -574,7 +609,21 @@ export default function Task() {
     dispatch(fetchWorkflows());
   }, [dispatch]);
 
-  const handleCreateContent = async (workflow) => {
+  const contentDispatch = useDispatch();
+  
+  const handleCreateContent = async (workflow, continueEditing = false) => {
+    if (continueEditing && workflow.contentCreator?.generatedContent) {
+      // Load generated content and go to output page
+      contentDispatch(setGeneratedContents({
+        contents: workflow.contentCreator.generatedContent,
+        taskId: workflow.id,
+        workflowId: workflow.id,
+        fromDraftEdit: false
+      }));
+      navigate('/content/output');
+      return;
+    }
+    
     if (workflow.status === 'content_rejected') {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/drafts/workflow/${workflow.id}`, {

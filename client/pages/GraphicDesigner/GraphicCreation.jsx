@@ -36,6 +36,7 @@ export default function GraphicCreation() {
     if (urlTaskId && urlTaskId !== reduxDesign.taskId) {
       console.log('🧹 Clearing old Redux design data - URL taskId:', urlTaskId, 'Redux taskId:', reduxDesign.taskId);
       dispatch(clearDesign());
+      setCanvasJsonData(null); // Clear canvas data state
     }
     
     if (taskId) {
@@ -48,40 +49,43 @@ export default function GraphicCreation() {
       if (event.data && typeof event.data === 'string') {
         if (event.data.startsWith('CANVAS_JSON:')) {
           const jsonData = event.data.replace('CANVAS_JSON:', '');
-          console.log('💾 Saving canvas data to Redux:', jsonData.substring(0, 100) + '...');
+          console.log('💾 Saving canvas data for task:', taskId);
           setCanvasJsonData(jsonData);
           dispatch(updateCanvasData(jsonData));
-          console.log('✅ Canvas data dispatched to Redux');
         }
       }
     };
 
     window.addEventListener('message', handleMessage);
     
-    // Auto-save canvas data every 3 seconds to both Redux and Firebase
-    const autoSaveInterval = setInterval(async () => {
+    // Auto-save canvas data every 3 seconds
+    const autoSaveInterval = setInterval(() => {
       const iframe = document.querySelector('iframe');
-      if (iframe && iframe.contentWindow) {
+      if (iframe && iframe.contentWindow && taskId) {
         iframe.contentWindow.postMessage('GET_CANVAS_JSON', '*');
-        
-        // Also save to Firebase if we have canvas data
-        if (canvasJsonData && taskId) {
-          try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/auto-save-canvas`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ canvasData: canvasJsonData })
-            });
-          } catch (error) {
-            console.error('Auto-save to Firebase failed:', error);
-          }
-        }
       }
     }, 3000);
+    
+    // Separate interval for Firebase save to avoid race conditions
+    const firebaseSaveInterval = setInterval(async () => {
+      if (canvasJsonData && taskId) {
+        try {
+          await fetch(`${import.meta.env.VITE_API_URL}/api/v1/tasks/workflow/${taskId}/auto-save-canvas`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ canvasData: canvasJsonData })
+          });
+          console.log('✅ Auto-saved to Firebase for task:', taskId);
+        } catch (error) {
+          console.error('❌ Auto-save failed:', error);
+        }
+      }
+    }, 5000);
     
     return () => {
       window.removeEventListener('message', handleMessage);
       clearInterval(autoSaveInterval);
+      clearInterval(firebaseSaveInterval);
     };
   }, [taskId]);
 

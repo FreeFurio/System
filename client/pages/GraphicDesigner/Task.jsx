@@ -295,7 +295,7 @@ const WorkflowCard = ({ workflow, onCreateDesign }) => {
 
   const canCreateDesign = (workflow.status === 'design_creation' || workflow.status === 'design_rejected') && workflow.currentStage === 'graphicdesigner';
   const hasSubmittedDesign = workflow.graphicDesigner && workflow.graphicDesigner.designs;
-  const hasDraftDesign = workflow.graphicDesigner && workflow.graphicDesigner.canvasData;
+  const hasDraftDesign = workflow.graphicDesigner && (workflow.graphicDesigner.canvasData || workflow.graphicDesigner.designs?.canvasData);
 
   return (
     <div style={{

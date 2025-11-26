@@ -613,7 +613,6 @@ export default function Task() {
   
   const handleCreateContent = async (workflow, continueEditing = false) => {
     if (continueEditing && workflow.contentCreator?.generatedContent) {
-      // Load generated content and go to output page
       contentDispatch(setGeneratedContents({
         contents: workflow.contentCreator.generatedContent,
         taskId: workflow.id,
@@ -632,11 +631,20 @@ export default function Task() {
         const data = await response.json();
         
         if (data.success && data.drafts && Object.keys(data.drafts).length > 0) {
-          navigate('/content/output', { state: { workflowId: workflow.id, fromRejection: true } });
-          return;
+          const draftData = Object.values(data.drafts)[0];
+          if (draftData.content?.allGeneratedContent) {
+            contentDispatch(setGeneratedContents({
+              contents: draftData.content.allGeneratedContent,
+              taskId: workflow.id,
+              workflowId: workflow.id,
+              fromDraftEdit: true
+            }));
+            navigate('/content/output');
+            return;
+          }
         }
       } catch (error) {
-        console.error('Error checking draft:', error);
+        console.error('Error loading draft:', error);
       }
     }
     

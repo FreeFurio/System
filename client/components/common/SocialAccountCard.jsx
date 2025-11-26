@@ -93,16 +93,15 @@ const SocialAccountCard = ({
             (() => {
               const tokenAge = Date.now() - account.tokenTimestamp;
               const isExpired = tokenAge > (2 * 60 * 60 * 1000); // 2 hours
+              const API_BASE_URL = import.meta.env.PROD ? '/api/v1/admin' : 'http://localhost:3000/api/v1/admin';
               return isExpired ? (
                 <button 
                   onClick={() => {
-                    const popup = window.open('/api/v1/admin/twitter-oauth', '_blank', 'width=600,height=600');
-                    const checkClosed = setInterval(() => {
-                      if (popup.closed) {
-                        clearInterval(checkClosed);
-                        window.location.reload(); // Refresh page to show updated token
-                      }
-                    }, 1000);
+                    window.open(
+                      `${API_BASE_URL}/twitter-oauth`,
+                      'twitter-auth',
+                      'width=600,height=700,scrollbars=yes,resizable=yes'
+                    );
                   }}
                   style={{ 
                     color: '#dc3545', 

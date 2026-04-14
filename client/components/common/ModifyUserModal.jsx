@@ -179,23 +179,6 @@ const ModifyUserModal = ({ user, isOpen, onClose, onSave }) => {
                 Account Status
               </h3>
               <div style={{ display: 'grid', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '8px' }}>
-                    Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                    style={{
-                      width: '100%', padding: '12px', border: '1px solid #d1d5db',
-                      borderRadius: '8px', fontSize: '0.875rem', outline: 'none'
-                    }}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
-                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <input
                     type="checkbox"

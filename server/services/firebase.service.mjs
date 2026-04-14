@@ -148,7 +148,7 @@ class FirebaseService {
       return null;
     } catch (error) {
       console.error('❌ Error finding user by username:', error);
-      throw new Error('Failed to find user');
+      throw new Error(`Failed to find user: ${error.message}`);
     }
   }
 
